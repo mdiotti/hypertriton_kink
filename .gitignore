@@ -1,0 +1,10 @@
+*_C*
+-
+*.root
+!o2_geometry.root
+.vscode
+*.pdf
+*.png
+
+!LHCCplots/*
+!utils/*
