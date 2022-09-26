@@ -5,6 +5,10 @@
 .vscode
 *.pdf
 *.png
+*.cc
+*.d
+*.so
+*.pcm
 
 !LHCCplots/*
 !utils/*
