@@ -154,13 +154,13 @@ void efficiency_functions(TString path, TString filename)
                 else if (abs(mcTrack.GetPdgCode()) == hypPDG)
                 {
                     hist_gen_pt->Fill(mcTrack.GetPt());
-                    hist_gen_r->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, hypPDG));
+                    hist_gen_r->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG));
 
                     int dauID = mcTrack.getFirstDaughterTrackId();
                     auto dauTrack = mcTracksMatrix[n][dauID];
                     if(abs(dauTrack.GetPdgCode()) == tritonPDG){
                         hist_gen_pt_top->Fill(mcTrack.GetPt());
-                        hist_gen_r_top->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, hypPDG));
+                        hist_gen_r_top->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG));
                     }
                 }
             }
@@ -246,7 +246,7 @@ void efficiency_functions(TString path, TString filename)
                     {
                         int motherID = mcTrack.getMotherTrackId();
                         auto motherTrack = mcTracksMatrix[evID][motherID];
-                        if (!abs(motherTrack.GetPdgCode()) == hypPDG)
+                        if (abs(motherTrack.GetPdgCode()) != hypPDG)
                             continue;
 
                         auto tritITSTPCTrack = ITSTPCtracks->at(iTrack);
