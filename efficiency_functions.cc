@@ -155,6 +155,13 @@ void efficiency_functions(TString path, TString filename)
                 {
                     hist_gen_pt->Fill(mcTrack.GetPt());
                     hist_gen_r->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, hypPDG));
+
+                    int dauID = mcTrack.getFirstDaughterTrackId();
+                    auto dauTrack = mcTracksMatrix[n][dauID];
+                    if(abs(dauTrack.GetPdgCode()) == tritonPDG){
+                        hist_gen_pt_top->Fill(mcTrack.GetPt());
+                        hist_gen_r_top->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, hypPDG));
+                    }
                 }
             }
         }
