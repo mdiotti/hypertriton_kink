@@ -128,18 +128,28 @@ void efficiency_functions(TString path, TString filename)
 
         std::vector<std::vector<MCTrack>> mcTracksMatrix;
         auto nev = treeMCTracks->GetEntriesFast();
+        unsigned int nTracks[nev];
 
         mcTracksMatrix.resize(nev);
         for (int n = 0; n < nev; n++)
         { // loop over MC events
             treeMCTracks->GetEvent(n);
+            unsigned int size = MCtracks->size();
+            nTracks[n] = size;
 
-            mcTracksMatrix[n].resize(MCtracks->size());
+            mcTracksMatrix[n].resize(size);
 
-            for (unsigned int mcI{0}; mcI < MCtracks->size(); ++mcI)
+            for (unsigned int mcI{0}; mcI < size; ++mcI)
             {
-                auto mcTrack = MCtracks->at(mcI);
-                mcTracksMatrix[n][mcI] = mcTrack;
+                mcTracksMatrix[n][mcI] = MCtracks->at(mcI);
+            }
+        }
+
+        for (int n = 0; n < nev; n++)
+        {
+            for (unsigned int mcI{0}; mcI < nTracks[n]; mcI++)
+            {
+                auto mcTrack = mcTracksMatrix[n][mcI];
 
                 if (abs(mcTrack.GetPdgCode()) == tritonPDG)
                 {
@@ -147,11 +157,11 @@ void efficiency_functions(TString path, TString filename)
                     auto motherTrack = mcTracksMatrix[n][motherID];
                     if (abs(motherTrack.GetPdgCode()) == hypPDG)
                     {
-                        hist_gen_pt_trit->Fill(motherTrack.GetPt());
+                        hist_gen_pt_trit->Fill(mcTrack.GetPt());
                         hist_gen_r_trit->Fill(calcRadius(&mcTracksMatrix[n], motherTrack, tritonPDG));
                     }
                 }
-                else if (abs(mcTrack.GetPdgCode()) == hypPDG)
+                if (abs(mcTrack.GetPdgCode()) == hypPDG)
                 {
                     hist_gen_pt->Fill(mcTrack.GetPt());
                     hist_gen_r->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG));
@@ -252,7 +262,7 @@ void efficiency_functions(TString path, TString filename)
                         auto tritITSTPCTrack = ITSTPCtracks->at(iTrack);
                         hist_rec_pt_trit->Fill(mcTrack.GetPt());
 
-                        auto radius = calcRadius(&mcTracksMatrix[evID], mcTrack, tritonPDG);
+                        auto radius = calcRadius(&mcTracksMatrix[evID], motherTrack, tritonPDG);
                         hist_rec_r_trit->Fill(radius);
 
                         if (!fake)
@@ -268,7 +278,7 @@ void efficiency_functions(TString path, TString filename)
             }
 
         } // event loop
-    }     // end of tf loop
+    } // end of tf loop
 
     auto fFile = TFile(filename, "recreate");
     hist_gen_pt->Write();
@@ -280,22 +290,22 @@ void efficiency_functions(TString path, TString filename)
     hist_rec_r->Write();
     hist_fake_r->Write();
 
-    TH1F *eff_hist_pt = (TH1F *)hist_rec_pt->Clone("hist_eff_pt");
+    TH1F *eff_hist_pt = (TH1F *)hist_rec_pt->Clone("eff_pt_hyp");
     eff_hist_pt->GetYaxis()->SetTitle("Hypertriton Efficiency");
     eff_hist_pt->Divide(hist_gen_pt);
     eff_hist_pt->Write();
 
-    TH1F *pur_hist_pt = (TH1F *)hist_fake_pt->Clone("hist_pur_pt");
+    TH1F *pur_hist_pt = (TH1F *)hist_fake_pt->Clone("pur_pt_hyp");
     pur_hist_pt->GetYaxis()->SetTitle("Hypertriton Purity");
     pur_hist_pt->Divide(hist_rec_pt);
     pur_hist_pt->Write();
 
-    TH1F *eff_hist_r = (TH1F *)hist_rec_r->Clone("hist_eff_r");
+    TH1F *eff_hist_r = (TH1F *)hist_rec_r->Clone("eff_r_hyp");
     eff_hist_r->GetYaxis()->SetTitle("Hypertriton Efficiency");
     eff_hist_r->Divide(hist_gen_r);
     eff_hist_r->Write();
 
-    TH1F *pur_hist_r = (TH1F *)hist_fake_r->Clone("hist_pur_r");
+    TH1F *pur_hist_r = (TH1F *)hist_fake_r->Clone("pur_r_hyp");
     pur_hist_r->GetYaxis()->SetTitle("Hypertriton Purity");
     pur_hist_r->Divide(hist_rec_r);
     pur_hist_r->Write();
@@ -309,22 +319,22 @@ void efficiency_functions(TString path, TString filename)
     hist_rec_r_trit->Write();
     hist_fake_r_trit->Write();
 
-    TH1F *eff_hist_pt_trit = (TH1F *)hist_rec_pt_trit->Clone("hist_eff_pt_trit");
+    TH1F *eff_hist_pt_trit = (TH1F *)hist_rec_pt_trit->Clone("eff_pt_trit");
     eff_hist_pt_trit->GetYaxis()->SetTitle("Triton Efficiency");
     eff_hist_pt_trit->Divide(hist_gen_pt_trit);
     eff_hist_pt_trit->Write();
 
-    TH1F *pur_hist_pt_trit = (TH1F *)hist_fake_pt_trit->Clone("hist_pur_pt_trit");
+    TH1F *pur_hist_pt_trit = (TH1F *)hist_fake_pt_trit->Clone("pur_pt_trit");
     pur_hist_pt_trit->GetYaxis()->SetTitle("Triton Purity");
     pur_hist_pt_trit->Divide(hist_rec_pt_trit);
     pur_hist_pt_trit->Write();
 
-    TH1F *eff_hist_r_trit = (TH1F *)hist_rec_r_trit->Clone("hist_eff_r_trit");
+    TH1F *eff_hist_r_trit = (TH1F *)hist_rec_r_trit->Clone("eff_r_trit");
     eff_hist_r_trit->GetYaxis()->SetTitle("Triton Efficiency");
     eff_hist_r_trit->Divide(hist_gen_r_trit);
     eff_hist_r_trit->Write();
 
-    TH1F *pur_hist_r_trit = (TH1F *)hist_fake_r_trit->Clone("hist_pur_r_trit");
+    TH1F *pur_hist_r_trit = (TH1F *)hist_fake_r_trit->Clone("pur_r_trit");
     pur_hist_r_trit->GetYaxis()->SetTitle("Triton Purity");
     pur_hist_r_trit->Divide(hist_rec_r_trit);
     pur_hist_r_trit->Write();
@@ -338,17 +348,17 @@ void efficiency_functions(TString path, TString filename)
     hist_rec_r_top->Write();
     hist_fake_r_top->Write();
 
-    TH1F *eff_hist_pt_top = (TH1F *)hist_rec_pt_top->Clone("hist_eff_pt_top");
+    TH1F *eff_hist_pt_top = (TH1F *)hist_rec_pt_top->Clone("eff_pt_top");
     eff_hist_pt_top->GetYaxis()->SetTitle("Top Efficiency");
     eff_hist_pt_top->Divide(hist_gen_pt_top);
     eff_hist_pt_top->Write();
 
-    TH1F *pur_hist_pt_top = (TH1F *)hist_fake_pt_top->Clone("hist_pur_pt_top");
+    TH1F *pur_hist_pt_top = (TH1F *)hist_fake_pt_top->Clone("pur_pt_top");
     pur_hist_pt_top->GetYaxis()->SetTitle("Top Purity");
     pur_hist_pt_top->Divide(hist_rec_pt_top);
     pur_hist_pt_top->Write();
 
-    TH1F *eff_hist_r_top = (TH1F *)hist_rec_r_top->Clone("hist_eff_r_top");
+    TH1F *eff_hist_r_top = (TH1F *)hist_rec_r_top->Clone("eff_r_top");
     eff_hist_r_top->GetYaxis()->SetTitle("Top Efficiency");
     eff_hist_r_top->Divide(hist_gen_r_top);
     eff_hist_r_top->Write();
