@@ -53,8 +53,8 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
         //        if (dauTrack.GetPdgCode() == dauPDG)
         if (abs(dauTrack.GetPdgCode()) == dauPDG)
         {
-            auto decLength = TMath::Sqrt((dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) * (dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) + (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()) * (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()));
-            return decLength;
+            auto radius = TMath::Sqrt((dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) * (dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) + (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()) * (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()));
+            return radius;
         }
     }
     return -1;
@@ -158,7 +158,8 @@ void efficiency_functions(TString path, TString filename)
 
                     int dauID = mcTrack.getFirstDaughterTrackId();
                     auto dauTrack = mcTracksMatrix[n][dauID];
-                    if(abs(dauTrack.GetPdgCode()) == tritonPDG){
+                    if (abs(dauTrack.GetPdgCode()) == tritonPDG)
+                    {
                         hist_gen_pt_top->Fill(mcTrack.GetPt());
                         hist_gen_r_top->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG));
                     }
@@ -187,13 +188,13 @@ void efficiency_functions(TString path, TString filename)
                         // hypertriton histos fill
                         auto hypITSTrack = ITStracks->at(iTrack);
                         hist_rec_pt->Fill(mcTrack.GetPt());
-                        auto decLength = calcRadius(&mcTracksMatrix[evID], mcTrack, tritonPDG);
-                        hist_rec_r->Fill(decLength);
+                        auto radius = calcRadius(&mcTracksMatrix[evID], mcTrack, tritonPDG);
+                        hist_rec_r->Fill(radius);
 
                         if (!fake)
                         {
                             hist_fake_pt->Fill(mcTrack.GetPt());
-                            hist_fake_r->Fill(decLength);
+                            hist_fake_r->Fill(radius);
 
                             hist_ris_pt->Fill(mcTrack.GetPt() - hypITSTrack.getPt());
                             hist_ris_pt_perc->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
@@ -215,12 +216,12 @@ void efficiency_functions(TString path, TString filename)
                                 if (abs(tritmcTrack.GetPdgCode()) == tritonPDG && trittrackID == dauID && tritevID == evID)
                                 {
                                     hist_rec_pt_top->Fill(mcTrack.GetPt());
-                                    auto decLengthTop = calcRadius(&mcTracksMatrix[evID], mcTrack, tritonPDG);
-                                    hist_rec_r_top->Fill(decLengthTop);
+                                    auto radiusTop = calcRadius(&mcTracksMatrix[evID], mcTrack, tritonPDG);
+                                    hist_rec_r_top->Fill(radiusTop);
                                     if (!tritfake && !fake)
                                     {
                                         hist_fake_pt_top->Fill(mcTrack.GetPt());
-                                        hist_fake_r_top->Fill(decLengthTop);
+                                        hist_fake_r_top->Fill(radiusTop);
 
                                         hist_ris_pt_top->Fill(mcTrack.GetPt() - hypITSTrack.getPt());
                                         hist_ris_pt_perc_top->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
@@ -234,7 +235,6 @@ void efficiency_functions(TString path, TString filename)
 
             for (unsigned int iTrack{0}; iTrack < labITSTPCvec->size(); ++iTrack)
             {
-
                 auto lab = labITSTPCvec->at(iTrack);
                 int trackID, evID, srcID;
                 bool fake;
@@ -252,13 +252,13 @@ void efficiency_functions(TString path, TString filename)
                         auto tritITSTPCTrack = ITSTPCtracks->at(iTrack);
                         hist_rec_pt_trit->Fill(mcTrack.GetPt());
 
-                        auto decLength = calcRadius(&mcTracksMatrix[evID], mcTrack, tritonPDG);
-                        hist_rec_r_trit->Fill(decLength);
+                        auto radius = calcRadius(&mcTracksMatrix[evID], mcTrack, tritonPDG);
+                        hist_rec_r_trit->Fill(radius);
 
                         if (!fake)
                         {
                             hist_fake_pt_trit->Fill(mcTrack.GetPt());
-                            hist_fake_r_trit->Fill(decLength);
+                            hist_fake_r_trit->Fill(radius);
 
                             hist_ris_pt_trit->Fill(mcTrack.GetPt() - tritITSTPCTrack.getPt());
                             hist_ris_pt_perc_trit->Fill((mcTrack.GetPt() - tritITSTPCTrack.getPt()) / mcTrack.GetPt());
