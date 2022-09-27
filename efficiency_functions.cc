@@ -64,14 +64,14 @@ void efficiency_functions(TString path, TString filename)
 {
 
     // define hypertriton track histograms
-    TH1F *hist_gen_pt = new TH1F("gen_pt", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_rec_pt = new TH1F("rec_pt", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_fake_pt = new TH1F("fake_pt", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_ris_pt = new TH1F("res_pt", "gen_pt - rec_pt;" + ptLabel + ";counts", 30, -5, 5);
-    TH1F *hist_ris_pt_perc = new TH1F("res_pt_perc", "Resolution;resolution;counts", 30, -1, 1);
-    TH1F *hist_gen_r = new TH1F("gen_r", ";Radius (cm);counts", 50, 0, 50);
-    TH1F *hist_rec_r = new TH1F("rec_r", ";Radius (cm);counts", 50, 0, 50);
-    TH1F *hist_fake_r = new TH1F("fake_r", ";Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_gen_pt = new TH1F("gen_pt_hyp", ";" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_rec_pt = new TH1F("rec_pt_hyp", ";" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_fake_pt = new TH1F("fake_pt_hyp", ";" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_ris_pt = new TH1F("res_pt_hyp", "gen_pt - rec_pt;" + ptLabel + ";counts", 30, -5, 5);
+    TH1F *hist_ris_pt_perc = new TH1F("res_pt_perc_hyp", "Resolution;resolution;counts", 30, -1, 1);
+    TH1F *hist_gen_r = new TH1F("gen_r_hyp", ";Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_rec_r = new TH1F("rec_r_hyp", ";Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_fake_r = new TH1F("fake_r_hyp", ";Radius (cm);counts", 50, 0, 50);
 
     // define triton track histograms
     TH1F *hist_gen_pt_trit = new TH1F("gen_pt_trit", ";" + ptLabel + ";counts", 30, 1, 10);
@@ -319,15 +319,15 @@ void efficiency_functions(TString path, TString filename)
     pur_hist_pt_trit->Divide(hist_rec_pt_trit);
     pur_hist_pt_trit->Write();
 
-    TH1F *eff_hist_dl_trit = (TH1F *)hist_rec_r_trit->Clone("hist_eff_r_trit");
-    eff_hist_dl_trit->GetYaxis()->SetTitle("Triton Efficiency");
-    eff_hist_dl_trit->Divide(hist_gen_r_trit);
-    eff_hist_dl_trit->Write();
+    TH1F *eff_hist_r_trit = (TH1F *)hist_rec_r_trit->Clone("hist_eff_r_trit");
+    eff_hist_r_trit->GetYaxis()->SetTitle("Triton Efficiency");
+    eff_hist_r_trit->Divide(hist_gen_r_trit);
+    eff_hist_r_trit->Write();
 
-    TH1F *pur_hist_dl_trit = (TH1F *)hist_fake_r_trit->Clone("hist_pur_r_trit");
-    pur_hist_dl_trit->GetYaxis()->SetTitle("Triton Purity");
-    pur_hist_dl_trit->Divide(hist_rec_r_trit);
-    pur_hist_dl_trit->Write();
+    TH1F *pur_hist_r_trit = (TH1F *)hist_fake_r_trit->Clone("hist_pur_r_trit");
+    pur_hist_r_trit->GetYaxis()->SetTitle("Triton Purity");
+    pur_hist_r_trit->Divide(hist_rec_r_trit);
+    pur_hist_r_trit->Write();
 
     hist_gen_pt_top->Write();
     hist_rec_pt_top->Write();
