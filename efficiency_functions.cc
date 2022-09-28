@@ -64,34 +64,31 @@ void efficiency_functions(TString path, TString filename)
 {
 
     // define hypertriton track histograms
-    TH1F *hist_gen_pt = new TH1F("gen_pt_hyp", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_rec_pt = new TH1F("rec_pt_hyp", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_fake_pt = new TH1F("fake_pt_hyp", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_ris_pt = new TH1F("res_pt_hyp", "gen_pt - rec_pt;" + ptLabel + ";counts", 30, -5, 5);
-    TH1F *hist_ris_pt_perc = new TH1F("res_pt_perc_hyp", "Resolution;resolution;counts", 30, -1, 1);
-    TH1F *hist_gen_r = new TH1F("gen_r_hyp", ";Radius (cm);counts", 50, 0, 50);
-    TH1F *hist_rec_r = new TH1F("rec_r_hyp", ";Radius (cm);counts", 50, 0, 50);
-    TH1F *hist_fake_r = new TH1F("fake_r_hyp", ";Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_gen_pt = new TH1F("Hyp Gen pt", "Hypertriton Generated p_{T};" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_rec_pt = new TH1F("Hyp Rec pt", "Hypertriton Reconstructed p_{T};" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_fake_pt = new TH1F("Hyp True pt", "Hypertriton True p_{T};" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_ris_pt = new TH1F("Hyp Res pt", "Hypertriton Resolution p_{T};" + ptLabel + ";counts", 30, -1, 1);
+    TH1F *hist_gen_r = new TH1F("Hyp Gen r", "Hypertriton Generated Radius;Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_rec_r = new TH1F("Hyp Rec r", "Hypertriton Reconstructed Radius;Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_fake_r = new TH1F("Hyp True r", "Hypertriton True Radius;Radius (cm);counts", 50, 0, 50);
 
     // define triton track histograms
-    TH1F *hist_gen_pt_trit = new TH1F("gen_pt_trit", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_rec_pt_trit = new TH1F("rec_pt_trit", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_fake_pt_trit = new TH1F("fake_pt_trit", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_ris_pt_trit = new TH1F("res_pt_trit", "gen_pt - rec_pt;" + ptLabel + ";counts", 30, -5, 5);
-    TH1F *hist_ris_pt_perc_trit = new TH1F("res_pt_perc_trit", "Resolution;resolution;counts", 30, -1, 1);
-    TH1F *hist_gen_r_trit = new TH1F("gen_r_trit", ";Radius (cm);counts", 50, 0, 50);
-    TH1F *hist_rec_r_trit = new TH1F("rec_r_trit", ";Radius (cm);counts", 50, 0, 50);
-    TH1F *hist_fake_r_trit = new TH1F("fake_r_trit", ";Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_gen_pt_trit = new TH1F("Trit Gen pt", "Triton Generated p_{T};" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_rec_pt_trit = new TH1F("Trit Rec pt", "Triton Reconstructed p_{T};" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_fake_pt_trit = new TH1F("Trit True pt", "Triton True p_{T};" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_ris_pt_trit = new TH1F("Trit Res pt", "Triton Resolution p_{T};" + ptLabel + ";counts", 30, -1, 1);
+    TH1F *hist_gen_r_trit = new TH1F("Trit Gen r", "Triton Generated Radius;Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_rec_r_trit = new TH1F("Trit Rec r", "Triton Reconstructed Radius;Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_fake_r_trit = new TH1F("Trit True r", "Triton True Radius;Radius (cm);counts", 50, 0, 50);
 
     // define topology histograms
-    TH1F *hist_gen_pt_top = new TH1F("gen_pt_top", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_rec_pt_top = new TH1F("rec_pt_top", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_fake_pt_top = new TH1F("fake_pt_top", ";" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_ris_pt_top = new TH1F("res_pt_top", "gen_pt - rec_pt;" + ptLabel + ";counts", 30, -5, 5);
-    TH1F *hist_ris_pt_perc_top = new TH1F("res_pt_perc_top", "Resolution;resolution;counts", 30, -1, 1);
-    TH1F *hist_gen_r_top = new TH1F("gen_r_top", ";Radius (cm);counts", 50, 0, 50);
-    TH1F *hist_rec_r_top = new TH1F("rec_r_top", ";Radius (cm);counts", 50, 0, 50);
-    TH1F *hist_fake_r_top = new TH1F("fake_r_top", ";Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_gen_pt_top = new TH1F("Top Gen pt", "Topology Generated p_{T};" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_rec_pt_top = new TH1F("Top Rec pt", "Topology Reconstructed p_{T};" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_fake_pt_top = new TH1F("Top True pt", "Topology True p_{T};" + ptLabel + ";counts", 30, 1, 10);
+    TH1F *hist_ris_pt_top = new TH1F("Top Res pt", "Topology Resolution p_{T};" + ptLabel + ";counts", 30, -1, 1);
+    TH1F *hist_gen_r_top = new TH1F("Top Gen r", "Topology Generated Radius;Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_rec_r_top = new TH1F("Top Rec r", "Topology Reconstructed Radius;Radius (cm);counts", 50, 0, 50);
+    TH1F *hist_fake_r_top = new TH1F("Top True r", "Topology True Radius;Radius (cm);counts", 50, 0, 50);
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -131,8 +128,8 @@ void efficiency_functions(TString path, TString filename)
         unsigned int nTracks[nev];
 
         mcTracksMatrix.resize(nev);
-        for (int n = 0; n < nev; n++)
-        { // loop over MC events
+        for (int n = 0; n < nev; n++) // fill mcTracksMatrix
+        { 
             treeMCTracks->GetEvent(n);
             unsigned int size = MCtracks->size();
             nTracks[n] = size;
@@ -145,7 +142,7 @@ void efficiency_functions(TString path, TString filename)
             }
         }
 
-        for (int n = 0; n < nev; n++)
+        for (int n = 0; n < nev; n++) //fill histos
         {
             for (unsigned int mcI{0}; mcI < nTracks[n]; mcI++)
             {
@@ -206,8 +203,7 @@ void efficiency_functions(TString path, TString filename)
                             hist_fake_pt->Fill(mcTrack.GetPt());
                             hist_fake_r->Fill(radius);
 
-                            hist_ris_pt->Fill(mcTrack.GetPt() - hypITSTrack.getPt());
-                            hist_ris_pt_perc->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
+                            hist_ris_pt->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
                         }
 
                         // topology histos fill
@@ -233,8 +229,7 @@ void efficiency_functions(TString path, TString filename)
                                         hist_fake_pt_top->Fill(mcTrack.GetPt());
                                         hist_fake_r_top->Fill(radiusTop);
 
-                                        hist_ris_pt_top->Fill(mcTrack.GetPt() - hypITSTrack.getPt());
-                                        hist_ris_pt_perc_top->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
+                                        hist_ris_pt_top->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
                                     }
                                 }
                             }
@@ -270,8 +265,7 @@ void efficiency_functions(TString path, TString filename)
                             hist_fake_pt_trit->Fill(mcTrack.GetPt());
                             hist_fake_r_trit->Fill(radius);
 
-                            hist_ris_pt_trit->Fill(mcTrack.GetPt() - tritITSTPCTrack.getPt());
-                            hist_ris_pt_perc_trit->Fill((mcTrack.GetPt() - tritITSTPCTrack.getPt()) / mcTrack.GetPt());
+                            hist_ris_pt_trit->Fill((mcTrack.GetPt() - tritITSTPCTrack.getPt()) / mcTrack.GetPt());
                         }
                     }
                 }
@@ -285,28 +279,31 @@ void efficiency_functions(TString path, TString filename)
     hist_rec_pt->Write();
     hist_fake_pt->Write();
     hist_ris_pt->Write();
-    hist_ris_pt_perc->Write();
     hist_gen_r->Write();
     hist_rec_r->Write();
     hist_fake_r->Write();
 
-    TH1F *eff_hist_pt = (TH1F *)hist_rec_pt->Clone("eff_pt_hyp");
-    eff_hist_pt->GetYaxis()->SetTitle("Hypertriton Efficiency");
+    TH1F *eff_hist_pt = (TH1F *)hist_rec_pt->Clone("Hyp Eff pt");
+    eff_hist_pt->GetYaxis()->SetTitle("Efficiency");
+    eff_hist_pt->SetTitle("Hypertriton p_{T} Efficiency");
     eff_hist_pt->Divide(hist_gen_pt);
     eff_hist_pt->Write();
 
-    TH1F *pur_hist_pt = (TH1F *)hist_fake_pt->Clone("pur_pt_hyp");
-    pur_hist_pt->GetYaxis()->SetTitle("Hypertriton Purity");
+    TH1F *pur_hist_pt = (TH1F *)hist_fake_pt->Clone("Hyp Pur pt");
+    pur_hist_pt->GetYaxis()->SetTitle("Purity");
+    pur_hist_pt->SetTitle("Hypertriton p_{T} Purity");
     pur_hist_pt->Divide(hist_rec_pt);
     pur_hist_pt->Write();
 
-    TH1F *eff_hist_r = (TH1F *)hist_rec_r->Clone("eff_r_hyp");
-    eff_hist_r->GetYaxis()->SetTitle("Hypertriton Efficiency");
+    TH1F *eff_hist_r = (TH1F *)hist_rec_r->Clone("Hyp Eff r");
+    eff_hist_r->GetYaxis()->SetTitle("Efficiency");
+    eff_hist_r->SetTitle("Hypertriton Radius Efficiency");
     eff_hist_r->Divide(hist_gen_r);
     eff_hist_r->Write();
 
-    TH1F *pur_hist_r = (TH1F *)hist_fake_r->Clone("pur_r_hyp");
-    pur_hist_r->GetYaxis()->SetTitle("Hypertriton Purity");
+    TH1F *pur_hist_r = (TH1F *)hist_fake_r->Clone("Hyp Pur r");
+    pur_hist_r->GetYaxis()->SetTitle("Purity");
+    pur_hist_r->SetTitle("Hypertriton Radius Purity");
     pur_hist_r->Divide(hist_rec_r);
     pur_hist_r->Write();
 
@@ -314,28 +311,31 @@ void efficiency_functions(TString path, TString filename)
     hist_rec_pt_trit->Write();
     hist_fake_pt_trit->Write();
     hist_ris_pt_trit->Write();
-    hist_ris_pt_perc_trit->Write();
     hist_gen_r_trit->Write();
     hist_rec_r_trit->Write();
     hist_fake_r_trit->Write();
 
-    TH1F *eff_hist_pt_trit = (TH1F *)hist_rec_pt_trit->Clone("eff_pt_trit");
-    eff_hist_pt_trit->GetYaxis()->SetTitle("Triton Efficiency");
+    TH1F *eff_hist_pt_trit = (TH1F *)hist_rec_pt_trit->Clone("Trit Eff pt");
+    eff_hist_pt_trit->GetYaxis()->SetTitle("Efficiency");
+    eff_hist_pt_trit->SetTitle("Triton p_{T} Efficiency");
     eff_hist_pt_trit->Divide(hist_gen_pt_trit);
     eff_hist_pt_trit->Write();
 
-    TH1F *pur_hist_pt_trit = (TH1F *)hist_fake_pt_trit->Clone("pur_pt_trit");
-    pur_hist_pt_trit->GetYaxis()->SetTitle("Triton Purity");
+    TH1F *pur_hist_pt_trit = (TH1F *)hist_fake_pt_trit->Clone("Trit Pur pt");
+    pur_hist_pt_trit->GetYaxis()->SetTitle("Purity");
+    pur_hist_pt_trit->SetTitle("Triton p_{T} Purity");
     pur_hist_pt_trit->Divide(hist_rec_pt_trit);
     pur_hist_pt_trit->Write();
 
-    TH1F *eff_hist_r_trit = (TH1F *)hist_rec_r_trit->Clone("eff_r_trit");
-    eff_hist_r_trit->GetYaxis()->SetTitle("Triton Efficiency");
+    TH1F *eff_hist_r_trit = (TH1F *)hist_rec_r_trit->Clone("Trit Eff r");
+    eff_hist_r_trit->GetYaxis()->SetTitle("Efficiency");
+    eff_hist_r_trit->SetTitle("Triton Radius Efficiency");
     eff_hist_r_trit->Divide(hist_gen_r_trit);
     eff_hist_r_trit->Write();
 
-    TH1F *pur_hist_r_trit = (TH1F *)hist_fake_r_trit->Clone("pur_r_trit");
-    pur_hist_r_trit->GetYaxis()->SetTitle("Triton Purity");
+    TH1F *pur_hist_r_trit = (TH1F *)hist_fake_r_trit->Clone("Trit Pur r");
+    pur_hist_r_trit->GetYaxis()->SetTitle("Purity");
+    pur_hist_r_trit->SetTitle("Triton Radius Purity");
     pur_hist_r_trit->Divide(hist_rec_r_trit);
     pur_hist_r_trit->Write();
 
@@ -343,25 +343,33 @@ void efficiency_functions(TString path, TString filename)
     hist_rec_pt_top->Write();
     hist_fake_pt_top->Write();
     hist_ris_pt_top->Write();
-    hist_ris_pt_perc_top->Write();
     hist_gen_r_top->Write();
     hist_rec_r_top->Write();
     hist_fake_r_top->Write();
 
-    TH1F *eff_hist_pt_top = (TH1F *)hist_rec_pt_top->Clone("eff_pt_top");
-    eff_hist_pt_top->GetYaxis()->SetTitle("Top Efficiency");
+    TH1F *eff_hist_pt_top = (TH1F *)hist_rec_pt_top->Clone("Top Eff pt");
+    eff_hist_pt_top->GetYaxis()->SetTitle("Efficiency");
+    eff_hist_pt_top->SetTitle("Topopolgy p_{T} Efficiency");
     eff_hist_pt_top->Divide(hist_gen_pt_top);
     eff_hist_pt_top->Write();
 
-    TH1F *pur_hist_pt_top = (TH1F *)hist_fake_pt_top->Clone("pur_pt_top");
-    pur_hist_pt_top->GetYaxis()->SetTitle("Top Purity");
+    TH1F *pur_hist_pt_top = (TH1F *)hist_fake_pt_top->Clone("Top Pur pt");
+    pur_hist_pt_top->GetYaxis()->SetTitle("Purity");
+    pur_hist_pt_top->SetTitle("Topopolgy p_{T} Purity");
     pur_hist_pt_top->Divide(hist_rec_pt_top);
     pur_hist_pt_top->Write();
 
-    TH1F *eff_hist_r_top = (TH1F *)hist_rec_r_top->Clone("eff_r_top");
-    eff_hist_r_top->GetYaxis()->SetTitle("Top Efficiency");
+    TH1F *eff_hist_r_top = (TH1F *)hist_rec_r_top->Clone("Top Eff r");
+    eff_hist_r_top->GetYaxis()->SetTitle("Efficiency");
+    eff_hist_r_top->SetTitle("Topopolgy Radius Efficiency");
     eff_hist_r_top->Divide(hist_gen_r_top);
     eff_hist_r_top->Write();
+
+    TH1F *pur_hist_r_top = (TH1F *)hist_fake_r_top->Clone("Top Pur r");
+    pur_hist_r_top->GetYaxis()->SetTitle("Purity");
+    pur_hist_r_top->SetTitle("Topopolgy Radius Purity");
+    pur_hist_r_top->Divide(hist_rec_r_top);
+    pur_hist_r_top->Write();
 
     fFile.Close();
 } // end of efficiency functions
