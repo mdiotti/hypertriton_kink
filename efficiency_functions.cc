@@ -139,26 +139,6 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                 mcTracksMatrix[n][mcI] = MCtracks->at(mcI);
             }
         }
-        /*
-                for (int n = 0; n < nev; n++) // fill histos
-                {
-                    for (unsigned int mcI{0}; mcI < nTracks[n]; mcI++)
-                    {
-                        auto mcTrack = mcTracksMatrix[n][mcI];
-
-                        if (abs(mcTrack.GetPdgCode()) == tritonPDG)
-                        {
-                            int motherID = mcTrack.getMotherTrackId();
-                            auto motherTrack = mcTracksMatrix[n][motherID];
-                            if (abs(motherTrack.GetPdgCode()) == hypPDG)
-                            {
-                                hist_gen_pt_trit->Fill(mcTrack.GetPt());
-                                hist_gen_r_trit->Fill(calcRadius(&mcTracksMatrix[n], motherTrack, tritonPDG));
-                            }
-                        }
-                    }
-                }
-        */
         for (int n = 0; n < nev; n++) // fill histos
         {
             for (unsigned int mcI{0}; mcI < nTracks[n]; mcI++)
@@ -172,7 +152,6 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                     hist_gen_r->Fill(radius);
                     int firstDauID = mcTrack.getFirstDaughterTrackId();
                     int nDau = mcTrack.getLastDaughterTrackId();
-                    bool hasTriton = false;
                     for (int iDau = firstDauID; iDau < nDau; iDau++)
                     {
                         auto dauTrack = mcTracksMatrix[n][iDau];
@@ -220,9 +199,18 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                         }
 
                         // topology histos fill
-                        int dauID = mcTrack.getFirstDaughterTrackId();
-                        auto dautherTrack = mcTracksMatrix[evID][dauID];
 
+                        int firstDauID = mcTrack.getFirstDaughterTrackId();
+                        int nDau = mcTrack.getLastDaughterTrackId();
+                        int tritID = 0;
+                        for (int iDau = firstDauID; iDau < nDau; iDau++){
+                            if(mcTracksMatrix[evID][iDau].GetPdgCode() == tritonPDG){
+                                tritID = iDau;
+                                break;
+                            }
+                        }
+
+                        auto dautherTrack = mcTracksMatrix[evID][tritID];
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
                             auto tritlab = labITSTPCvec->at(jTrack);
@@ -232,7 +220,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                             if (!tritlab.isNoise() && tritlab.isValid())
                             {
                                 auto tritmcTrack = mcTracksMatrix[tritevID][trittrackID];
-                                if (abs(tritmcTrack.GetPdgCode()) == tritonPDG && trittrackID == dauID && tritevID == evID)
+                                if (abs(tritmcTrack.GetPdgCode()) == tritonPDG && trittrackID == tritID && tritevID == evID)
                                 {
                                     hist_rec_pt_top->Fill(mcTrack.GetPt());
                                     auto radiusTop = calcRadius(&mcTracksMatrix[evID], mcTrack, tritonPDG);
