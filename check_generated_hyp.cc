@@ -52,7 +52,7 @@ void check_generated_hyp(TString path)
 
         TString tf_string = Form("%d", tf);
         TString tf_path = path + "tf" + tf_string;
-    
+
         auto fMCTracks = TFile::Open(tf_path + "/sgn_" + tf_string + "_Kine.root");
 
         // Trees
@@ -62,7 +62,6 @@ void check_generated_hyp(TString path)
         std::vector<MCTrack> *MCtracks = nullptr;
 
         treeMCTracks->SetBranchAddress("MCTrack", &MCtracks);
-
 
         // mc start
 
@@ -84,7 +83,6 @@ void check_generated_hyp(TString path)
                 mcTracksMatrix[n][mcI] = MCtracks->at(mcI);
             }
         }
-
         for (int n = 0; n < nev; n++) // fill histos
         {
             for (unsigned int mcI{0}; mcI < nTracks[n]; mcI++)
@@ -94,19 +92,22 @@ void check_generated_hyp(TString path)
                 if (abs(mcTrack.GetPdgCode()) == hypPDG)
                 {
                     counter_hyp++;
+                    if(tf == 0) cout <<"Hyp mc track " <<n <<" x " <<mcI <<endl;
+
                     int firstDauID = mcTrack.getMotherTrackId();
                     int nDau = mcTrack.getLastDaughterTrackId();
                     bool hasTriton = false;
-                    for(int iDau = firstDauID; iDau < nDau; iDau++)
+                    for (int iDau = firstDauID; iDau < nDau; iDau++)
                     {
                         auto dauTrack = mcTracksMatrix[n][iDau];
-                        if(abs(dauTrack.GetPdgCode()) == tritonPDG)
+                        if (abs(dauTrack.GetPdgCode()) == tritonPDG)
                         {
                             hasTriton = true;
+                            if(tf == 0) cout << "Triton ID found " << iDau << endl;
                             break;
                         }
                     }
-                    if(!hasTriton)
+                    if (!hasTriton)
                     {
                         counter_hyp_no_kink++;
                         LOG(info) << "hyp without triton";

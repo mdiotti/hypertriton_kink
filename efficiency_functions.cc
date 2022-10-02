@@ -39,10 +39,6 @@ const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
 TString ptLabel = "#it{p}_{T} (GeV/#it{c})";
 
-const int tf_min = 1;
-const int tf_max = 40;
-int tf_lenght = tf_max - tf_min + 1;
-
 double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
 {
     auto idStart = motherTrack.getFirstDaughterTrackId();
@@ -60,8 +56,10 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
     return -1;
 }
 
-void efficiency_functions(TString path, TString filename)
+void efficiency_functions(TString path, TString filename, int tf_max = 40)
 {
+    const int tf_min = 1;
+    int tf_lenght = tf_max - tf_min + 1;
 
     // define hypertriton track histograms
     TH1F *hist_gen_pt = new TH1F("Hyp Gen pt", "Hypertriton Generated p_{T};" + ptLabel + ";counts", 30, 1, 10);
@@ -119,7 +117,7 @@ void efficiency_functions(TString path, TString filename)
         treeITSTPC->SetBranchAddress("TPCITS", &ITSTPCtracks);
         treeITSTPC->SetBranchAddress("MatchMCTruth", &labITSTPCvec);
 
-        std::map<std::string, std::vector<o2::MCCompLabel> *> map{{"ITS", labITSvec}};
+        // std::map<std::string, std::vector<o2::MCCompLabel> *> map{{"ITS", labITSvec}};
 
         // mc start
 
@@ -129,7 +127,7 @@ void efficiency_functions(TString path, TString filename)
 
         mcTracksMatrix.resize(nev);
         for (int n = 0; n < nev; n++) // fill mcTracksMatrix
-        { 
+        {
             treeMCTracks->GetEvent(n);
             unsigned int size = MCtracks->size();
             nTracks[n] = size;
@@ -141,39 +139,50 @@ void efficiency_functions(TString path, TString filename)
                 mcTracksMatrix[n][mcI] = MCtracks->at(mcI);
             }
         }
+        /*
+                for (int n = 0; n < nev; n++) // fill histos
+                {
+                    for (unsigned int mcI{0}; mcI < nTracks[n]; mcI++)
+                    {
+                        auto mcTrack = mcTracksMatrix[n][mcI];
 
-        for (int n = 0; n < nev; n++) //fill histos
+                        if (abs(mcTrack.GetPdgCode()) == tritonPDG)
+                        {
+                            int motherID = mcTrack.getMotherTrackId();
+                            auto motherTrack = mcTracksMatrix[n][motherID];
+                            if (abs(motherTrack.GetPdgCode()) == hypPDG)
+                            {
+                                hist_gen_pt_trit->Fill(mcTrack.GetPt());
+                                hist_gen_r_trit->Fill(calcRadius(&mcTracksMatrix[n], motherTrack, tritonPDG));
+                            }
+                        }
+                    }
+                }
+        */
+        for (int n = 0; n < nev; n++) // fill histos
         {
             for (unsigned int mcI{0}; mcI < nTracks[n]; mcI++)
             {
                 auto mcTrack = mcTracksMatrix[n][mcI];
 
-                if (abs(mcTrack.GetPdgCode()) == tritonPDG)
-                {
-                    int motherID = mcTrack.getMotherTrackId();
-                    auto motherTrack = mcTracksMatrix[n][motherID];
-                    if (abs(motherTrack.GetPdgCode()) == hypPDG)
-                    {
-                        hist_gen_pt_trit->Fill(mcTrack.GetPt());
-                        hist_gen_r_trit->Fill(calcRadius(&mcTracksMatrix[n], motherTrack, tritonPDG));
-                    }
-                }
                 if (abs(mcTrack.GetPdgCode()) == hypPDG)
                 {
+                    double radius = calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG);
                     hist_gen_pt->Fill(mcTrack.GetPt());
-                    hist_gen_r->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG));
-
+                    hist_gen_r->Fill(radius);
                     int dauID = mcTrack.getFirstDaughterTrackId();
+
                     auto dauTrack = mcTracksMatrix[n][dauID];
                     if (abs(dauTrack.GetPdgCode()) == tritonPDG)
                     {
                         hist_gen_pt_top->Fill(mcTrack.GetPt());
-                        hist_gen_r_top->Fill(calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG));
+                        hist_gen_r_top->Fill(radius);
+                        hist_gen_pt_trit->Fill(dauTrack.GetPt());
+                        hist_gen_r_trit->Fill(radius);
                     }
                 }
             }
         }
-
         // mc end
 
         for (int event = 0; event < treeITS->GetEntriesFast(); event++)
@@ -272,7 +281,7 @@ void efficiency_functions(TString path, TString filename)
             }
 
         } // event loop
-    } // end of tf loop
+    }     // end of tf loop
 
     auto fFile = TFile(filename, "recreate");
     hist_gen_pt->Write();
