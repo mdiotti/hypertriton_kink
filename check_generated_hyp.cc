@@ -94,7 +94,7 @@ void check_generated_hyp(TString path)
                     counter_hyp++;
                     if(tf == 0) cout <<"Hyp mc track " <<n <<" x " <<mcI <<endl;
 
-                    int firstDauID = mcTrack.getMotherTrackId();
+                    int firstDauID = mcTrack.getFirstDaughterTrackId();
                     int nDau = mcTrack.getLastDaughterTrackId();
                     bool hasTriton = false;
                     for (int iDau = firstDauID; iDau < nDau; iDau++)
