@@ -92,8 +92,6 @@ void check_generated_hyp(TString path)
                 if (abs(mcTrack.GetPdgCode()) == hypPDG)
                 {
                     counter_hyp++;
-                    if(tf == 0) cout <<"Hyp mc track " <<n <<" x " <<mcI <<endl;
-
                     int firstDauID = mcTrack.getFirstDaughterTrackId();
                     int nDau = mcTrack.getLastDaughterTrackId();
                     bool hasTriton = false;
@@ -103,7 +101,6 @@ void check_generated_hyp(TString path)
                         if (abs(dauTrack.GetPdgCode()) == tritonPDG)
                         {
                             hasTriton = true;
-                            if(tf == 0) cout << "Triton ID found " << iDau << endl;
                             break;
                         }
                     }

@@ -170,15 +170,19 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                     double radius = calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG);
                     hist_gen_pt->Fill(mcTrack.GetPt());
                     hist_gen_r->Fill(radius);
-                    int dauID = mcTrack.getFirstDaughterTrackId();
-
-                    auto dauTrack = mcTracksMatrix[n][dauID];
-                    if (abs(dauTrack.GetPdgCode()) == tritonPDG)
+                    int firstDauID = mcTrack.getFirstDaughterTrackId();
+                    int nDau = mcTrack.getLastDaughterTrackId();
+                    bool hasTriton = false;
+                    for (int iDau = firstDauID; iDau < nDau; iDau++)
                     {
-                        hist_gen_pt_top->Fill(mcTrack.GetPt());
-                        hist_gen_r_top->Fill(radius);
-                        hist_gen_pt_trit->Fill(dauTrack.GetPt());
-                        hist_gen_r_trit->Fill(radius);
+                        auto dauTrack = mcTracksMatrix[n][iDau];
+                        if (abs(dauTrack.GetPdgCode()) == tritonPDG)
+                        {
+                            hist_gen_pt_top->Fill(mcTrack.GetPt());
+                            hist_gen_r_top->Fill(radius);
+                            hist_gen_pt_trit->Fill(dauTrack.GetPt());
+                            hist_gen_r_trit->Fill(radius);
+                        }
                     }
                 }
             }
