@@ -38,6 +38,7 @@ using TrackITS = o2::its::TrackITS;
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
 TString ptLabel = "#it{p}_{T} (GeV/#it{c})";
+TString resLabel = "Resolution: (gen-rec)/gen";
 
 double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
 {
@@ -65,7 +66,8 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     TH1F *hist_gen_pt = new TH1F("Hyp Gen pt", "Hypertriton Generated p_{T};" + ptLabel + ";counts", 30, 1, 10);
     TH1F *hist_rec_pt = new TH1F("Hyp Rec pt", "Hypertriton Reconstructed p_{T};" + ptLabel + ";counts", 30, 1, 10);
     TH1F *hist_fake_pt = new TH1F("Hyp True pt", "Hypertriton True p_{T};" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_ris_pt = new TH1F("Hyp Res pt", "Hypertriton Resolution p_{T};" + ptLabel + ";counts", 30, -1, 1);
+    TH1F *hist_ris_3 = new TH1F("Hyp Res 3 hit", "Hypertriton Resolution p_{T} 3 hit;" + resLabel + ";counts", 30, -1, 1);
+    TH1F *hist_ris_4 = new TH1F("Hyp Res 4 hit", "Hypertriton Resolution p_{T} 4 hit;" + resLabel + ";counts", 30, -1, 1);
     TH1F *hist_gen_r = new TH1F("Hyp Gen r", "Hypertriton Generated Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_rec_r = new TH1F("Hyp Rec r", "Hypertriton Reconstructed Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_fake_r = new TH1F("Hyp True r", "Hypertriton True Radius;Radius (cm);counts", 50, 0, 50);
@@ -74,7 +76,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     TH1F *hist_gen_pt_trit = new TH1F("Trit Gen pt", "Triton Generated p_{T};" + ptLabel + ";counts", 30, 1, 10);
     TH1F *hist_rec_pt_trit = new TH1F("Trit Rec pt", "Triton Reconstructed p_{T};" + ptLabel + ";counts", 30, 1, 10);
     TH1F *hist_fake_pt_trit = new TH1F("Trit True pt", "Triton True p_{T};" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_ris_pt_trit = new TH1F("Trit Res pt", "Triton Resolution p_{T};" + ptLabel + ";counts", 30, -1, 1);
+    TH1F *hist_ris_trit = new TH1F("Trit Res", "Triton Resolution p_{T} 3 hit;" + resLabel + ";counts", 30, -0.25, 0.25);
     TH1F *hist_gen_r_trit = new TH1F("Trit Gen r", "Triton Generated Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_rec_r_trit = new TH1F("Trit Rec r", "Triton Reconstructed Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_fake_r_trit = new TH1F("Trit True r", "Triton True Radius;Radius (cm);counts", 50, 0, 50);
@@ -83,7 +85,8 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     TH1F *hist_gen_pt_top = new TH1F("Top Gen pt", "Topology Generated p_{T};" + ptLabel + ";counts", 30, 1, 10);
     TH1F *hist_rec_pt_top = new TH1F("Top Rec pt", "Topology Reconstructed p_{T};" + ptLabel + ";counts", 30, 1, 10);
     TH1F *hist_fake_pt_top = new TH1F("Top True pt", "Topology True p_{T};" + ptLabel + ";counts", 30, 1, 10);
-    TH1F *hist_ris_pt_top = new TH1F("Top Res pt", "Topology Resolution p_{T};" + ptLabel + ";counts", 30, -1, 1);
+    TH1F *hist_ris_3_top = new TH1F("Top Res 3 hit", "Topology Resolution p_{T} 3 hit;" + resLabel + ";counts", 30, -1, 1);
+    TH1F *hist_ris_4_top = new TH1F("Top Res 4 hit", "Topology Resolution p_{T} 4 hit;" + resLabel + ";counts", 30, -1, 1);
     TH1F *hist_gen_r_top = new TH1F("Top Gen r", "Topology Generated Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_rec_r_top = new TH1F("Top Rec r", "Topology Reconstructed Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_fake_r_top = new TH1F("Top True r", "Topology True Radius;Radius (cm);counts", 50, 0, 50);
@@ -139,6 +142,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                 mcTracksMatrix[n][mcI] = MCtracks->at(mcI);
             }
         }
+
         for (int n = 0; n < nev; n++) // fill histos
         {
             for (unsigned int mcI{0}; mcI < nTracks[n]; mcI++)
@@ -195,7 +199,10 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                             hist_fake_pt->Fill(mcTrack.GetPt());
                             hist_fake_r->Fill(radius);
 
-                            hist_ris_pt->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
+                            if (hypITSTrack.getNumberOfClusters() >= 4)
+                                hist_ris_4->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
+                            else if (hypITSTrack.getNumberOfClusters() == 3)
+                                hist_ris_3->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
                         }
 
                         // topology histos fill
@@ -203,8 +210,10 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                         int firstDauID = mcTrack.getFirstDaughterTrackId();
                         int nDau = mcTrack.getLastDaughterTrackId();
                         int tritID = 0;
-                        for (int iDau = firstDauID; iDau < nDau; iDau++){
-                            if(mcTracksMatrix[evID][iDau].GetPdgCode() == tritonPDG){
+                        for (int iDau = firstDauID; iDau < nDau; iDau++)
+                        {
+                            if (mcTracksMatrix[evID][iDau].GetPdgCode() == tritonPDG)
+                            {
                                 tritID = iDau;
                                 break;
                             }
@@ -230,7 +239,10 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                                         hist_fake_pt_top->Fill(mcTrack.GetPt());
                                         hist_fake_r_top->Fill(radiusTop);
 
-                                        hist_ris_pt_top->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
+                                        if (hypITSTrack.getNumberOfClusters() >= 4)
+                                            hist_ris_4_top->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
+                                        else if (hypITSTrack.getNumberOfClusters() == 3)
+                                            hist_ris_4_top->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
                                     }
                                 }
                             }
@@ -266,7 +278,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                             hist_fake_pt_trit->Fill(mcTrack.GetPt());
                             hist_fake_r_trit->Fill(radius);
 
-                            hist_ris_pt_trit->Fill((mcTrack.GetPt() - tritITSTPCTrack.getPt()) / mcTrack.GetPt());
+                            hist_ris_trit->Fill((mcTrack.GetPt() - tritITSTPCTrack.getPt()) / mcTrack.GetPt());
                         }
                     }
                 }
@@ -279,7 +291,8 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     hist_gen_pt->Write();
     hist_rec_pt->Write();
     hist_fake_pt->Write();
-    hist_ris_pt->Write();
+    hist_ris_3->Write();
+    hist_ris_4->Write();
     hist_gen_r->Write();
     hist_rec_r->Write();
     hist_fake_r->Write();
@@ -311,7 +324,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     hist_gen_pt_trit->Write();
     hist_rec_pt_trit->Write();
     hist_fake_pt_trit->Write();
-    hist_ris_pt_trit->Write();
+    hist_ris_trit->Write();
     hist_gen_r_trit->Write();
     hist_rec_r_trit->Write();
     hist_fake_r_trit->Write();
@@ -343,7 +356,8 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     hist_gen_pt_top->Write();
     hist_rec_pt_top->Write();
     hist_fake_pt_top->Write();
-    hist_ris_pt_top->Write();
+    hist_ris_3_top->Write();
+    hist_ris_4_top->Write();
     hist_gen_r_top->Write();
     hist_rec_r_top->Write();
     hist_fake_r_top->Write();
