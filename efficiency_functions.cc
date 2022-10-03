@@ -201,7 +201,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
 
                             if (hypITSTrack.getNumberOfClusters() >= 4)
                                 hist_ris_4->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
-                            else if (hypITSTrack.getNumberOfClusters() == 3)
+                            if (hypITSTrack.getNumberOfClusters() == 3)
                                 hist_ris_3->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
                         }
 
@@ -218,7 +218,8 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                                 break;
                             }
                         }
-
+                        if (tritID == 0)
+                            continue; // if no triton daughter exits the loop
                         auto dautherTrack = mcTracksMatrix[evID][tritID];
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
@@ -241,8 +242,8 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
 
                                         if (hypITSTrack.getNumberOfClusters() >= 4)
                                             hist_ris_4_top->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
-                                        else if (hypITSTrack.getNumberOfClusters() == 3)
-                                            hist_ris_4_top->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
+                                        if (hypITSTrack.getNumberOfClusters() == 3)
+                                            hist_ris_3_top->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
                                     }
                                 }
                             }
