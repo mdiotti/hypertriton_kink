@@ -1,0 +1,50 @@
+#0  0x00007f240c3d5c3a in wait4 () from /lib/x86_64-linux-gnu/libc.so.6
+#1  0x00007f240c344f67 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+#2  0x00007f240cb3518c in TUnixSystem::Exec (shellcmd=<optimized out>, this=0x1b74800) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/unix/src/TUnixSystem.cxx:2108
+#3  TUnixSystem::StackTrace (this=0x1b74800) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/unix/src/TUnixSystem.cxx:2399
+#4  0x00007f24062783c9 in FairLogger::LogFatalMessage () at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.7meIYFGMRE/SOURCES/FairRoot/v18.4.8/v18.4.8/fairtools/FairLogger.cxx:195
+#5  0x00007f2405e0d7e5 in std::function<void ()>::operator()() const (this=0x7f2405e28b00 <fair::Logger::fFatalCallback>) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.gDEkiBfD3p/ubuntu2004_x86-64/GCC-Toolchain/v10.2.0-alice2-2/include/c++/10.2.0/bits/std_function.h:248
+#6  fair::Logger::~Logger (this=0x7ffe96d02250, __in_chrg=<optimized out>) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.gDEkiBfD3p/SOURCES/FairLogger/v1.11.1/v1.11.1/logger/Logger.cxx:276
+#7  0x00007f23ef9cece8 in o2::its::GeometryTGeo::Build (this=0x5ca85b0, loadTrans=0) at /home/mdiotti/alice/sw/ubuntu2004_x86-64/FairLogger/v1.11.1-1/include/fairlogger/Logger.h:310
+#8  0x00007f23ef9cf2cc in o2::its::GeometryTGeo::GeometryTGeo (this=0x5ca85b0, build=<optimized out>, loadTrans=0) at /home/mdiotti/alice/sw/SOURCES/O2/dev/0/Detectors/ITSMFT/ITS/base/src/GeometryTGeo.cxx:79
+#9  0x00007f23ef9b501c in o2::its::GeometryTGeo::Instance() () from /home/mdiotti/alice/hypertriton_kink/efficiency_functions_cc.so
+#10 0x00007f23ef9b17da in _GLOBAL__sub_I_efficiency_functions_cc_ACLiC_dict.cxx () from /home/mdiotti/alice/hypertriton_kink/efficiency_functions_cc.so
+#11 0x00007f240cdddb9a in ?? () from /lib64/ld-linux-x86-64.so.2
+#12 0x00007f240cdddca1 in ?? () from /lib64/ld-linux-x86-64.so.2
+#13 0x00007f240c453985 in _dl_catch_exception () from /lib/x86_64-linux-gnu/libc.so.6
+#14 0x00007f240cde243d in ?? () from /lib64/ld-linux-x86-64.so.2
+#15 0x00007f240c453928 in _dl_catch_exception () from /lib/x86_64-linux-gnu/libc.so.6
+#16 0x00007f240cde160a in ?? () from /lib64/ld-linux-x86-64.so.2
+#17 0x00007f240c2b034c in ?? () from /lib/x86_64-linux-gnu/libdl.so.2
+#18 0x00007f240c453928 in _dl_catch_exception () from /lib/x86_64-linux-gnu/libc.so.6
+#19 0x00007f240c4539f3 in _dl_catch_error () from /lib/x86_64-linux-gnu/libc.so.6
+#20 0x00007f240c2b0b59 in ?? () from /lib/x86_64-linux-gnu/libdl.so.2
+#21 0x00007f240c2b03da in dlopen () from /lib/x86_64-linux-gnu/libdl.so.2
+#22 0x00007f2408538225 in cling::utils::platform::DLOpen(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*) () from /home/mdiotti/alice/sw/ubuntu2004_x86-64/ROOT/v6-26-04-patches-alice1-8/lib/libCling.so
+#23 0x00007f240843d8f3 in cling::DynamicLibraryManager::loadLibrary(llvm::StringRef, bool, bool) () from /home/mdiotti/alice/sw/ubuntu2004_x86-64/ROOT/v6-26-04-patches-alice1-8/lib/libCling.so
+#24 0x00007f2408454eae in cling::Interpreter::loadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool, cling::Transaction**) () from /home/mdiotti/alice/sw/ubuntu2004_x86-64/ROOT/v6-26-04-patches-alice1-8/lib/libCling.so
+#25 0x00007f240851d393 in cling::MetaSema::actOnLCommand(llvm::StringRef, cling::Transaction**) () from /home/mdiotti/alice/sw/ubuntu2004_x86-64/ROOT/v6-26-04-patches-alice1-8/lib/libCling.so
+#26 0x00007f240852d610 in cling::MetaParser::isCommand(cling::MetaSema::ActionResult&, cling::Value*) () from /home/mdiotti/alice/sw/ubuntu2004_x86-64/ROOT/v6-26-04-patches-alice1-8/lib/libCling.so
+#27 0x00007f2408516a40 in cling::MetaProcessor::process(llvm::StringRef, cling::Interpreter::CompilationResult&, cling::Value*, bool) () from /home/mdiotti/alice/sw/ubuntu2004_x86-64/ROOT/v6-26-04-patches-alice1-8/lib/libCling.so
+#28 0x00007f240838976c in HandleInterpreterException (metaProcessor=0x26c1620, input_line=0x7f240c2a7215 ".L /home/mdiotti/alice/hypertriton_kink/efficiency_functions_cc.so", compRes=
+0x7ffe96d03be0: cling::Interpreter::kSuccess, result=0x0) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/metacling/src/TCling.cxx:2441
+#29 0x00007f2408391e7a in TCling::Load (this=0x1be6650, filename=0x5f912a0 "/home/mdiotti/alice/hypertriton_kink/efficiency_functions_cc.so", system=<optimized out>) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/ubuntu2004_x86-64/GCC-Toolchain/v10.2.0-alice2-2/include/c++/10.2.0/bits/unique_ptr.h:173
+#30 0x00007f240ca62591 in TSystem::Load (this=0x1b74800, module=0x7ffe96d03cc0 "8\257\323\f$\177", entry=0x7f240cc71f05 "", system=false) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/base/src/TSystem.cxx:1942
+#31 0x00007f240ca6bae8 in operator() (lib=..., __closure=<synthetic pointer>) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/base/src/TSystem.cxx:3364
+#32 TSystem::CompileMacro (this=<optimized out>, filename=<optimized out>, opt=<optimized out>, library_specified=<optimized out>, build_dir=<optimized out>, dirmode=<optimized out>) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/base/src/TSystem.cxx:3813
+#33 0x00007f2408396a4f in TCling::ProcessLine (this=0x1be6650, line=<optimized out>, error=0x7ffe96d0506c) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/metacling/src/TCling.cxx:2541
+#34 0x00007f240c9fc610 in TApplication::ProcessLine (this=0x1bcdd70, line=<optimized out>, sync=<optimized out>, err=0x7ffe96d0506c) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/base/src/TApplication.cxx:1425
+#35 0x00007f240cda9b82 in TRint::ProcessLineNr (this=0x1bcdd70, filestem=<optimized out>, line=0x33d2d50 ".L efficiency_functions.cc+", error=0x7ffe96d0506c) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/rint/src/TRint.cxx:811
+#36 0x00007f240cdab2d2 in TRint::HandleTermInput (this=0x1bcdd70) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/base/inc/TString.h:244
+#37 0x00007f240cb31a4c in TUnixSystem::CheckDescriptors (this=this
+entry=0x1b74800) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/unix/src/TUnixSystem.cxx:1310
+#38 0x00007f240cb33568 in TUnixSystem::DispatchOneEvent (this=0x1b74800, pendingOnly=<optimized out>) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/unix/src/TUnixSystem.cxx:1065
+#39 0x00007f240ca60659 in TSystem::InnerLoop (this=0x1b74800) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/base/src/TSystem.cxx:406
+#40 TSystem::Run (this=0x1b74800) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/base/src/TSystem.cxx:356
+#41 0x00007f240c9f9ac3 in TApplication::Run (this=this
+entry=0x1bcdd70, retrn=retrn
+entry=false) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/base/src/TApplication.cxx:1609
+#42 0x00007f240cdab929 in TRint::Run (this=this
+entry=0x1bcdd70, retrn=retrn
+entry=false) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/core/rint/src/TRint.cxx:501
+#43 0x00000000004011ad in main (argc=<optimized out>, argv=0x7ffe96d074a8) at /mnt/mesos/sandbox/sandbox/jenkins/workspace/DailyBuilds/DailyO2-ubuntu2004/daily-tags.JKPsvbbxZK/SOURCES/ROOT/v6-26-04-patches-alice1/v6-26-04-patches-alice1/main/src/rmain.cxx:84

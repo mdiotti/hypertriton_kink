@@ -9,6 +9,13 @@
 #include "ReconstructionDataFormats/TrackTPCITS.h"
 #include "DataFormatsITSMFT/ROFRecord.h"
 
+#include "SimulationDataFormat/MCTruthContainer.h"
+#include "ITSMFTSimulation/Hit.h"
+#include "DataFormatsITSMFT/TopologyDictionary.h"
+#include "DataFormatsITSMFT/CompCluster.h"
+#include "DataFormatsITSMFT/ROFRecord.h"
+#include "ITSBase/GeometryTGeo.h"
+
 #include <TLorentzVector.h>
 #include "TCanvas.h"
 #include "TFile.h"
@@ -35,6 +42,9 @@ using Vec3 = ROOT::Math::SVector<double, 3>;
 
 using TrackITS = o2::its::TrackITS;
 
+using ITSCluster = o2::BaseCluster<float>;
+using CompClusterExt = o2::itsmft::CompClusterExt;
+
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
 TString ptLabel = "#it{p}_{T} (GeV/#it{c})";
@@ -57,10 +67,27 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
     return -1;
 }
 
+std::array<int, 2> matchCompLabelToMC(const std::vector<std::vector<o2::MCTrack>> &mcTracksMatrix,
+                                      o2::MCCompLabel compLabel)
+{
+    std::array<int, 2> compRef = {-1, -1};
+    int trackID, evID, srcID;
+    bool fake;
+    compLabel.get(trackID, evID, srcID, fake);
+    if (compLabel.isValid())
+    {
+        compRef = {evID, trackID};
+    }
+    return compRef;
+}
+
 void efficiency_functions(TString path, TString filename, int tf_max = 40)
 {
     const int tf_min = 1;
     int tf_lenght = tf_max - tf_min + 1;
+
+    // counts histogram of fake hyp
+    TH1F *hCount = new TH1F("Counts", "Hypertriton Counts; 1: daughter triton, 2: non daughter triton, 3: other particle;counts", 3, 0.5, 3.5); // 1: daughter triton, 2: non daughter triton, 3: other particle
 
     // define hypertriton track histograms
     TH1F *hist_gen_pt = new TH1F("Hyp Gen pt", "Hypertriton Generated p_{T};" + ptLabel + ";counts", 30, 1, 10);
@@ -100,30 +127,56 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
         auto fITSTPC = TFile::Open(tf_path + "/o2match_itstpc.root");
         auto fMCTracks = TFile::Open(tf_path + "/sgn_" + tf_string + "_Kine.root");
 
+        // Geometry
+        o2::base::GeometryManager::loadGeometry(tf_path + "/o2sim_geometry.root");
+
         // Trees
         auto treeMCTracks = (TTree *)fMCTracks->Get("o2sim");
         auto treeITS = (TTree *)fITS->Get("o2sim");
         auto treeITSTPC = (TTree *)fITSTPC->Get("matchTPCITS");
+
+        auto fClusITS = TFile::Open(tf_path + "/o2clus_its.root");
+        auto treeITSclus = (TTree *)fClusITS->Get("o2sim");
 
         // Tracks
         std::vector<MCTrack> *MCtracks = nullptr;
         std::vector<TrackITS> *ITStracks = nullptr;
         std::vector<o2::dataformats::TrackTPCITS> *ITSTPCtracks = nullptr;
 
+        // Clusters
+        std::vector<CompClusterExt> *ITSclus = nullptr;
+        o2::dataformats::MCTruthContainer<o2::MCCompLabel> *clusLabArr = nullptr;
+        std::vector<int> *ITSTrackClusIdx = nullptr;
+        std::vector<unsigned char> *ITSpatt = nullptr;
+
         // Labels
         std::vector<o2::MCCompLabel> *labITSvec = nullptr;
         std::vector<o2::MCCompLabel> *labITSTPCvec = nullptr;
 
+        // Branches
         treeMCTracks->SetBranchAddress("MCTrack", &MCtracks);
         treeITS->SetBranchAddress("ITSTrackMCTruth", &labITSvec);
         treeITS->SetBranchAddress("ITSTrack", &ITStracks);
         treeITSTPC->SetBranchAddress("TPCITS", &ITSTPCtracks);
         treeITSTPC->SetBranchAddress("MatchMCTruth", &labITSTPCvec);
 
+        treeITSclus->SetBranchAddress("ITSClusterComp", &ITSclus);
+        treeITSclus->SetBranchAddress("ITSClusterMCTruth", &clusLabArr);
+        treeITS->SetBranchAddress("ITSTrackClusIdx", &ITSTrackClusIdx);
+
         // std::map<std::string, std::vector<o2::MCCompLabel> *> map{{"ITS", labITSvec}};
 
-        // mc start
+        // Matching ITS tracks to MC tracks and V0
+        std::array<int, 2> ITSref = {-1, 1};
+        o2::its::TrackITS ITStrack;
+        std::array<std::array<int, 2>, 7> clsRef;
+        
+        // Load Geometry
+        auto gman = o2::its::GeometryTGeo::Instance();
+        gman->fillMatrixCache(o2::math_utils::bit2Mask(o2::math_utils::TransformType::T2L, o2::math_utils::TransformType::L2G));
 
+        // mc start
+        
         std::vector<std::vector<MCTrack>> mcTracksMatrix;
         auto nev = treeMCTracks->GetEntriesFast();
         unsigned int nTracks[nev];
@@ -204,6 +257,22 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                             if (hypITSTrack.getNumberOfClusters() == 3)
                                 hist_ris_3->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
                         }
+                        else
+                        {
+                            auto firstClus = hypITSTrack.getFirstClusterEntry();
+                            auto ncl = hypITSTrack.getNumberOfClusters();
+                            for (int icl = 0; icl < ncl; icl++)
+                            {
+                                auto &labCls = (clusLabArr->getLabels(ITSTrackClusIdx->at(firstClus + icl)))[0];
+                                auto &clus = (*ITSclus)[(*ITSTrackClusIdx)[firstClus + icl]];
+                                auto layer = gman->getLayer(clus.getSensorID());
+                                clsRef[layer] = matchCompLabelToMC(mcTracksMatrix, labCls);
+                                if (clsRef[layer][0] > -1 && clsRef[layer][1] > -1)
+                                    LOG(info) << "Layer: " << layer << "PDG: " << mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]].GetPdgCode();
+                                else
+                                    LOG(info) << "Layer: " << layer << ", No valid cluster ref";
+                            }
+                        }
 
                         // topology histos fill
 
@@ -218,8 +287,10 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                                 break;
                             }
                         }
+
                         if (tritID == 0)
-                            continue; // if no triton daughter exits the loop
+                            continue; // if no triton daughter, improves speed
+
                         auto dautherTrack = mcTracksMatrix[evID][tritID];
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
@@ -322,6 +393,12 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     pur_hist_r->Divide(hist_rec_r);
     pur_hist_r->Write();
 
+    TH1F *eff_pur = (TH1F *)hist_fake_r->Clone("Hyp Eff Pur");
+    eff_pur->GetYaxis()->SetTitle("Efficiency * Purity");
+    eff_pur->SetTitle("Hypertriton Efficiency * Purity");
+    eff_pur->Divide(hist_gen_r);
+    eff_pur->Write();
+
     hist_gen_pt_trit->Write();
     hist_rec_pt_trit->Write();
     hist_fake_pt_trit->Write();
@@ -386,6 +463,14 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     pur_hist_r_top->SetTitle("Topopolgy Radius Purity");
     pur_hist_r_top->Divide(hist_rec_r_top);
     pur_hist_r_top->Write();
+
+    TH1F *eff_pur_top = (TH1F *)hist_fake_r_top->Clone("Top Eff Pur");
+    eff_pur_top->GetYaxis()->SetTitle("Efficiency * Purity");
+    eff_pur_top->SetTitle("Topopolgy Efficiency * Purity");
+    eff_pur_top->Divide(hist_gen_r_top);
+    eff_pur_top->Write();
+
+    hCount->Write();
 
     fFile.Close();
 } // end of efficiency functions
