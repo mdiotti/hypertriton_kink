@@ -8,6 +8,4 @@
 *.d
 *.so
 *.pcm
-
-!LHCCplots/*
-!utils/*
+core_dump*
