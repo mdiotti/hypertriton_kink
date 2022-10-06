@@ -265,7 +265,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                             auto ncl = hypITSTrack.getNumberOfClusters();
                             int pdg = 0;
                             bool thirdBin = false;
-                            bool firstBin = false; // clsRef[layer][0 o 1] sbagliato
+                            bool secondBin = false;
                             for (int icl = 0; icl < ncl; icl++)
                             {
                                 auto &labCls = (clusLabArr->getLabels(ITSTrackClusIdx->at(firstClus + icl)))[0];
@@ -273,29 +273,55 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                                 auto layer = gman->getLayer(clus.getSensorID());
                                 clsRef[layer] = matchCompLabelToMC(mcTracksMatrix, labCls);
 
+                                bool decayed = false;
+
                                 if (clsRef[layer][0] > -1 && clsRef[layer][1] > -1)
                                 {
                                     int pdg_new = mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]].GetPdgCode();
-                                    if (icl != 0 && pdg_new != pdg)
+
+                                    if (icl == 0)
                                     {
-                                        thirdBin = true;
-                                        break;
+                                        pdg = pdg_new;
+                                        if (pdg != tritonPDG && pdg != hypPDG)
+                                        {
+                                            thirdBin = true;
+                                            break;
+                                        }
+                                        else
+                                            continue;
                                     }
+
+                                    if (pdg_new == tritonPDG)
+                                    {
+                                        if (pdg == hypPDG)
+                                            decayed = true;
+                                        else if (!decayed)
+                                        {
+                                            secondBin = true;
+                                            break;
+                                        }
+                                    }
+                                    else if (pdg_new == hypPDG)
+                                    {
+                                        if (pdg != pdg_new)
+                                        {
+                                            thirdBin = true;
+                                            break;
+                                        }
+                                    }
+
                                     pdg = pdg_new;
                                 }
                                 else
                                 {
-                                    // thirdBin = true;
-                                    firstBin = true;
-                                    break;
                                 }
                             }
                             if (thirdBin)
                                 hCount->Fill(3);
-                            else if (firstBin)
-                                hCount->Fill(1);
-                            else
+                            else if (secondBin)
                                 hCount->Fill(2);
+                            else
+                                hCount->Fill(1);
                         }
 
                         // topology histos fill
