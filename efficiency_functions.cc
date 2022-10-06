@@ -127,6 +127,8 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
         auto fITSTPC = TFile::Open(tf_path + "/o2match_itstpc.root");
         auto fMCTracks = TFile::Open(tf_path + "/sgn_" + tf_string + "_Kine.root");
 
+        // auto fGeom = TFile::Open(tf_path + "/o2sim_geometry.root");
+
         // Geometry
         o2::base::GeometryManager::loadGeometry(tf_path + "/o2sim_geometry.root");
 
@@ -170,13 +172,13 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
         std::array<int, 2> ITSref = {-1, 1};
         o2::its::TrackITS ITStrack;
         std::array<std::array<int, 2>, 7> clsRef;
-        
+
         // Load Geometry
         auto gman = o2::its::GeometryTGeo::Instance();
         gman->fillMatrixCache(o2::math_utils::bit2Mask(o2::math_utils::TransformType::T2L, o2::math_utils::TransformType::L2G));
 
         // mc start
-        
+
         std::vector<std::vector<MCTrack>> mcTracksMatrix;
         auto nev = treeMCTracks->GetEntriesFast();
         unsigned int nTracks[nev];
@@ -227,7 +229,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
 
         for (int event = 0; event < treeITS->GetEntriesFast(); event++)
         {
-            if (!treeITS->GetEvent(event) || !treeITSTPC->GetEvent(event))
+            if (!treeITS->GetEvent(event) || !treeITSTPC->GetEvent(event) || !treeITSclus->GetEvent(event))
                 continue;
 
             for (unsigned int iTrack{0}; iTrack < labITSvec->size(); ++iTrack)
@@ -261,17 +263,39 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                         {
                             auto firstClus = hypITSTrack.getFirstClusterEntry();
                             auto ncl = hypITSTrack.getNumberOfClusters();
+                            int pdg = 0;
+                            bool thirdBin = false;
+                            bool firstBin = false; // clsRef[layer][0 o 1] sbagliato
                             for (int icl = 0; icl < ncl; icl++)
                             {
                                 auto &labCls = (clusLabArr->getLabels(ITSTrackClusIdx->at(firstClus + icl)))[0];
                                 auto &clus = (*ITSclus)[(*ITSTrackClusIdx)[firstClus + icl]];
                                 auto layer = gman->getLayer(clus.getSensorID());
                                 clsRef[layer] = matchCompLabelToMC(mcTracksMatrix, labCls);
+
                                 if (clsRef[layer][0] > -1 && clsRef[layer][1] > -1)
-                                    LOG(info) << "Layer: " << layer << "PDG: " << mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]].GetPdgCode();
+                                {
+                                    int pdg_new = mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]].GetPdgCode();
+                                    if (icl != 0 && pdg_new != pdg)
+                                    {
+                                        thirdBin = true;
+                                        break;
+                                    }
+                                    pdg = pdg_new;
+                                }
                                 else
-                                    LOG(info) << "Layer: " << layer << ", No valid cluster ref";
+                                {
+                                    // thirdBin = true;
+                                    firstBin = true;
+                                    break;
+                                }
                             }
+                            if (thirdBin)
+                                hCount->Fill(3);
+                            else if (firstBin)
+                                hCount->Fill(1);
+                            else
+                                hCount->Fill(2);
                         }
 
                         // topology histos fill
