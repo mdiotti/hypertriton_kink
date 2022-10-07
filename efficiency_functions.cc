@@ -259,70 +259,6 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                             if (hypITSTrack.getNumberOfClusters() == 3)
                                 hist_ris_3->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
                         }
-                        else
-                        {
-                            auto firstClus = hypITSTrack.getFirstClusterEntry();
-                            auto ncl = hypITSTrack.getNumberOfClusters();
-                            int pdg = 0;
-                            bool thirdBin = false;
-                            bool secondBin = false;
-                            for (int icl = 0; icl < ncl; icl++)
-                            {
-                                auto &labCls = (clusLabArr->getLabels(ITSTrackClusIdx->at(firstClus + icl)))[0];
-                                auto &clus = (*ITSclus)[(*ITSTrackClusIdx)[firstClus + icl]];
-                                auto layer = gman->getLayer(clus.getSensorID());
-                                clsRef[layer] = matchCompLabelToMC(mcTracksMatrix, labCls);
-
-                                bool decayed = false;
-
-                                if (clsRef[layer][0] > -1 && clsRef[layer][1] > -1)
-                                {
-                                    int pdg_new = mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]].GetPdgCode();
-
-                                    if (icl == 0)
-                                    {
-                                        pdg = pdg_new;
-                                        if (pdg != tritonPDG && pdg != hypPDG)
-                                        {
-                                            thirdBin = true;
-                                            break;
-                                        }
-                                        else
-                                            continue;
-                                    }
-
-                                    if (pdg_new == tritonPDG)
-                                    {
-                                        if (pdg == hypPDG)
-                                            decayed = true;
-                                        else if (!decayed)
-                                        {
-                                            secondBin = true;
-                                            break;
-                                        }
-                                    }
-                                    else if (pdg_new == hypPDG)
-                                    {
-                                        if (pdg != pdg_new)
-                                        {
-                                            thirdBin = true;
-                                            break;
-                                        }
-                                    }
-
-                                    pdg = pdg_new;
-                                }
-                                else
-                                {
-                                }
-                            }
-                            if (thirdBin)
-                                hCount->Fill(3);
-                            else if (secondBin)
-                                hCount->Fill(2);
-                            else
-                                hCount->Fill(1);
-                        }
 
                         // topology histos fill
 
@@ -338,9 +274,55 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                             }
                         }
 
+                        if (fake) // hCount fill
+                        {
+                            auto firstClus = hypITSTrack.getFirstClusterEntry();
+                            auto ncl = hypITSTrack.getNumberOfClusters();
+
+                            bool thirdBin = false;
+                            bool secondBin = false;
+                            for (int icl = 0; icl < ncl; icl++)
+                            {
+                                auto &labCls = (clusLabArr->getLabels(ITSTrackClusIdx->at(firstClus + icl)))[0];
+                                auto &clus = (*ITSclus)[(*ITSTrackClusIdx)[firstClus + icl]];
+                                auto layer = gman->getLayer(clus.getSensorID());
+                                clsRef[layer] = matchCompLabelToMC(mcTracksMatrix, labCls);
+
+                                if (clsRef[layer][0] > -1 && clsRef[layer][1] > -1)
+                                {
+                                    auto MCTrack = mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]];
+                                    int pdg = MCTrack.GetPdgCode();
+
+                                    if (abs(pdg) == hypPDG)
+                                        continue;
+                                    else if (abs(pdg) == tritonPDG)
+                                    {
+                                        if (clsRef[layer][0] != evID || clsRef[layer][1] != tritID)
+                                        {
+                                            secondBin = true;
+                                            break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        thirdBin = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (thirdBin)
+                                hCount->Fill(3);
+                            else if (secondBin)
+                                hCount->Fill(2);
+                            else
+                                hCount->Fill(1);
+                        }
+
                         if (tritID == 0)
                             continue; // if no triton daughter, improves speed
 
+                        // topology reprise
                         auto dautherTrack = mcTracksMatrix[evID][tritID];
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
