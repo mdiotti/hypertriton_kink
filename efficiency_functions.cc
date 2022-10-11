@@ -130,7 +130,9 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
         // auto fGeom = TFile::Open(tf_path + "/o2sim_geometry.root");
 
         // Geometry
-        o2::base::GeometryManager::loadGeometry(tf_path + "/o2sim_geometry.root");
+        TString string_to_convert = tf_path + "/o2sim_geometry.root";
+        std::string path_string(string_to_convert.Data());
+        o2::base::GeometryManager::loadGeometry(path_string);
 
         // Trees
         auto treeMCTracks = (TTree *)fMCTracks->Get("o2sim");

@@ -9,6 +9,9 @@
 #include "ReconstructionDataFormats/TrackTPCITS.h"
 #include "DataFormatsITSMFT/ROFRecord.h"
 
+#include "DetectorsVertexing/DCAFitterN.h"
+#include "DataFormatsParameters/GRPObject.h"
+
 #include <TLorentzVector.h>
 #include "TCanvas.h"
 #include "TFile.h"
@@ -42,6 +45,8 @@ int nBins = 100;
 double min_bins = 0;
 double max_bins = 10;
 
+string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
+
 void fitting(TString path, TString filename, int tf_max = 40)
 {
     const int tf_min = 1;
@@ -58,6 +63,10 @@ void fitting(TString path, TString filename, int tf_max = 40)
         auto fITS = TFile::Open(tf_path + "/o2trac_its.root");
         auto fITSTPC = TFile::Open(tf_path + "/o2match_itstpc.root");
         auto fMCTracks = TFile::Open(tf_path + "/sgn_" + tf_string + "_Kine.root");
+
+        TString string_to_convert =  tf_path + "/o2sim_grp.root";
+        std::string path_string(string_to_convert.Data());
+        const auto grp = o2::parameters::GRPObject::loadFrom(path_string);
 
         // Trees
         auto treeMCTracks = (TTree *)fMCTracks->Get("o2sim");
@@ -119,7 +128,7 @@ void fitting(TString path, TString filename, int tf_max = 40)
                     if (abs(MCTrack.GetPdgCode()) == hypPDG)
                     {
                         auto hypITSTrack = ITStracks->at(iTrack);
-                        if (hypITSTrack.getNumberOfClusters() == 3) // 3 clusters recontruction doesn't work
+                        if (hypITSTrack.getNumberOfClusters() == 3) // 3 clusters recontruction doesn't work well
                             continue;
 
                         int firstDauID = MCTrack.getFirstDaughterTrackId();
@@ -140,6 +149,7 @@ void fitting(TString path, TString filename, int tf_max = 40)
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
                             bool isDaughter = false;
+
                             auto tritlab = labITSTPCvec->at(jTrack);
                             int trittrackID, tritevID, tritsrcID;
                             bool tritfake;
@@ -150,11 +160,36 @@ void fitting(TString path, TString filename, int tf_max = 40)
                                 if (abs(tritMCTrack.GetPdgCode()) == tritonPDG)
                                 {
                                     if (trittrackID == tritID && tritevID == evID)
-                                        isDaughter == true;
+                                        isDaughter = true;
 
                                     auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
-                                    // Fitting start
-                                }
+                                    if (!tritfake && !fake)
+                                    {
+                                        // Fitting start
+
+                                        if (FITTEROPTION == "KFParticle")
+                                        {
+                                        }
+
+                                        if (FITTEROPTION == "DCA")
+                                        {
+                                            try
+                                            {
+                                                DCAFitter2 ft2;
+                                                hypITSTrack.checkCovariance();
+                                                tritITSTPCtrack.checkCovariance();
+                                                ft2.setMaxChi2(5);
+                                                ft2.setBz(grp->getNominalL3Field());
+                                                ft2.process(hypITSTrack, tritITSTPCtrack);
+                                                ft2.propagateTracksToVertex();
+                                            }
+                                            catch (std::runtime_error &e)
+                                            {
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                } // Fitting end
                             }
                         }
                     }
