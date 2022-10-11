@@ -27,6 +27,9 @@
 #include <iostream>
 using namespace std;
 
+  using namespace o2;
+  using namespace vertexing;
+
 using GIndex = o2::dataformats::VtxTrackIndex;
 using V0 = o2::dataformats::V0;
 using MCTrack = o2::MCTrack;
@@ -40,7 +43,7 @@ using TrackITS = o2::its::TrackITS;
 
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
-TString chiLabel = "{chi}^2";
+TString chiLabel = "#chi^{2}";
 int nBins = 100;
 double min_bins = 0;
 double max_bins = 10;
@@ -52,8 +55,8 @@ void fitting(TString path, TString filename, int tf_max = 40)
     const int tf_min = 1;
     int tf_lenght = tf_max - tf_min + 1;
 
-    TH1F *daughter_chi = new TH1F("Daughters chi2", "Daughters " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, max_bins);
-    TH1F *nondaughter_chi = new TH1F("Non-daughters chi2", "Non-daughters " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, max_bins);
+    TH1F *daughter_chi = new TH1F("Daughters chi2", "Daughters " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, max_bins/2);
+    TH1F *nondaughter_chi = new TH1F("Non-daughters chi2", "Non-daughters " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 5*max_bins);
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -199,10 +202,10 @@ void fitting(TString path, TString filename, int tf_max = 40)
                                                     phiP = PionTr.getPhi();
                                                     */
 
-                                                    /*
+                                                    
                                                     if (ft2.getChi2AtPCACandidate() < 0)
                                                         continue;
-                                                    */
+                                                    
 
                                                    /*
                                                     std::array<float, 3> R = ft2.getPCACandidatePos();
@@ -212,7 +215,7 @@ void fitting(TString path, TString filename, int tf_max = 40)
                                                     if (std::abs(etaS - etaP) > 0.3 || std::abs(phiS - phiP) > 0.3)
                                                         continue;
                                                     */
-                                                   
+
                                                     if (isDaughter)
                                                         daughter_chi->Fill(ft2.getChi2AtPCACandidate());
                                                     else
@@ -235,6 +238,8 @@ void fitting(TString path, TString filename, int tf_max = 40)
     }     // end of tf loop
 
     auto fFile = TFile(filename, "recreate");
+    daughter_chi->Write();
+    nondaughter_chi->Write();
 
     fFile.Close();
 } // end of fitting function
