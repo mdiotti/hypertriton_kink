@@ -64,7 +64,7 @@ void fitting(TString path, TString filename, int tf_max = 40)
         auto fITSTPC = TFile::Open(tf_path + "/o2match_itstpc.root");
         auto fMCTracks = TFile::Open(tf_path + "/sgn_" + tf_string + "_Kine.root");
 
-        TString string_to_convert =  tf_path + "/o2sim_grp.root";
+        TString string_to_convert = tf_path + "/o2sim_grp.root";
         std::string path_string(string_to_convert.Data());
         const auto grp = o2::parameters::GRPObject::loadFrom(path_string);
 
@@ -182,6 +182,42 @@ void fitting(TString path, TString filename, int tf_max = 40)
                                                 ft2.setBz(grp->getNominalL3Field());
                                                 ft2.process(hypITSTrack, tritITSTPCtrack);
                                                 ft2.propagateTracksToVertex();
+                                                if (ft2.isPropagateTracksToVertexDone() == true)
+                                                {
+                                                    auto hypITSTrack = ft2.getTrack(1);
+                                                    auto tritITSTPStrack = ft2.getTrack(0);
+
+                                                    /*
+                                                    hypITSTrack.getPxPyPzGlo(sigmaP);
+                                                    sigmaPabs = hypITSTrack.getP();
+                                                    etaS = SigmaTr.getEta();
+                                                    phiS = SigmaTr.getPhi();
+
+                                                    tritITSTPStrack.getPxPyPzGlo(pionP);
+                                                    pionPabs = tritITSTPStrack.getP();
+                                                    etaP = PionTr.getEta();
+                                                    phiP = PionTr.getPhi();
+                                                    */
+
+                                                    /*
+                                                    if (ft2.getChi2AtPCACandidate() < 0)
+                                                        continue;
+                                                    */
+
+                                                   /*
+                                                    std::array<float, 3> R = ft2.getPCACandidatePos();
+                                                    auto RResol = (sqrt((pionR[0] - R[0]) * (pionR[0] - R[0]) + (pionR[1] - R[1]) * (pionR[1] - R[1]))) / sqrt(pionR[0] * pionR[0] + pionR[1] * pionR[1]);
+                                                    if (sqrt(R[0] * R[0] + R[1] * R[1]) < 17)
+                                                        continue;
+                                                    if (std::abs(etaS - etaP) > 0.3 || std::abs(phiS - phiP) > 0.3)
+                                                        continue;
+                                                    */
+                                                   
+                                                    if (isDaughter)
+                                                        daughter_chi->Fill(ft2.getChi2AtPCACandidate());
+                                                    else
+                                                        nondaughter_chi->Fill(ft2.getChi2AtPCACandidate());
+                                                }
                                             }
                                             catch (std::runtime_error &e)
                                             {
