@@ -16,7 +16,7 @@
 #include "TCanvas.h"
 #include "TFile.h"
 #include "TH1F.h"
-#include "TH2D.h"
+#include "TH2F.h"
 #include "TMath.h"
 #include "TString.h"
 #include "TTree.h"
@@ -27,8 +27,8 @@
 #include <iostream>
 using namespace std;
 
-  using namespace o2;
-  using namespace vertexing;
+using namespace o2;
+using namespace vertexing;
 
 using GIndex = o2::dataformats::VtxTrackIndex;
 using V0 = o2::dataformats::V0;
@@ -43,20 +43,61 @@ using TrackITS = o2::its::TrackITS;
 
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
+const double tritonMass = 2.808921;
+const double pi0Mass = 0.1349766;
 TString chiLabel = "#chi^{2}";
+TString hypLabel = "M_{^{3}_{#Lambda}H} (GeV/c^{2})";
 int nBins = 100;
 double min_bins = 0;
-double max_bins = 10;
+double min_r = 0;
+double res_bin_lim = 0.25;
+double eta_bin_lim = 0.1;
+double phi_bin_lim = 0.1;
 
 string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
 
-void fitting(TString path, TString filename, int tf_max = 40)
+double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
+{
+    auto idStart = motherTrack.getFirstDaughterTrackId();
+    auto idStop = motherTrack.getLastDaughterTrackId();
+    for (auto iD{idStart}; iD < idStop; ++iD)
+    {
+        auto dauTrack = MCTracks->at(iD);
+        //        if (dauTrack.GetPdgCode() == dauPDG)
+        if (abs(dauTrack.GetPdgCode()) == dauPDG)
+        {
+            auto radius = TMath::Sqrt((dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) * (dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) + (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()) * (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()));
+            return radius;
+        }
+    }
+    return -1;
+}
+
+void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
 {
     const int tf_min = 1;
     int tf_lenght = tf_max - tf_min + 1;
+    if (cut)
+    {
+        min_r = 18;
+        eta_bin_lim = 0.03;
+        phi_bin_lim = 0.03;
+    }
 
-    TH1F *daughter_chi = new TH1F("Daughters chi2", "Daughters " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, max_bins/2);
-    TH1F *nondaughter_chi = new TH1F("Non-daughters chi2", "Non-daughters " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 5*max_bins);
+    TH1F *daughter_chi = new TH1F("Daughters chi2", "Daughters " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 2);
+    TH1F *nondaughter_chi = new TH1F("Non-daughters chi2", "Non-daughters " + chiLabel + ";" + chiLabel + ";counts", nBins, 0, 50);
+    TH1F *nondaughter_chi_normalized = new TH1F("Non-daughters chi2 normalized", chiLabel + " normalized;" + chiLabel + ";counts", nBins, min_bins, 2);
+    TH1F *resolution = new TH1F("Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
+    TH1F *daughter_radius = new TH1F("Daughter radius", "Daughter radius;Rrec(cm);counts", nBins, min_r, 50);
+    TH1F *nondaughter_radius = new TH1F("Non-daughter radius", "Non-daughter radius;Rrec(cm);counts", nBins, min_r, 50);
+    TH1F *inv_mass = new TH1F ("Invariant mass", "Invariant mass;"+ hypLabel +";counts", nBins, 2.5, 3.5);
+    TH1F *inv_mass_daughter = new TH1F ("Invariant mass daughter", "Invariant mass daughter;"+ hypLabel +";counts", nBins, 2.5, 3.5);
+    TH1F *inv_mass_nondaughter = new TH1F ("Invariant mass non-daughter", "Invariant mass non-daughter;"+ hypLabel +";counts", nBins, 2.5, 3.5);
+
+    TH2F *resolution_vs_chi = new TH2F("Resolution vs chi2", "Resolution vs " + chiLabel + ";Resolution;" + chiLabel, nBins, -res_bin_lim, res_bin_lim, nBins, min_bins, 2);
+    TH2F *eta_vs_phi = new TH2F("Eta vs Phi daughter", "Eta vs Phi daughter;#eta;#phi", nBins, -eta_bin_lim, eta_bin_lim, nBins, -phi_bin_lim, phi_bin_lim);
+    TH2F *eta_vs_phi_nondaughter = new TH2F("Eta vs Phi non-daughter", "Eta vs Phi non-daughter;#eta;#phi", nBins, -eta_bin_lim, eta_bin_lim, nBins, -phi_bin_lim, phi_bin_lim);
+    TH2F *resolution_vs_rrec = new TH2F("Resolution vs Rgen", "Resolution vs Rgen;Resolution;Rgen(cm)", nBins, -res_bin_lim, res_bin_lim, nBins, min_r, 50);
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -148,6 +189,7 @@ void fitting(TString path, TString filename, int tf_max = 40)
 
                         if (tritID == 0)
                             continue; // if no triton daughter, improves speed
+                        double genR = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
 
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
@@ -190,36 +232,70 @@ void fitting(TString path, TString filename, int tf_max = 40)
                                                     auto hypITSTrack = ft2.getTrack(1);
                                                     auto tritITSTPStrack = ft2.getTrack(0);
 
-                                                    /*
-                                                    hypITSTrack.getPxPyPzGlo(sigmaP);
-                                                    sigmaPabs = hypITSTrack.getP();
-                                                    etaS = SigmaTr.getEta();
-                                                    phiS = SigmaTr.getPhi();
+                                                    std::array<float, 3> hypP = {0, 0, 0};
+                                                    std::array<float, 3> tritP = {0, 0, 0};
+                                                    float hypPabs = 0;
+                                                    float tritPabs = 0;
+                                                    float etaHyp = 0;
+                                                    float phiHyp = 0;
+                                                    float etaTrit = 0;
+                                                    float phiTrit = 0;
 
-                                                    tritITSTPStrack.getPxPyPzGlo(pionP);
-                                                    pionPabs = tritITSTPStrack.getP();
-                                                    etaP = PionTr.getEta();
-                                                    phiP = PionTr.getPhi();
-                                                    */
+                                                    hypITSTrack.getPxPyPzGlo(hypP);
+                                                    hypPabs = hypITSTrack.getP();
+                                                    etaHyp = hypITSTrack.getEta();
+                                                    phiHyp = hypITSTrack.getPhi();
 
-                                                    
+                                                    tritITSTPStrack.getPxPyPzGlo(tritP);
+                                                    tritPabs = tritITSTPStrack.getP();
+                                                    etaTrit = tritITSTPStrack.getEta();
+                                                    phiTrit = tritITSTPStrack.getPhi();
+
                                                     if (ft2.getChi2AtPCACandidate() < 0)
                                                         continue;
-                                                    
 
-                                                   /*
+                                                    double chi2 = ft2.getChi2AtPCACandidate();
+
                                                     std::array<float, 3> R = ft2.getPCACandidatePos();
-                                                    auto RResol = (sqrt((pionR[0] - R[0]) * (pionR[0] - R[0]) + (pionR[1] - R[1]) * (pionR[1] - R[1]))) / sqrt(pionR[0] * pionR[0] + pionR[1] * pionR[1]);
-                                                    if (sqrt(R[0] * R[0] + R[1] * R[1]) < 17)
-                                                        continue;
-                                                    if (std::abs(etaS - etaP) > 0.3 || std::abs(phiS - phiP) > 0.3)
-                                                        continue;
-                                                    */
+                                                    double recR = sqrt(R[0] * R[0] + R[1] * R[1]);
+
+                                                    if (cut)
+                                                    {
+                                                        if (recR < 18)
+                                                            continue;
+                                                        if (std::abs(etaHyp - etaTrit) > 0.03 || std::abs(phiHyp - phiTrit) > 0.03)
+                                                            continue;
+                                                    }
+
+                                                    double res = (genR - recR) / genR;
+
+                                                    float tritE = sqrt(tritPabs * tritPabs + tritonMass * tritonMass);
+                                                    std::array<float, 3> piP = {hypP[0] - tritP[0], hypP[1] - tritP[1], hypP[2] - tritP[2]};
+                                                    float piPabs = sqrt(piP[0] * piP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
+                                                    float piE = sqrt(pi0Mass * pi0Mass + piPabs * piPabs);
+                                                    float hypE = piE + tritE;
+
+                                                    float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
 
                                                     if (isDaughter)
-                                                        daughter_chi->Fill(ft2.getChi2AtPCACandidate());
+                                                    {
+                                                        daughter_chi->Fill(chi2);
+                                                        resolution->Fill(res);
+                                                        resolution_vs_chi->Fill(res, chi2);
+                                                        eta_vs_phi->Fill((etaHyp - etaTrit), (phiHyp - phiTrit));
+                                                        daughter_radius->Fill(recR);
+                                                        inv_mass_daughter->Fill(hypMass);
+                                                    }
                                                     else
-                                                        nondaughter_chi->Fill(ft2.getChi2AtPCACandidate());
+                                                    {
+                                                        nondaughter_chi->Fill(chi2);
+                                                        nondaughter_chi_normalized->Fill(chi2);
+                                                        eta_vs_phi_nondaughter->Fill((etaHyp - etaTrit), (phiHyp - phiTrit));
+                                                        nondaughter_radius->Fill(recR);
+                                                        inv_mass_nondaughter->Fill(hypMass);
+                                                    }
+                                                    resolution_vs_rrec->Fill(res, recR);
+                                                    inv_mass->Fill(hypMass);
                                                 }
                                             }
                                             catch (std::runtime_error &e)
@@ -240,6 +316,27 @@ void fitting(TString path, TString filename, int tf_max = 40)
     auto fFile = TFile(filename, "recreate");
     daughter_chi->Write();
     nondaughter_chi->Write();
+    resolution->Write();
+    resolution_vs_chi->Write();
+    eta_vs_phi->Write();
+    eta_vs_phi_nondaughter->Write();
+    resolution_vs_rrec->Write();
+    inv_mass->Write();
+    inv_mass_daughter->Write();
+    inv_mass_nondaughter->Write();
+
+    auto c = new TCanvas("c", "c", 800, 600);
+    nondaughter_chi_normalized->SetLineColor(kRed);
+    nondaughter_chi_normalized->DrawNormalized("P");
+    daughter_chi->DrawNormalized("sameP");
+    c->Write();
+
+    auto c1 = new TCanvas("c", "c", 800, 600);
+    nondaughter_radius->SetLineColor(kRed);
+    nondaughter_radius->SetTitle("Radius normalized");
+    nondaughter_radius->DrawNormalized("P");
+    daughter_radius->DrawNormalized("sameP");
+    c1->Write();
 
     fFile.Close();
 } // end of fitting function
