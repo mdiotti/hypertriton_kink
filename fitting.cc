@@ -43,6 +43,7 @@ using TrackITS = o2::its::TrackITS;
 
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
+const int pi0PDG = 111;
 const double tritonMass = 2.808921;
 const double pi0Mass = 0.1349766;
 TString chiLabel = "#chi^{2}";
@@ -90,14 +91,15 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
     TH1F *resolution = new TH1F("Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
     TH1F *daughter_radius = new TH1F("Daughter radius", "Daughter radius;Rrec(cm);counts", nBins, min_r, 50);
     TH1F *nondaughter_radius = new TH1F("Non-daughter radius", "Non-daughter radius;Rrec(cm);counts", nBins, min_r, 50);
-    TH1F *inv_mass = new TH1F ("Invariant mass", "Invariant mass;"+ hypLabel +";counts", nBins, 2.5, 3.5);
-    TH1F *inv_mass_daughter = new TH1F ("Invariant mass daughter", "Invariant mass daughter;"+ hypLabel +";counts", nBins, 2.5, 3.5);
-    TH1F *inv_mass_nondaughter = new TH1F ("Invariant mass non-daughter", "Invariant mass non-daughter;"+ hypLabel +";counts", nBins, 2.5, 3.5);
+    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.5, 3.5);
+    TH1F *inv_mass_daughter = new TH1F("Invariant mass daughter", "Invariant mass daughter;" + hypLabel + ";counts", nBins, 2.5, 3.5);
+    TH1F *inv_mass_nondaughter = new TH1F("Invariant mass non-daughter", "Invariant mass non-daughter;" + hypLabel + ";counts", nBins, 2.5, 3.5);
+    TH1F *pi0_p_resolution = new TH1F("Pi0 P resolution", "Pi0 P resolution;Resolution;counts", nBins, -50, 50);
 
     TH2F *resolution_vs_chi = new TH2F("Resolution vs chi2", "Resolution vs " + chiLabel + ";Resolution;" + chiLabel, nBins, -res_bin_lim, res_bin_lim, nBins, min_bins, 2);
     TH2F *eta_vs_phi = new TH2F("Eta vs Phi daughter", "Eta vs Phi daughter;#eta;#phi", nBins, -eta_bin_lim, eta_bin_lim, nBins, -phi_bin_lim, phi_bin_lim);
     TH2F *eta_vs_phi_nondaughter = new TH2F("Eta vs Phi non-daughter", "Eta vs Phi non-daughter;#eta;#phi", nBins, -eta_bin_lim, eta_bin_lim, nBins, -phi_bin_lim, phi_bin_lim);
-    TH2F *resolution_vs_rrec = new TH2F("Resolution vs Rgen", "Resolution vs Rgen;Resolution;Rgen(cm)", nBins, -res_bin_lim, res_bin_lim, nBins, min_r, 50);
+    TH2F *resolution_vs_rrec = new TH2F("Resolution vs Rrec", "Resolution vs Rrec;Resolution;Rrec(cm)", nBins, -res_bin_lim, res_bin_lim, nBins, min_r, 50);
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -178,6 +180,7 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                         int firstDauID = MCTrack.getFirstDaughterTrackId();
                         int nDau = MCTrack.getLastDaughterTrackId();
                         int tritID = 0;
+
                         for (int iDau = firstDauID; iDau < nDau; iDau++)
                         {
                             if (mcTracksMatrix[evID][iDau].GetPdgCode() == tritonPDG)
@@ -189,6 +192,20 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
 
                         if (tritID == 0)
                             continue; // if no triton daughter, improves speed
+
+                        double pi0genPabs = 0;
+                        for (int iDau = firstDauID; iDau < nDau; iDau++)
+                        {
+                            if (iDau == tritID)
+                                continue;
+
+                            if (abs(mcTracksMatrix[evID][iDau].GetPdgCode()) == pi0PDG)
+                            {
+                                cout << "pi0 found" << endl;
+                                pi0genPabs = mcTracksMatrix[evID][iDau].GetP();
+                            }
+                        }
+
                         double genR = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
 
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
@@ -296,6 +313,10 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                                                     }
                                                     resolution_vs_rrec->Fill(res, recR);
                                                     inv_mass->Fill(hypMass);
+                                                    double p_res = (pi0genPabs - piPabs) / pi0genPabs;
+                                                    if (pi0genPabs == 0)
+                                                        p_res = -10;
+                                                    pi0_p_resolution->Fill(p_res);
                                                 }
                                             }
                                             catch (std::runtime_error &e)
@@ -321,9 +342,13 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
     eta_vs_phi->Write();
     eta_vs_phi_nondaughter->Write();
     resolution_vs_rrec->Write();
+
+    // inv_mass->Fit("gaus");
     inv_mass->Write();
+
     inv_mass_daughter->Write();
     inv_mass_nondaughter->Write();
+    pi0_p_resolution->Write();
 
     auto c = new TCanvas("c", "c", 800, 600);
     nondaughter_chi_normalized->SetLineColor(kRed);
