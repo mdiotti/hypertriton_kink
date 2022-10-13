@@ -55,6 +55,17 @@ double res_bin_lim = 0.25;
 double eta_bin_lim = 0.1;
 double phi_bin_lim = 0.1;
 
+double lim = 0.02;
+TString limLabel = Form("%f", lim);
+double lim2 = 0.05;
+TString limLabel2 = Form("%f", lim2);
+double lim3 = 0.1;
+TString limLabel3 = Form("%f", lim3);
+double lim4 = 0.5;
+TString limLabel4 = Form("%f", lim4);
+double lim5 = 1;
+TString limLabel5 = Form("%f", lim5);
+
 string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
 
 double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
@@ -94,7 +105,14 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.5, 3.5);
     TH1F *inv_mass_daughter = new TH1F("Invariant mass daughter", "Invariant mass daughter;" + hypLabel + ";counts", nBins, 2.5, 3.5);
     TH1F *inv_mass_nondaughter = new TH1F("Invariant mass non-daughter", "Invariant mass non-daughter;" + hypLabel + ";counts", nBins, 2.5, 3.5);
-    TH1F *pi0_p_resolution = new TH1F("Pi0 P resolution", "Pi0 P resolution;Resolution;counts", nBins, -50, 50);
+    TH1F *pi0_p_resolution = new TH1F("Pi0 p resolution", "Pi0 p resolution;Resolution;counts", nBins, -30, 30);
+    TH1F *hyp_p_resolution = new TH1F("Hyp p resolution", "Hyp p resolution;Resolution;counts", nBins, -1, 1);
+    TH1F *triton_p_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -1, 1);
+    TH1F *pi0_partial_resolution = new TH1F("Pi0 partial resolution", "#pi^{0} p resolution with hyp and trit res < " + limLabel + ";Resolution;counts", nBins, -2, 2);
+    TH1F *pi0_partial_resolution2 = new TH1F("Pi0 p resolution2", "#pi^{0} p resolution with hyp and trit res < " + limLabel2 + ";Resolution;counts", nBins, -2, 2);
+    TH1F *pi0_partial_resolution3 = new TH1F("Pi0 p resolution3", "#pi^{0} p resolution with hyp and trit res < " + limLabel3 + ";Resolution;counts", nBins, -2, 2);
+    TH1F *pi0_partial_resolution4 = new TH1F("Pi0 p resolution4", "#pi^{0} p resolution with hyp and trit res < " + limLabel4 + ";Resolution;counts", nBins, -2, 2);
+    TH1F *pi0_partial_resolution5 = new TH1F("Pi0 p resolution5", "#pi^{0} p resolution with hyp and trit res < " + limLabel5 + ";Resolution;counts", nBins, -2, 2);
 
     TH2F *resolution_vs_chi = new TH2F("Resolution vs chi2", "Resolution vs " + chiLabel + ";Resolution;" + chiLabel, nBins, -res_bin_lim, res_bin_lim, nBins, min_bins, 2);
     TH2F *eta_vs_phi = new TH2F("Eta vs Phi daughter", "Eta vs Phi daughter;#eta;#phi", nBins, -eta_bin_lim, eta_bin_lim, nBins, -phi_bin_lim, phi_bin_lim);
@@ -170,9 +188,11 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                 lab.get(trackID, evID, srcID, fake);
                 if (!lab.isNoise() && lab.isValid())
                 {
+                    double hypgenPabs = 0;
                     auto MCTrack = mcTracksMatrix[evID][trackID];
                     if (abs(MCTrack.GetPdgCode()) == hypPDG)
                     {
+                        hypgenPabs = MCTrack.GetP();
                         auto hypITSTrack = ITStracks->at(iTrack);
                         if (hypITSTrack.getNumberOfClusters() == 3) // 3 clusters recontruction doesn't work well
                             continue;
@@ -181,11 +201,13 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                         int nDau = MCTrack.getLastDaughterTrackId();
                         int tritID = 0;
 
+                        double tritgenPabs = 0;
                         for (int iDau = firstDauID; iDau <= nDau; iDau++)
                         {
                             if (mcTracksMatrix[evID][iDau].GetPdgCode() == tritonPDG)
                             {
                                 tritID = iDau;
+                                tritgenPabs = mcTracksMatrix[evID][iDau].GetP();
                                 break;
                             }
                         }
@@ -245,10 +267,9 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                                                 ft2.propagateTracksToVertex();
                                                 if (ft2.isPropagateTracksToVertexDone() == true)
                                                 {
-                                                    
+
                                                     auto hypTrackDCA = ft2.getTrack(0);
                                                     auto tritTrackDCA = ft2.getTrack(1);
-                                                    
 
                                                     std::array<float, 3> hypP = {0, 0, 0};
                                                     std::array<float, 3> tritP = {0, 0, 0};
@@ -314,10 +335,31 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                                                     }
                                                     resolution_vs_rrec->Fill(res, recR);
                                                     inv_mass->Fill(hypMass);
-                                                    double p_res = (pi0genPabs - piPabs) / pi0genPabs;
-                                                    if (pi0genPabs == 0)
-                                                        p_res = -10;
-                                                    pi0_p_resolution->Fill(p_res);
+                                                    double pi0_p_res = (pi0genPabs - piPabs) / pi0genPabs;
+                                                    double trit_p_res = (tritgenPabs - tritPabs) / tritgenPabs;
+                                                    double hyp_p_res = (hypgenPabs - hypPabs) / hypgenPabs;
+
+                                                    if (abs(trit_p_res) <= lim && abs(hyp_p_res) <= lim)
+                                                        pi0_partial_resolution->Fill(pi0_p_res);
+                                                    
+                                                    if (abs(trit_p_res) <= lim2 && abs(hyp_p_res) <= lim2)
+                                                        pi0_partial_resolution2->Fill(pi0_p_res);
+
+                                                    if (abs(trit_p_res) <= lim3 && abs(hyp_p_res) <= lim3)
+                                                        pi0_partial_resolution3->Fill(pi0_p_res);
+
+                                                    if (abs(trit_p_res) <= lim4 && abs(hyp_p_res) <= lim4)
+                                                        pi0_partial_resolution4->Fill(pi0_p_res);
+                                                    
+                                                    if (abs(trit_p_res) <= lim5 && abs(hyp_p_res) <= lim5)
+                                                        pi0_partial_resolution5->Fill(pi0_p_res);
+
+                                                    if (abs(pi0_p_res) >= 5)
+                                                    //cout << "pi0 res >= 5; trit_p_res: " << trit_p_res << " hyp_p_res: " << hyp_p_res << " pi0_p_res: " << pi0_p_res << endl;
+
+                                                        pi0_p_resolution->Fill(pi0_p_res);
+                                                    triton_p_resolution->Fill(trit_p_res);
+                                                    hyp_p_resolution->Fill(hyp_p_res);
                                                 }
                                             }
                                             catch (std::runtime_error &e)
@@ -350,20 +392,27 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
     inv_mass_daughter->Write();
     inv_mass_nondaughter->Write();
     pi0_p_resolution->Write();
+    triton_p_resolution->Write();
+    hyp_p_resolution->Write();
+    pi0_partial_resolution->Write();
+    pi0_partial_resolution2->Write();
+    pi0_partial_resolution3->Write();
+    pi0_partial_resolution4->Write();
+    pi0_partial_resolution5->Write();
 
     auto c = new TCanvas("c", "c", 800, 600);
     nondaughter_chi_normalized->SetLineColor(kRed);
     nondaughter_chi_normalized->DrawNormalized("P");
     daughter_chi->DrawNormalized("sameP");
     c->Write();
-/*
-    auto c1 = new TCanvas("c", "c", 800, 600);
-    nondaughter_radius->SetLineColor(kRed);
-    nondaughter_radius->SetTitle("Radius normalized");
-    nondaughter_radius->DrawNormalized("P");
-    daughter_radius->DrawNormalized("sameP");
-    c1->Write();
-*/
+    /*
+        auto c1 = new TCanvas("c", "c", 800, 600);
+        nondaughter_radius->SetLineColor(kRed);
+        nondaughter_radius->SetTitle("Radius normalized");
+        nondaughter_radius->DrawNormalized("P");
+        daughter_radius->DrawNormalized("sameP");
+        c1->Write();
+    */
 
     fFile.Close();
 } // end of fitting function
