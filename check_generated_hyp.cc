@@ -42,7 +42,7 @@ const int tf_min = 1;
 const int tf_max = 40;
 int tf_lenght = tf_max - tf_min + 1;
 
-void check_generated_hyp(TString path, bool verbose = true)
+void check_generated_hyp(TString path)
 {
 
     for (int tf = tf_min; tf < tf_max; tf++)
@@ -50,7 +50,6 @@ void check_generated_hyp(TString path, bool verbose = true)
         LOG(info) << "Processing TF " << tf;
         int counter_hyp = 0;
         int counter_hyp_no_kink = 0;
-        int counter_pi0 = 0;
 
         TString tf_string = Form("%d", tf);
         TString tf_path = path + "tf" + tf_string;
@@ -113,23 +112,10 @@ void check_generated_hyp(TString path, bool verbose = true)
                         counter_hyp_no_kink++;
                         LOG(info) << "hyp without triton";
                     }
-                    
-                        if(verbose) cout << "Particle PDGs in " <<n <<"x" <<mcI <<" event: " << endl;
-                        for (int iDau = firstDauID; iDau < nDau; iDau++)
-                        {
-                            auto dauTrack = mcTracksMatrix[n][iDau];
-                            
-                                if (abs(dauTrack.GetPdgCode()) == pi0PDG)
-                                    counter_pi0++;
-
-                                if(verbose) cout << dauTrack.GetPdgCode() << endl;
-                            
-                        }
-                    
                 }
             }
         }
-        LOG(info) << "TF " << tf << " has " << counter_hyp << " hyps and " << counter_hyp_no_kink << " without triton and " << counter_pi0 << " with pi0";
+        LOG(info) << "TF " << tf << " has " << counter_hyp << " hyps and " << counter_hyp_no_kink << " without triton";
         LOG(info) << "---------------------------------------";
     }
 }

@@ -181,7 +181,7 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                         int nDau = MCTrack.getLastDaughterTrackId();
                         int tritID = 0;
 
-                        for (int iDau = firstDauID; iDau < nDau; iDau++)
+                        for (int iDau = firstDauID; iDau <= nDau; iDau++)
                         {
                             if (mcTracksMatrix[evID][iDau].GetPdgCode() == tritonPDG)
                             {
@@ -194,14 +194,13 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                             continue; // if no triton daughter, improves speed
 
                         double pi0genPabs = 0;
-                        for (int iDau = firstDauID; iDau < nDau; iDau++)
+                        for (int iDau = firstDauID; iDau <= nDau; iDau++)
                         {
                             if (iDau == tritID)
                                 continue;
 
                             if (abs(mcTracksMatrix[evID][iDau].GetPdgCode()) == pi0PDG)
                             {
-                                cout << "pi0 found" << endl;
                                 pi0genPabs = mcTracksMatrix[evID][iDau].GetP();
                             }
                         }
@@ -246,8 +245,10 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                                                 ft2.propagateTracksToVertex();
                                                 if (ft2.isPropagateTracksToVertexDone() == true)
                                                 {
-                                                    auto hypITSTrack = ft2.getTrack(1);
-                                                    auto tritITSTPStrack = ft2.getTrack(0);
+                                                    
+                                                    auto hypTrackDCA = ft2.getTrack(0);
+                                                    auto tritTrackDCA = ft2.getTrack(1);
+                                                    
 
                                                     std::array<float, 3> hypP = {0, 0, 0};
                                                     std::array<float, 3> tritP = {0, 0, 0};
@@ -258,15 +259,15 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                                                     float etaTrit = 0;
                                                     float phiTrit = 0;
 
-                                                    hypITSTrack.getPxPyPzGlo(hypP);
-                                                    hypPabs = hypITSTrack.getP();
+                                                    hypTrackDCA.getPxPyPzGlo(hypP);
+                                                    hypPabs = hypTrackDCA.getP();
                                                     etaHyp = hypITSTrack.getEta();
                                                     phiHyp = hypITSTrack.getPhi();
 
-                                                    tritITSTPStrack.getPxPyPzGlo(tritP);
-                                                    tritPabs = tritITSTPStrack.getP();
-                                                    etaTrit = tritITSTPStrack.getEta();
-                                                    phiTrit = tritITSTPStrack.getPhi();
+                                                    tritTrackDCA.getPxPyPzGlo(tritP);
+                                                    tritPabs = tritTrackDCA.getP();
+                                                    etaTrit = tritITSTPCtrack.getEta();
+                                                    phiTrit = tritITSTPCtrack.getPhi();
 
                                                     if (ft2.getChi2AtPCACandidate() < 0)
                                                         continue;
@@ -355,13 +356,14 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
     nondaughter_chi_normalized->DrawNormalized("P");
     daughter_chi->DrawNormalized("sameP");
     c->Write();
-
+/*
     auto c1 = new TCanvas("c", "c", 800, 600);
     nondaughter_radius->SetLineColor(kRed);
     nondaughter_radius->SetTitle("Radius normalized");
     nondaughter_radius->DrawNormalized("P");
     daughter_radius->DrawNormalized("sameP");
     c1->Write();
+*/
 
     fFile.Close();
 } // end of fitting function
