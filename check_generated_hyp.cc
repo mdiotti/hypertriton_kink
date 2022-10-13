@@ -37,6 +37,7 @@ using TrackITS = o2::its::TrackITS;
 
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
+const int pi0PDG = 111;
 const int tf_min = 1;
 const int tf_max = 40;
 int tf_lenght = tf_max - tf_min + 1;
@@ -49,6 +50,7 @@ void check_generated_hyp(TString path)
         LOG(info) << "Processing TF " << tf;
         int counter_hyp = 0;
         int counter_hyp_no_kink = 0;
+        int counter_pi0 = 0;
 
         TString tf_string = Form("%d", tf);
         TString tf_path = path + "tf" + tf_string;
@@ -104,6 +106,17 @@ void check_generated_hyp(TString path)
                             break;
                         }
                     }
+
+                     for (int iDau = firstDauID; iDau < nDau; iDau++)
+                    {
+                        auto dauTrack = mcTracksMatrix[n][iDau];
+                        if (abs(dauTrack.GetPdgCode()) == pi0PDG)
+                        {
+                            counter_pi0++;
+                            break;
+                        }
+                    }
+                    
                     if (!hasTriton)
                     {
                         counter_hyp_no_kink++;
@@ -112,7 +125,7 @@ void check_generated_hyp(TString path)
                 }
             }
         }
-        LOG(info) << "TF " << tf << " has " << counter_hyp << " hyps and " << counter_hyp_no_kink << " without triton";
+        LOG(info) << "TF " << tf << " has " << counter_hyp << " hyps and " << counter_hyp_no_kink << " without triton and " << counter_pi0 << " with pi0";
         LOG(info) << "---------------------------------------";
     }
 }
