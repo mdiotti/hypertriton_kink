@@ -42,7 +42,7 @@ const int tf_min = 1;
 const int tf_max = 40;
 int tf_lenght = tf_max - tf_min + 1;
 
-void check_generated_hyp(TString path)
+void check_generated_hyp(TString path, bool verbose = true)
 {
 
     for (int tf = tf_min; tf < tf_max; tf++)
@@ -85,7 +85,8 @@ void check_generated_hyp(TString path)
                 mcTracksMatrix[n][mcI] = MCtracks->at(mcI);
             }
         }
-        for (int n = 0; n < nev; n++) // fill histos
+
+        for (int n = 0; n < nev; n++)
         {
             for (unsigned int mcI{0}; mcI < nTracks[n]; mcI++)
             {
@@ -107,21 +108,24 @@ void check_generated_hyp(TString path)
                         }
                     }
 
-                     for (int iDau = firstDauID; iDau < nDau; iDau++)
-                    {
-                        auto dauTrack = mcTracksMatrix[n][iDau];
-                        if (abs(dauTrack.GetPdgCode()) == pi0PDG)
-                        {
-                            counter_pi0++;
-                            break;
-                        }
-                    }
-                    
                     if (!hasTriton)
                     {
                         counter_hyp_no_kink++;
                         LOG(info) << "hyp without triton";
                     }
+                    
+                        if(verbose) cout << "Particle PDGs in " <<n <<"x" <<mcI <<" event: " << endl;
+                        for (int iDau = firstDauID; iDau < nDau; iDau++)
+                        {
+                            auto dauTrack = mcTracksMatrix[n][iDau];
+                            
+                                if (abs(dauTrack.GetPdgCode()) == pi0PDG)
+                                    counter_pi0++;
+
+                                if(verbose) cout << dauTrack.GetPdgCode() << endl;
+                            
+                        }
+                    
                 }
             }
         }
