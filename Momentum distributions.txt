@@ -1,0 +1,260 @@
+Hyp resolution = 0.067017 Generated: px= -4.694890 py= 3.865527 pz= -3.636745 Reconstructed: px= -4.407945 py= 3.572998 pz= -3.392572
+Triton resolution = 0.017064 Generated: px= -4.420591 py= 3.492146 pz= -3.473583 Reconstructed: px= -4.346833 py= 3.431858 pz= -3.412878
+pi0 resolution = 0.677252 Generated: px= -0.299908 py= 0.339242 pz= -0.161304 Reconstructed: px= -0.061112 py= 0.141140 pz= 0.020306
+
+Hyp resolution = 0.002590 Generated: px= 5.568294 py= -3.469846 pz= -4.425488 Reconstructed: px= 5.577367 py= -3.423944 pz= -4.413186
+Triton resolution = 0.037829 Generated: px= 5.274334 py= -3.366585 pz= -4.193654 Reconstructed: px= 5.076481 py= -3.237291 pz= -4.034467
+pi0 resolution = -0.653751 Generated: px= 0.316256 py= -0.063244 pz= -0.230001 Reconstructed: px= 0.500885 py= -0.186653 pz= -0.378719
+
+Hyp resolution = 0.056042 Generated: px= -6.194061 py= -1.248747 pz= 0.436901 Reconstructed: px= -5.838297 py= -1.221939 pz= 0.409095
+Triton resolution = 0.002700 Generated: px= -5.806916 py= -1.096455 pz= 0.416943 Reconstructed: px= -5.791729 py= -1.090966 pz= 0.415643
+pi0 resolution = 0.673234 Generated: px= -0.376505 py= -0.198450 pz= 0.015082 Reconstructed: px= -0.046568 py= -0.130973 pz= -0.006547
+
+Hyp resolution = -0.055679 Generated: px= -4.475241 py= -5.056187 pz= -0.638027 Reconstructed: px= -4.698830 py= -5.360260 pz= -0.673450
+Triton resolution = -0.034691 Generated: px= -4.084905 py= -4.709080 pz= -0.485743 Reconstructed: px= -4.226206 py= -4.872786 pz= -0.502687
+pi0 resolution = -0.296510 Generated: px= -0.365726 py= -0.367147 pz= -0.151817 Reconstructed: px= -0.472624 py= -0.487473 pz= -0.170762
+
+Hyp resolution = 0.080222 Generated: px= 5.440316 py= 7.278495 pz= 2.946005 Reconstructed: px= 4.974601 py= 6.716140 pz= 2.710296
+Triton resolution = -0.061016 Generated: px= 5.313508 py= 7.045663 pz= 2.828213 Reconstructed: px= 5.636029 py= 7.476613 pz= 3.001319
+pi0 resolution = -2.544563 Generated: px= 0.095215 py= 0.254672 pz= 0.116911 Reconstructed: px= -0.661427 py= -0.760473 pz= -0.291023
+
+Hyp resolution = 0.004270 Generated: px= -4.980606 py= -5.103649 pz= -1.189297 Reconstructed: px= -4.937989 py= -5.101623 pz= -1.188437
+Triton resolution = 0.000759 Generated: px= -4.628217 py= -4.695206 pz= -1.201315 Reconstructed: px= -4.626071 py= -4.690276 pz= -1.200462
+pi0 resolution = 0.043045 Generated: px= -0.329607 py= -0.427179 pz= 0.006936 Reconstructed: px= -0.311918 py= -0.411346 pz= 0.012025
+
+Hyp resolution = -0.089971 Generated: px= -6.461445 py= 4.267369 pz= -3.934565 Reconstructed: px= -7.066799 py= 4.613732 pz= -4.289662
+Triton resolution = -0.009955 Generated: px= -5.890508 py= 3.846502 pz= -3.678672 Reconstructed: px= -5.949103 py= 3.883311 pz= -3.716907
+pi0 resolution = -0.933383 Generated: px= -0.595125 py= 0.381569 pz= -0.254803 Reconstructed: px= -1.117696 py= 0.730422 pz= -0.572755
+
+Hyp resolution = 0.054740 Generated: px= 5.265238 py= 1.972004 pz= -1.942073 Reconstructed: px= 4.960821 py= 1.906757 pz= -1.835752
+Triton resolution = -0.011769 Generated: px= 4.947236 py= 1.910879 pz= -1.708110 Reconstructed: px= 5.004342 py= 1.934222 pz= -1.730497
+pi0 resolution = 0.702097 Generated: px= 0.297565 py= 0.106692 pz= -0.233983 Reconstructed: px= -0.043521 py= -0.027465 pz= -0.105255
+
+Hyp resolution = 0.079951 Generated: px= 1.965005 py= 6.416709 pz= -2.717345 Reconstructed: px= 1.766533 py= 5.916244 pz= -2.499979
+Triton resolution = -0.022649 Generated: px= 1.859061 py= 6.302461 pz= -2.596555 Reconstructed: px= 1.900714 py= 6.445220 pz= -2.655660
+pi0 resolution = -2.077861 Generated: px= 0.063533 py= 0.125475 pz= -0.119231 Reconstructed: px= -0.134182 py= -0.528975 pz= 0.155681
+
+Hyp resolution = -0.032515 Generated: px= 3.694759 py= 2.346071 pz= 1.529097 Reconstructed: px= 3.796999 py= 2.451330 pz= 1.577229
+Triton resolution = 0.016427 Generated: px= 3.450279 py= 2.099834 pz= 1.438920 Reconstructed: px= 3.393719 py= 2.065566 pz= 1.414677
+pi0 resolution = -0.590212 Generated: px= 0.224395 py= 0.274554 pz= 0.088756 Reconstructed: px= 0.403280 py= 0.385763 pz= 0.162552
+
+Hyp resolution = -0.075420 Generated: px= 0.607390 py= -9.065638 pz= 3.125658 Reconstructed: px= 0.699445 py= -9.746124 pz= 3.361493
+Triton resolution = -0.023794 Generated: px= 0.587912 py= -8.550340 pz= 3.066102 Reconstructed: px= 0.605834 py= -8.753276 pz= 3.139711
+pi0 resolution = -0.971238 Generated: px= 0.066298 py= -0.510766 pz= 0.057594 Reconstructed: px= 0.093610 py= -0.992848 pz= 0.221782
+
+Hyp resolution = 0.008423 Generated: px= 2.749043 py= -7.456152 pz= 8.110703 Reconstructed: px= 2.762962 py= -7.379048 pz= 8.042868
+Triton resolution = 0.045094 Generated: px= 2.729006 py= -7.265847 pz= 7.806798 Reconstructed: px= 2.592192 py= -6.944790 pz= 7.453414
+pi0 resolution = -1.125708 Generated: px= 0.060384 py= -0.172484 pz= 0.302794 Reconstructed: px= 0.170770 py= -0.434258 pz= 0.589453
+
+Hyp resolution = -0.042835 Generated: px= 8.209602 py= 0.555994 pz= 1.350754 Reconstructed: px= 8.557571 py= 0.630720 pz= 1.409172
+Triton resolution = -0.050026 Generated: px= 7.936420 py= 0.493608 pz= 1.319505 Reconstructed: px= 8.334386 py= 0.522384 pz= 1.378302
+pi0 resolution = 0.143021 Generated: px= 0.268295 py= 0.110217 pz= 0.031210 Reconstructed: px= 0.223186 py= 0.108337 pz= 0.030869
+
+Hyp resolution = 0.078481 Generated: px= 3.287656 py= 3.001312 pz= 2.652700 Reconstructed: px= 3.001799 py= 2.796093 pz= 2.444354
+Triton resolution = -0.013566 Generated: px= 3.179243 py= 3.015877 pz= 2.568774 Reconstructed: px= 3.222554 py= 3.057460 pz= 2.602608
+pi0 resolution = -2.401071 Generated: px= 0.076672 py= 0.016569 pz= 0.078299 Reconstructed: px= -0.220755 py= -0.261368 pz= -0.158254
+
+Hyp resolution = 0.088986 Generated: px= -7.689823 py= -1.992007 pz= 4.685204 Reconstructed: px= -6.996569 py= -1.853132 pz= 4.266502
+Triton resolution = -0.032608 Generated: px= -7.290839 py= -2.026930 pz= 4.523048 Reconstructed: px= -7.530159 py= -2.091490 pz= 4.668680
+pi0 resolution = -0.690037 Generated: px= -0.388052 py= -0.003944 pz= 0.160016 Reconstructed: px= 0.533590 py= 0.238358 pz= -0.402178
+
+Hyp resolution = -0.019345 Generated: px= 5.596930 py= 3.974770 pz= 4.282229 Reconstructed: px= 5.680710 py= 4.083804 pz= 4.367056
+Triton resolution = -0.008761 Generated: px= 5.180679 py= 3.631049 pz= 4.050705 Reconstructed: px= 5.224754 py= 3.663353 pz= 4.087425
+pi0 resolution = -0.155431 Generated: px= 0.390507 py= 0.373755 pz= 0.233503 Reconstructed: px= 0.455956 py= 0.420451 pz= 0.279631
+
+Hyp resolution = 0.089029 Generated: px= -4.862475 py= 2.936158 pz= 2.349763 Reconstructed: px= -4.451365 py= 2.638059 pz= 2.140896
+Triton resolution = 0.012233 Generated: px= -4.406192 py= 2.706284 pz= 2.207491 Reconstructed: px= -4.350186 py= 2.676162 pz= 2.181030
+pi0 resolution = 0.783324 Generated: px= -0.474166 py= 0.195773 pz= 0.141850 Reconstructed: px= -0.101179 py= -0.038103 pz= -0.040133
+
+Hyp resolution = -0.051943 Generated: px= -1.008398 py= 4.142451 pz= 2.802809 Reconstructed: px= -1.099623 py= 4.348019 pz= 2.948339
+Triton resolution = 0.004110 Generated: px= -1.010639 py= 3.867794 pz= 2.501862 Reconstructed: px= -1.007466 py= 3.851037 pz= 2.492509
+pi0 resolution = -0.699649 Generated: px= -0.032414 py= 0.262802 pz= 0.300417 Reconstructed: px= -0.092157 py= 0.496982 pz= 0.455831
+
+Hyp resolution = 0.016681 Generated: px= 6.024711 py= 5.405902 pz= 9.325149 Reconstructed: px= 5.895670 py= 5.342206 pz= 9.172600
+Triton resolution = -0.043871 Generated: px= 5.873198 py= 5.244720 pz= 8.978628 Reconstructed: px= 6.127836 py= 5.475007 pz= 9.374391
+pi0 resolution = 0.189412 Generated: px= 0.120575 py= 0.184810 pz= 0.349507 Reconstructed: px= -0.232166 py= -0.132801 pz= -0.201791
+
+Hyp resolution = -0.086579 Generated: px= -4.099068 py= -5.553830 pz= -6.763672 Reconstructed: px= -4.423610 py= -6.056703 pz= -7.349477
+Triton resolution = 0.017876 Generated: px= -3.964240 py= -5.376613 pz= -6.411170 Reconstructed: px= -3.893858 py= -5.279656 pz= -6.296972
+pi0 resolution = -2.380650 Generated: px= -0.100367 py= -0.196421 pz= -0.354485 Reconstructed: px= -0.529752 py= -0.777046 pz= -1.052505
+
+Hyp resolution = -0.002812 Generated: px= 2.535589 py= 3.487476 pz= -0.836228 Reconstructed: px= 2.514580 py= 3.517221 pz= -0.840033
+Triton resolution = 0.003421 Generated: px= 2.389088 py= 3.213962 pz= -0.691681 Reconstructed: px= 2.382140 py= 3.201928 pz= -0.689901
+pi0 resolution = -0.079163 Generated: px= 0.116566 py= 0.291621 pz= -0.145412 Reconstructed: px= 0.132440 py= 0.315293 pz= -0.150132
+
+Hyp resolution = -0.025884 Generated: px= -5.348896 py= 4.278723 pz= 5.353882 Reconstructed: px= -5.513227 py= 4.356965 pz= 5.492435
+Triton resolution = -0.025554 Generated: px= -5.045429 py= 4.026326 pz= 5.185341 Reconstructed: px= -5.172040 py= 4.129708 pz= 5.319714
+pi0 resolution = -0.039883 Generated: px= -0.327217 py= 0.217796 pz= 0.168798 Reconstructed: px= -0.341187 py= 0.227256 pz= 0.172721
+
+Hyp resolution = -0.066655 Generated: px= -8.721008 py= -1.981872 pz= -6.614821 Reconstructed: px= -9.296418 py= -2.151451 pz= -7.052166
+Triton resolution = 0.015900 Generated: px= -8.356992 py= -1.827077 pz= -6.272250 Reconstructed: px= -8.224981 py= -1.800351 pz= -6.170698
+pi0 resolution = -1.722528 Generated: px= -0.357384 py= -0.190664 pz= -0.335050 Reconstructed: px= -1.071437 py= -0.351099 pz= -0.881468
+
+Hyp resolution = 0.028093 Generated: px= -1.188931 py= -8.074346 pz= -4.253501 Reconstructed: px= -1.123253 py= -7.852969 pz= -4.132552
+Triton resolution = -0.008735 Generated: px= -1.108358 py= -7.691651 pz= -3.912418 Reconstructed: px= -1.118183 py= -7.758771 pz= -3.946687
+pi0 resolution = 0.595731 Generated: px= -0.049402 py= -0.388123 pz= -0.335776 Reconstructed: px= -0.005070 py= -0.094198 pz= -0.185865
+
+Hyp resolution = 0.040808 Generated: px= 3.852300 py= -3.076427 pz= 0.484444 Reconstructed: px= 3.716439 py= -2.923897 pz= 0.465055
+Triton resolution = 0.001439 Generated: px= 3.595056 py= -2.902457 pz= 0.349645 Reconstructed: px= 3.589072 py= -2.899152 pz= 0.350254
+pi0 resolution = 0.491955 Generated: px= 0.278469 py= -0.144956 pz= 0.133143 Reconstructed: px= 0.127367 py= -0.024745 pz= 0.114802
+
+Hyp resolution = 0.082102 Generated: px= -6.748293 py= 5.234302 pz= -1.932138 Reconstructed: px= -6.220706 py= 4.770954 pz= -1.771589
+Triton resolution = -0.018389 Generated: px= -6.139999 py= 4.811258 pz= -1.809958 Reconstructed: px= -6.252976 py= 4.900404 pz= -1.841208
+pi0 resolution = 0.799594 Generated: px= -0.634586 py= 0.384161 pz= -0.116485 Reconstructed: px= 0.032270 py= -0.129450 pz= 0.069619
+
+Hyp resolution = -0.070990 Generated: px= 7.833036 py= -2.535589 pz= 1.646963 Reconstructed: px= 8.399173 py= -2.684325 pz= 1.763797
+Triton resolution = 0.005584 Generated: px= 7.346905 py= -2.254610 pz= 1.453652 Reconstructed: px= 7.302117 py= -2.250597 pz= 1.451219
+pi0 resolution = -1.085739 Generated: px= 0.495117 py= -0.247925 pz= 0.189074 Reconstructed: px= 1.097056 py= -0.433728 pz= 0.312578
+
+Hyp resolution = -0.057998 Generated: px= 4.090574 py= -0.869752 pz= 1.905772 Reconstructed: px= 4.333664 py= -0.888311 pz= 2.018050
+Triton resolution = 0.000591 Generated: px= 3.963406 py= -0.855697 pz= 1.918845 Reconstructed: px= 3.960865 py= -0.856691 pz= 1.917451
+pi0 resolution = -1.922964 Generated: px= 0.131018 py= 0.016004 pz= -0.012100 Reconstructed: px= 0.372799 py= -0.031621 pz= 0.100599
+
+Hyp resolution = -0.025562 Generated: px= 0.100636 py= 5.699982 pz= -0.593269 Reconstructed: px= 0.065897 py= 5.846188 pz= -0.608765
+Triton resolution = -0.045244 Generated: px= 0.013902 py= 5.159455 pz= -0.602346 Reconstructed: px= 0.013113 py= 5.393304 pz= -0.626076
+pi0 resolution = 0.157272 Generated: px= 0.051064 py= 0.538951 pz= 0.008380 Reconstructed: px= 0.052784 py= 0.452883 pz= 0.017311
+
+Hyp resolution = 0.051611 Generated: px= -1.433573 py= 4.313282 pz= 2.074546 Reconstructed: px= -1.390701 py= 4.080472 pz= 1.966904
+Triton resolution = 0.005737 Generated: px= -1.353673 py= 4.088653 pz= 2.075690 Reconstructed: px= -1.346208 py= 4.064906 pz= 2.064158
+pi0 resolution = 0.551750 Generated: px= -0.112269 py= 0.213309 pz= -0.005198 Reconstructed: px= -0.044493 py= 0.015566 pz= -0.097254
+
+Hyp resolution = -0.033505 Generated: px= 3.804173 py= 8.372096 pz= -10.763713 Reconstructed: px= 3.901512 py= 8.667373 pz= -11.123457
+Triton resolution = -0.015583 Generated: px= 3.717497 py= 8.030621 pz= -10.288787 Reconstructed: px= 3.774631 py= 8.155879 pz= -10.449319
+pi0 resolution = -0.440672 Generated: px= 0.055232 py= 0.354377 pz= -0.473430 Reconstructed: px= 0.126881 py= 0.511494 pz= -0.674138
+
+Hyp resolution = 0.037935 Generated: px= -2.583838 py= -0.736685 pz= -1.228254 Reconstructed: px= -2.477217 py= -0.740680 pz= -1.180133
+Triton resolution = 0.008664 Generated: px= -2.548609 py= -0.688365 pz= -1.130473 Reconstructed: px= -2.525558 py= -0.680997 pz= -1.123714
+pi0 resolution = 0.246265 Generated: px= -0.024476 py= -0.081898 pz= -0.093165 Reconstructed: px= 0.048341 py= -0.059682 pz= -0.056420
+
+Hyp resolution = 0.035624 Generated: px= 5.948269 py= -5.312832 pz= -7.672147 Reconstructed: px= 5.764480 py= -5.090748 pz= -7.399632
+Triton resolution = -0.053545 Generated: px= 5.680158 py= -5.094821 pz= -7.443334 Reconstructed: px= 5.986692 py= -5.364075 pz= -7.842488
+pi0 resolution = -0.362513 Generated: px= 0.297241 py= -0.183813 pz= -0.224376 Reconstructed: px= -0.222212 py= 0.273327 pz= 0.442855
+
+Hyp resolution = -0.002774 Generated: px= -8.534556 py= 3.568182 pz= 6.580917 Reconstructed: px= -8.575221 py= 3.538050 pz= 6.598692
+Triton resolution = -0.012555 Generated: px= -8.256738 py= 3.327621 pz= 6.232955 Reconstructed: px= -8.360264 py= 3.371004 pz= 6.310532
+pi0 resolution = 0.197694 Generated: px= -0.293486 py= 0.198438 pz= 0.344415 Reconstructed: px= -0.214957 py= 0.167046 pz= 0.288161
+
+Hyp resolution = 0.060473 Generated: px= 4.876654 py= 0.664841 pz= 3.067834 Reconstructed: px= 4.578003 py= 0.654247 pz= 2.881687
+Triton resolution = 0.018717 Generated: px= 4.644444 py= 0.586130 pz= 3.003682 Reconstructed: px= 4.556120 py= 0.576309 pz= 2.949392
+pi0 resolution = 0.593794 Generated: px= 0.227285 py= 0.109647 pz= 0.061769 Reconstructed: px= 0.021883 py= 0.077938 pz= -0.067705
+
+Hyp resolution = -0.031319 Generated: px= -6.778272 py= -0.774136 pz= -0.319250 Reconstructed: px= -6.986006 py= -0.837708 pz= -0.328146
+Triton resolution = 0.013244 Generated: px= -6.597425 py= -0.794367 pz= -0.380947 Reconstructed: px= -6.509888 py= -0.784703 pz= -0.376898
+pi0 resolution = -1.584123 Generated: px= -0.174838 py= -0.017110 pz= 0.062150 Reconstructed: px= -0.476118 py= -0.053005 pz= 0.048752
+
+Hyp resolution = -0.068342 Generated: px= 1.532824 py= -6.866601 pz= -5.679365 Reconstructed: px= 1.678746 py= -7.327113 pz= -6.066851
+Triton resolution = 0.011076 Generated: px= 1.393082 py= -6.338981 pz= -5.369467 Reconstructed: px= 1.377129 py= -6.268818 pz= -5.310075
+pi0 resolution = -1.128437 Generated: px= 0.176107 py= -0.517379 pz= -0.308271 Reconstructed: px= 0.301617 py= -1.058295 pz= -0.756776
+
+Hyp resolution = 0.005454 Generated: px= 4.636834 py= -5.189606 pz= -1.063273 Reconstructed: px= 4.721675 py= -5.061057 pz= -1.055977
+Triton resolution = -0.048971 Generated: px= 4.311038 py= -4.642739 pz= -0.921237 Reconstructed: px= 4.320105 py= -5.070775 pz= -0.851769
+pi0 resolution = 0.297523 Generated: px= 0.364950 py= -0.508950 pz= -0.138779 Reconstructed: px= 0.401570 py= 0.009717 pz= -0.204208
+
+Hyp resolution = -0.002288 Generated: px= -5.695921 py= -7.421783 pz= -9.794271 Reconstructed: px= -5.684817 py= -7.453527 pz= -9.819496
+Triton resolution = 0.034216 Generated: px= -5.477324 py= -7.078586 pz= -9.232486 Reconstructed: px= -5.291414 py= -6.834795 pz= -8.916913
+pi0 resolution = -0.677160 Generated: px= -0.193272 py= -0.359734 pz= -0.560335 Reconstructed: px= -0.393404 py= -0.618732 pz= -0.902583
+
+Hyp resolution = 0.078065 Generated: px= 7.394758 py= -1.743000 pz= 4.911689 Reconstructed: px= 6.826468 py= -1.566529 pz= 4.528881
+Triton resolution = -0.010303 Generated: px= 6.750665 py= -1.621598 pz= 4.578618 Reconstructed: px= 6.821889 py= -1.638663 pz= 4.623191
+pi0 resolution = 0.838581 Generated: px= 0.651639 py= -0.075614 pz= 0.333926 Reconstructed: px= 0.004578 py= 0.072134 pz= -0.094310
+
+Hyp resolution = 0.082387 Generated: px= 1.240560 py= 2.859775 pz= 0.144133 Reconstructed: px= 1.099641 py= 2.640651 pz= 0.131686
+Triton resolution = -0.028958 Generated: px= 1.204053 py= 2.614976 pz= 0.087556 Reconstructed: px= 1.239129 py= 2.690572 pz= 0.091067
+pi0 resolution = 0.417870 Generated: px= -0.005986 py= 0.258617 pz= 0.052152 Reconstructed: px= -0.139487 py= -0.049921 pz= 0.040618
+
+Hyp resolution = 0.046683 Generated: px= -0.127101 py= -6.241307 pz= -5.650579 Reconstructed: px= -0.081471 py= -5.948454 pz= -5.389188
+Triton resolution = -0.010455 Generated: px= -0.129931 py= -5.662056 pz= -5.240917 Reconstructed: px= -0.131766 py= -5.721179 pz= -5.295780
+pi0 resolution = 0.645746 Generated: px= 0.048243 py= -0.574849 pz= -0.410487 Reconstructed: px= 0.050295 py= -0.227275 pz= -0.093408
+
+Hyp resolution = 0.065486 Generated: px= -0.077860 py= 6.566821 pz= 1.247236 Reconstructed: px= -0.116754 py= 6.135889 pz= 1.166715
+Triton resolution = -0.013265 Generated: px= -0.119149 py= 5.980166 pz= 1.234561 Reconstructed: px= -0.118637 py= 6.059594 pz= 1.250639
+pi0 resolution = 0.805645 Generated: px= -0.002870 py= 0.583449 pz= 0.015250 Reconstructed: px= 0.001883 py= 0.076294 pz= -0.083925
+
+Hyp resolution = 0.060237 Generated: px= -3.456798 py= -4.713669 pz= 1.845255 Reconstructed: px= -3.220357 py= -4.450336 pz= 1.733975
+Triton resolution = -0.031385 Generated: px= -3.280163 py= -4.368439 pz= 1.661568 Reconstructed: px= -3.382083 py= -4.506444 pz= 1.713369
+pi0 resolution = 0.603865 Generated: px= -0.143679 py= -0.366624 pz= 0.185439 Reconstructed: px= 0.161726 py= 0.056108 pz= 0.020606
+
+Hyp resolution = 0.027289 Generated: px= 2.264979 py= 6.659055 pz= -2.791804 Reconstructed: px= 2.230808 py= 6.467658 pz= -2.716125
+Triton resolution = 0.001284 Generated: px= 1.955061 py= 6.424059 pz= -2.721854 Reconstructed: px= 2.064021 py= 6.442886 pz= -2.567804
+pi0 resolution = 0.313991 Generated: px= 0.183440 py= 0.261687 pz= -0.070926 Reconstructed: px= 0.166787 py= 0.024772 pz= -0.148322
+
+Hyp resolution = -0.082395 Generated: px= -0.400847 py= 6.695875 pz= -7.641896 Reconstructed: px= -0.484070 py= 7.244396 pz= -8.271558
+Triton resolution = -0.012296 Generated: px= -0.534630 py= 6.418057 pz= -7.350778 Reconstructed: px= -0.538507 py= 6.499321 pz= -7.439316
+pi0 resolution = -1.749498 Generated: px= 0.082741 py= 0.273467 pz= -0.289509 Reconstructed: px= 0.054438 py= 0.745076 pz= -0.832242
+
+Hyp resolution = 0.061739 Generated: px= 6.033325 py= -1.331356 pz= -5.814289 Reconstructed: px= 5.669529 py= -1.206177 pz= -5.455957
+Triton resolution = 0.012428 Generated: px= 5.703650 py= -1.245271 pz= -5.338623 Reconstructed: px= 5.634587 py= -1.227926 pz= -5.270763
+pi0 resolution = 0.674342 Generated: px= 0.337566 py= -0.040384 pz= -0.473059 Reconstructed: px= 0.034942 py= 0.021749 pz= -0.185194
+
+Hyp resolution = -0.003685 Generated: px= 0.941687 py= -7.637175 pz= -2.228381 Reconstructed: px= 0.981485 py= -7.661041 pz= -2.235588
+Triton resolution = -0.027438 Generated: px= 0.885200 py= -7.308179 pz= -2.224624 Reconstructed: px= 0.909254 py= -7.508627 pz= -2.285997
+pi0 resolution = 0.475455 Generated: px= 0.092340 py= -0.322639 pz= -0.001356 Reconstructed: px= 0.072231 py= -0.152413 pz= 0.050409
+
+Hyp resolution = 0.040813 Generated: px= 7.364946 py= 0.611494 pz= -2.561242 Reconstructed: px= 7.060629 py= 0.629578 pz= -2.456781
+Triton resolution = 0.012539 Generated: px= 6.711079 py= 0.624097 pz= -2.258257 Reconstructed: px= 6.628249 py= 0.617410 pz= -2.225691
+pi0 resolution = 0.315733 Generated: px= 0.647352 py= 0.032331 pz= -0.305847 Reconstructed: px= 0.432380 py= 0.012168 pz= -0.231091
+
+Hyp resolution = 0.007361 Generated: px= 5.583291 py= -4.416499 pz= -6.882918 Reconstructed: px= 5.566573 py= -4.352618 pz= -6.832498
+Triton resolution = -0.036406 Generated: px= 5.337298 py= -4.129912 pz= -6.368555 Reconstructed: px= 5.531806 py= -4.278563 pz= -6.601349
+pi0 resolution = 0.610612 Generated: px= 0.266733 py= -0.253362 pz= -0.511064 Reconstructed: px= 0.034767 py= -0.074055 pz= -0.231148
+
+Hyp resolution = -0.074023 Generated: px= -9.518609 py= -0.693344 pz= 1.296628 Reconstructed: px= -10.219900 py= -0.784999 pz= 1.394742
+Triton resolution = -0.020791 Generated: px= -8.750482 py= -0.631324 pz= 1.290032 Reconstructed: px= -8.932355 py= -0.648102 pz= 1.315425
+pi0 resolution = -0.688629 Generated: px= -0.760922 py= -0.105220 pz= 0.008954 Reconstructed: px= -1.287545 py= -0.136897 pz= 0.079318
+
+Hyp resolution = -0.075773 Generated: px= 2.586116 py= 1.883211 pz= 2.260808 Reconstructed: px= 2.764427 py= 2.051484 pz= 2.430796
+Triton resolution = 0.000230 Generated: px= 2.554807 py= 1.803756 pz= 2.211712 Reconstructed: px= 2.553643 py= 1.802800 pz= 2.212308
+pi0 resolution = -2.450194 Generated: px= 0.012235 py= 0.103239 pz= 0.046151 Reconstructed: px= 0.210784 py= 0.248684 pz= 0.218488
+
+Hyp resolution = -0.047549 Generated: px= 2.140632 py= -6.332213 pz= -6.266655 Reconstructed: px= 2.280996 py= -6.618951 pz= -6.565824
+Triton resolution = -0.001087 Generated: px= 1.964624 py= -5.797675 pz= -5.644265 Reconstructed: px= 1.965607 py= -5.805531 pz= -5.649208
+pi0 resolution = -0.511116 Generated: px= 0.213821 py= -0.517475 pz= -0.622704 Reconstructed: px= 0.315388 py= -0.813420 pz= -0.916616
+
+Hyp resolution = -0.036011 Generated: px= -4.260665 py= -1.169831 pz= 4.408181 Reconstructed: px= -4.402195 py= -1.253027 pz= 4.567331
+Triton resolution = -0.011866 Generated: px= -4.015931 py= -1.190591 pz= 4.027043 Reconstructed: px= -4.064123 py= -1.203725 pz= 4.074581
+pi0 resolution = -0.350529 Generated: px= -0.232534 py= -0.017396 pz= 0.377812 Reconstructed: px= -0.338072 py= -0.049302 pz= 0.492750
+
+Hyp resolution = 0.093844 Generated: px= 4.505078 py= -0.636533 pz= -0.198372 Reconstructed: px= 4.085954 py= -0.550664 pz= -0.178751
+Triton resolution = 0.004688 Generated: px= 4.088290 py= -0.535816 pz= -0.097335 Reconstructed: px= 4.068784 py= -0.536093 pz= -0.095739
+pi0 resolution = 0.802984 Generated: px= 0.418882 py= -0.073412 pz= -0.098727 Reconstructed: px= 0.017170 py= -0.014571 pz= -0.083012
+
+Hyp resolution = -0.094327 Generated: px= 0.533449 py= -7.112684 pz= -1.589495 Reconstructed: px= 0.625710 py= -7.780665 pz= -1.738002
+Triton resolution = -0.017665 Generated: px= 0.629515 py= -6.521332 pz= -1.470574 Reconstructed: px= 0.639104 py= -6.636499 pz= -1.497350
+pi0 resolution = -0.946079 Generated: px= -0.055494 py= -0.586650 pz= -0.117337 Reconstructed: px= -0.013394 py= -1.144166 pz= -0.240652
+
+Hyp resolution = -0.029599 Generated: px= 2.046175 py= 7.789017 pz= -3.845083 Reconstructed: px= 2.070271 py= 8.028999 pz= -3.959016
+Triton resolution = -0.015648 Generated: px= 1.874135 py= 7.363391 pz= -3.749439 Reconstructed: px= 1.902573 py= 7.476916 pz= -3.811875
+pi0 resolution = -0.281073 Generated: px= 0.137096 py= 0.434467 pz= -0.092154 Reconstructed: px= 0.167698 py= 0.552083 pz= -0.147141
+
+Hyp resolution = -0.089725 Generated: px= 0.601681 py= 3.839011 pz= -4.292232 Reconstructed: px= 0.623206 py= 4.188655 pz= -4.677144
+Triton resolution = -0.019536 Generated: px= 0.602622 py= 3.753433 pz= -4.060191 Reconstructed: px= 0.614296 py= 3.826938 pz= -4.139358
+pi0 resolution = -1.596278 Generated: px= -0.034158 py= 0.088657 pz= -0.230871 Reconstructed: px= 0.008910 py= 0.361717 pz= -0.537786
+
+Hyp resolution = -0.053930 Generated: px= -4.193589 py= -7.385588 pz= -5.677566 Reconstructed: px= -4.377683 py= -7.807989 pz= -5.983296
+Triton resolution = -0.009585 Generated: px= -3.742100 py= -6.655624 pz= -5.158811 Reconstructed: px= -3.775923 py= -6.721579 pz= -5.206950
+pi0 resolution = -0.464728 Generated: px= -0.410998 py= -0.751438 pz= -0.516019 Reconstructed: px= -0.601760 py= -1.086410 pz= -0.776346
+
+Hyp resolution = -0.088038 Generated: px= -3.179379 py= 3.293484 pz= -3.304969 Reconstructed: px= -3.496012 py= 3.546663 pz= -3.596869
+Triton resolution = -0.017968 Generated: px= -2.989918 py= 3.006765 pz= -3.203828 Reconstructed: px= -3.046044 py= 3.059985 pz= -3.259912
+pi0 resolution = -1.117918 Generated: px= -0.222430 py= 0.253058 pz= -0.098696 Reconstructed: px= -0.449968 py= 0.486678 pz= -0.336957
+
+Hyp resolution = -0.060658 Generated: px= 5.273296 py= 6.219934 pz= -3.829924 Reconstructed: px= 5.564466 py= 6.621092 pz= -4.062819
+Triton resolution = 0.004508 Generated: px= 4.903502 py= 5.815431 pz= -3.449352 Reconstructed: px= 4.878640 py= 5.788293 pz= -3.439267
+pi0 resolution = -0.872764 Generated: px= 0.339660 py= 0.427808 pz= -0.379910 Reconstructed: px= 0.685826 py= 0.832799 pz= -0.623553
+
+Hyp resolution = 0.065905 Generated: px= 4.824767 py= 5.211198 pz= 5.385244 Reconstructed: px= 4.483891 py= 4.886853 pz= 5.032279
+Triton resolution = -0.013119 Generated: px= 4.353849 py= 4.769042 pz= 4.820795 Reconstructed: px= 4.411076 py= 4.832460 pz= 4.883101
+pi0 resolution = 0.795662 Generated: px= 0.444350 py= 0.465036 pz= 0.563131 Reconstructed: px= 0.072815 py= 0.054393 pz= 0.149178
+
+Hyp resolution = 0.086225 Generated: px= 0.042931 py= 5.679163 pz= -4.160470 Reconstructed: px= -0.000957 py= 5.189149 pz= -3.802382
+Triton resolution = 0.013813 Generated: px= 0.023279 py= 5.278056 pz= -3.745319 Reconstructed: px= 0.017753 py= 5.208682 pz= -3.688635
+pi0 resolution = 0.796961 Generated: px= -0.024325 py= 0.396747 pz= -0.416646 Reconstructed: px= -0.018709 py= -0.019533 pz= -0.113747
+
+Hyp resolution = 0.071235 Generated: px= -2.539846 py= -3.467557 pz= -2.966827 Reconstructed: px= -2.332564 py= -3.239543 pz= -2.755657
+Triton resolution = 0.013612 Generated: px= -2.344092 py= -3.379731 pz= -2.727940 Reconstructed: px= -2.310665 py= -3.335428 pz= -2.689998
+pi0 resolution = 0.618491 Generated: px= -0.168360 py= -0.105873 pz= -0.237754 Reconstructed: px= -0.021899 py= 0.095885 pz= -0.065658
+
+Hyp resolution = 0.081530 Generated: px= 4.272659 py= -4.530131 pz= -2.626272 Reconstructed: px= 3.956465 py= -4.129982 pz= -2.412566
+Triton resolution = 0.002885 Generated: px= 4.101275 py= -4.418097 pz= -2.526663 Reconstructed: px= 4.089122 py= -4.406471 pz= -2.517940
+pi0 resolution = -0.369257 Generated: px= 0.200740 py= -0.079508 pz= -0.097286 Reconstructed: px= -0.132657 py= 0.276488 pz= 0.105374
+
