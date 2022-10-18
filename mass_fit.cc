@@ -88,17 +88,17 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
         phi_bin_lim = 0.03;
     }
 
-    TH1F *chi_squared = new TH1F("chi2", chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 2);
-    TH1F *resolution = new TH1F("Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
-    TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 50);
+    TH1F *chi_squared = new TH1F("chi2", chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
+    TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
+    TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.5, 3.5);
-    TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -30, 30);
-    TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -30, 30);
-    TH1F *hyp_resolution = new TH1F("Hyp p resolution", "Hyp p resolution;Resolution;counts", nBins, -30, 30);
+    TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
+    TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -10, 10);
+    TH1F *hyp_resolution = new TH1F("Hyp p resolution", "Hyp p resolution;Resolution;counts", nBins, -10, 10);
 
-    TH2F *resolution_vs_chi = new TH2F("Resolution vs chi2", "Resolution vs " + chiLabel + ";Resolution;" + chiLabel, nBins, -res_bin_lim, res_bin_lim, nBins, min_bins, 2);
+    TH2F *resolution_vs_chi = new TH2F("Resolution vs chi2", "Resolution vs " + chiLabel + ";Resolution;" + chiLabel, nBins, -res_bin_lim, res_bin_lim, nBins, min_bins, 1);
     TH2F *eta_vs_phi = new TH2F("Eta vs Phi", "Eta vs Phi daughter;#eta;#phi", nBins, -eta_bin_lim, eta_bin_lim, nBins, -phi_bin_lim, phi_bin_lim);
-    TH2F *resolution_vs_rrec = new TH2F("Resolution vs Rrec", "Resolution vs Rrec;Resolution;Rrec(cm)", nBins, -res_bin_lim, res_bin_lim, nBins, min_r, 50);
+    TH2F *resolution_vs_rrec = new TH2F("Resolution vs Rrec", "Resolution vs Rrec;Resolution;Rrec(cm)", nBins, -res_bin_lim, res_bin_lim, nBins, min_r, 40);
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -231,16 +231,12 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
 
                                     if (!isDaughter)
                                         continue;
-                                        
+
                                     auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
                                     if (!tritfake && !fake)
                                     {
                                         // Fitting start
-
-                                        if (FITTEROPTION == "KFParticle")
-                                        {
-                                        }
-
+                                        
                                         if (FITTEROPTION == "DCA")
                                         {
                                             try
@@ -320,7 +316,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     pi0_resolution->Fill(pi0_p_res);
                                                     triton_resolution->Fill(trit_p_res);
                                                     hyp_resolution->Fill(hyp_p_res);
-
                                                     
                                                 }
                                             }
@@ -345,10 +340,10 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     resolution_vs_chi->Write();
     eta_vs_phi->Write();
     resolution_vs_rrec->Write();
+    radius->Write();
 
     inv_mass->Write();
 
-    inv_mass->Write();
     pi0_resolution->Write();
     hyp_resolution->Write();
     triton_resolution->Write();
