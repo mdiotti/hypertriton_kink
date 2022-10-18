@@ -43,6 +43,7 @@ using Vec3 = ROOT::Math::SVector<double, 3>;
 using TrackITS = o2::its::TrackITS;
 
 TString p_filename = "Momentum distributions.txt";
+TString pxyz_filename = "Momentum distributions (px, py, pz).txt";
 
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
@@ -67,6 +68,9 @@ TString limLabel2 = Form("%f", lim2);
 double lim3 = 0.1;
 TString limLabel3 = Form("%f", lim3);
 
+double px_lim = 4;
+TString px_limLabel = Form("%f", px_lim);
+
 string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
 
 double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
@@ -86,7 +90,7 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
     return -1;
 }
 
-void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
+void fitting(TString path, TString filename, int tf_max = 40, bool cut = true, bool print_momentum = false)
 {
     const int tf_min = 1;
     int tf_lenght = tf_max - tf_min + 1;
@@ -112,7 +116,15 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
     TH1F *pi0_partial_resolution0 = new TH1F("Pi0 partial resolution0", "#pi^{0} p resolution with hyp and trit res < " + limLabel + ";Resolution;counts", nBins, -2, 2);
     TH1F *pi0_partial_resolution = new TH1F("Pi0 partial resolution", "#pi^{0} p resolution with hyp and trit res < " + limLabel + ";Resolution;counts", nBins, -2, 2);
     TH1F *pi0_partial_resolution2 = new TH1F("Pi0 p resolution2", "#pi^{0} p resolution with hyp and trit res < " + limLabel2 + ";Resolution;counts", nBins, -2, 2);
-    TH1F *pi0_partial_resolution3 = new TH1F("Pi0 p resolution3", "#pi^{0} p resolution with hyp and trit res < " + limLabel3 + ";Resolution;counts", nBins, -2, 2);
+    TH1F *pi0_partial_resolution3 = new TH1F("Pi0 p resolution3", "c p resolution with hyp and trit res < " + limLabel3 + ";Resolution;counts", nBins, -2, 2);
+
+    double pxyz_range = 5;
+    //TH1F *pi0_x_resolution = new TH1F("Pi0 x resolution", "#pi^{0} p_{x} resolution;Resolution;counts", nBins, -pxyz_range, pxyz_range);
+    //TH1F *pi0_y_resolution = new TH1F("Pi0 y resolution", "#pi^{0} p_{y} resolution;Resolution;counts", nBins, -pxyz_range, pxyz_range);
+    //TH1F *pi0_z_resolution = new TH1F("Pi0 z resolution", "#pi^{0} p_{z} resolution;Resolution;counts", nBins, -pxyz_range, pxyz_range);
+
+    TH1F *pi0_y_partial = new TH1F("Pi0 y partial", "#pi^{0} p_{y} resolution with px res < " + px_limLabel + ";Resolution;counts", nBins, -pxyz_range, pxyz_range);
+    TH1F *pi0_z_partial = new TH1F("Pi0 z partial", "#pi^{0} p_{z} resolution with px res < " + px_limLabel + ";Resolution;counts", nBins, -pxyz_range, pxyz_range);
 
     TH1F *pi0_resolution_zoomed = new TH1F("Pi0 resolution zoommato", "#pi^{0} p resolution zoomed;Resolution;counts", nBins, -2, 2);
 
@@ -120,11 +132,19 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
     TH2F *eta_vs_phi = new TH2F("Eta vs Phi daughter", "Eta vs Phi daughter;#eta;#phi", nBins, -eta_bin_lim, eta_bin_lim, nBins, -phi_bin_lim, phi_bin_lim);
     TH2F *eta_vs_phi_nondaughter = new TH2F("Eta vs Phi non-daughter", "Eta vs Phi non-daughter;#eta;#phi", nBins, -eta_bin_lim, eta_bin_lim, nBins, -phi_bin_lim, phi_bin_lim);
     TH2F *resolution_vs_rrec = new TH2F("Resolution vs Rrec", "Resolution vs Rrec;Resolution;Rrec(cm)", nBins, -res_bin_lim, res_bin_lim, nBins, min_r, 50);
-    TH2F *pi0_p_resolution_vs_pgen = new TH2F("Pi0 p resolution vs pgen", "#pi^{0} p resolution vs pgen;Resolution;Pgen(GeV/c)", nBins, -30, 30, nBins, 0, 30);
-    TH2F *hyp_p_resolution_vs_pgen = new TH2F("Hyp p resolution vs pgen", "Hyp p resolution vs pgen;Resolution;Pgen(GeV/c)", nBins, -1, 1, nBins, 0, 30);
-    TH2F *triton_p_resolution_vs_pgen = new TH2F("Triton p resolution vs pgen", "Triton p resolution vs pgen;Resolution;Pgen(GeV/c)", nBins, -1, 1, nBins, 0, 30);
+    TH2F *pi0_pgen_vs_resolution = new TH2F("Pi0 pgen vs resolution", "#pi^{0} pgen vs resolution;Pgen(GeV/c);Resolution", nBins, 0, 1.5, nBins, -15, 1);
+    TH2F *trit_pgen_vs_resolution = new TH2F("Trit pgen vs resolution", "Trit pgen vs resolution;Pgen(GeV/c);Resolution", nBins, 0, 16, nBins, -1, 1);
+    TH2F *hyp_pgen_vs_resolution = new TH2F("Hyp pgen vs resolution", "Hyp pgen vs resolution;Pgen(GeV/c);Resolution", nBins, 0, 16, nBins, -1, 1);
 
-     ofstream oFile(p_filename);
+    TH2F *pi0_x_vs_resolution = new TH2F("px vs resolution", "#pi^{0} p_{x} vs resolution;P_{x}(GeV/c);Resolution", nBins, 0, 1.5, nBins, -pxyz_range, pxyz_range);
+    TH2F *pi0_y_vs_resolution = new TH2F("py vs resolution", "#pi^{0} p_{y} vs resolution;P_{y}(GeV/c);Resolution", nBins, 0, 1.5, nBins, -pxyz_range, pxyz_range);
+    TH2F *pi0_z_vs_resolution = new TH2F("pz vs resolution", "#pi^{0} p_{z} vs resolution;P_{z}(GeV/c);Resolution", nBins, 0, 1.5, nBins, -pxyz_range, pxyz_range);
+
+    ofstream oFile(p_filename);
+    if (!print_momentum)
+        oFile.close();
+
+    ofstream oFile2(pxyz_filename);
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -230,9 +250,6 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                         TVector3 pi0genP;
                         for (int iDau = firstDauID; iDau <= nDau; iDau++)
                         {
-                            if (iDau == tritID)
-                                continue;
-
                             if (abs(mcTracksMatrix[evID][iDau].GetPdgCode()) == pi0PDG)
                             {
                                 pi0genPabs = mcTracksMatrix[evID][iDau].GetP();
@@ -329,6 +346,18 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
 
                                                     float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
 
+                                                    float px_res = (pi0genP[0] - piP[0]) / pi0genP[0];
+                                                    float py_res = (pi0genP[1] - piP[1]) / pi0genP[1];
+                                                    float pz_res = (pi0genP[2] - piP[2]) / pi0genP[2];
+
+
+                                                    pi0_x_vs_resolution->Fill(pi0genP[0],px_res);
+                                                    pi0_y_vs_resolution->Fill(pi0genP[1],py_res);
+                                                    pi0_z_vs_resolution->Fill(pi0genP[2],pz_res);
+                                                    
+                                            
+
+
                                                     if (isDaughter)
                                                     {
                                                         daughter_chi->Fill(chi2);
@@ -352,13 +381,17 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                                                     double trit_p_res = (tritgenPabs - tritPabs) / tritgenPabs;
                                                     double hyp_p_res = (hypgenPabs - hypPabs) / hypgenPabs;
 
-                                                    pi0_p_resolution_vs_pgen->Fill(pi0_p_res, pi0genPabs);
-                                                    triton_p_resolution_vs_pgen->Fill(trit_p_res, tritgenPabs);
-                                                    hyp_p_resolution_vs_pgen->Fill(hyp_p_res, hypgenPabs);
+                                                    pi0_pgen_vs_resolution->Fill(pi0genPabs, pi0_p_res);
+                                                    trit_pgen_vs_resolution->Fill(tritgenPabs, trit_p_res);
+                                                    hyp_pgen_vs_resolution->Fill(hypgenPabs, hyp_p_res);
 
-                                                    TString pi0String = "pi0 resolution = "+ std::to_string(pi0_p_res) + " Generated: px= " + std::to_string(pi0genP[0]) + " py= " + std::to_string(pi0genP[1]) + " pz= " + std::to_string(pi0genP[2]) + " Reconstructed: px= " + std::to_string(piP[0]) + " py= " + std::to_string(piP[1]) + " pz= " + std::to_string(piP[2]);
-                                                    TString tritString = "Triton resolution = "+ std::to_string(trit_p_res) +" Generated: px= " + std::to_string(tritgenP[0]) + " py= " + std::to_string(tritgenP[1]) + " pz= " + std::to_string(tritgenP[2]) + " Reconstructed: px= " + std::to_string(tritP[0]) + " py= " + std::to_string(tritP[1]) + " pz= " + std::to_string(tritP[2]);
-                                                    TString hypString = "Hyp resolution = "+ std::to_string(hyp_p_res) +" Generated: px= " + std::to_string(hypgenP[0]) + " py= " + std::to_string(hypgenP[1]) + " pz= " + std::to_string(hypgenP[2]) + " Reconstructed: px= " + std::to_string(hypP[0]) + " py= " + std::to_string(hypP[1]) + " pz= " + std::to_string(hypP[2]);
+                                                    TString pi0String = "pi0 resolution = " + std::to_string(pi0_p_res) + " Generated: px= " + std::to_string(pi0genP[0]) + " py= " + std::to_string(pi0genP[1]) + " pz= " + std::to_string(pi0genP[2]) + " Reconstructed: px= " + std::to_string(piP[0]) + " py= " + std::to_string(piP[1]) + " pz= " + std::to_string(piP[2]);
+                                                    TString tritString = "Triton resolution = " + std::to_string(trit_p_res) + " Generated: px= " + std::to_string(tritgenP[0]) + " py= " + std::to_string(tritgenP[1]) + " pz= " + std::to_string(tritgenP[2]) + " Reconstructed: px= " + std::to_string(tritP[0]) + " py= " + std::to_string(tritP[1]) + " pz= " + std::to_string(tritP[2]);
+                                                    TString hypString = "Hyp resolution = " + std::to_string(hyp_p_res) + " Generated: px= " + std::to_string(hypgenP[0]) + " py= " + std::to_string(hypgenP[1]) + " pz= " + std::to_string(hypgenP[2]) + " Reconstructed: px= " + std::to_string(hypP[0]) + " py= " + std::to_string(hypP[1]) + " pz= " + std::to_string(hypP[2]);
+
+                                                    TString pxString = "px resolution = " + std::to_string(px_res) + " Generated: px= " + std::to_string(pi0genP[0]) + " Reconstructed: px= " + std::to_string(piP[0]);
+                                                    TString pyString = "py resolution = " + std::to_string(py_res) + " Generated: py= " + std::to_string(pi0genP[1]) + " Reconstructed: py= " + std::to_string(piP[1]);
+                                                    TString pzString = "pz resolution = " + std::to_string(pz_res) + " Generated: pz= " + std::to_string(pi0genP[2]) + " Reconstructed: pz= " + std::to_string(piP[2]);
 
                                                     if (abs(trit_p_res) <= lim0 && abs(hyp_p_res) <= lim0)
                                                         pi0_partial_resolution0->Fill(pi0_p_res);
@@ -372,12 +405,48 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
                                                     if (abs(trit_p_res) <= lim3 && abs(hyp_p_res) <= lim3)
                                                     {
                                                         pi0_partial_resolution3->Fill(pi0_p_res);
+                                                        if (print_momentum)
+                                                        {
+                                                            oFile << hypString << endl
+                                                                  << tritString << endl
+                                                                  << pi0String << endl
+                                                                  << endl;
+                                                        }
+                                                    }
 
-                                                        oFile << hypString << endl
-                                                              << tritString << endl
-                                                              << pi0String << endl
+                                                      if(abs(px_res)>=4)
+                                                    {
+                                                        pi0_y_partial->Fill(py_res);
+                                                        pi0_z_partial->Fill(pz_res);
+                                                    }
+
+                                                    if(abs(px_res)>=4)
+                                                    {
+                                                       oFile2 << pxString << endl
+                                                              << pyString << endl
+                                                              << pzString << endl
                                                               << endl;
                                                     }
+
+                                                    if(abs(py_res)>=4)
+                                                    {
+                                                       oFile2 << pxString << endl
+                                                              << pyString << endl
+                                                              << pzString << endl
+                                                              << endl;
+                                                    }
+
+                                                    if(abs(pz_res)>=4)
+                                                    {
+                                                       oFile2 << pxString << endl
+                                                              << pyString << endl
+                                                              << pzString << endl
+                                                              << endl;
+                                                    }
+
+                                                    oFile2 << "---------- Event End ----------" << endl
+                                                           << endl;
+
 
                                                     // if (abs(pi0_p_res) >= 5)
                                                     //  cout << "pi0 res >= 5; trit_p_res: " << trit_p_res << " hyp_p_res: " << hyp_p_res << " pi0_p_res: " << pi0_p_res << endl;
@@ -404,8 +473,10 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
         } // end of event loop
     }     // end of tf loop
 
-    oFile.close();
+    if (print_momentum)
+        oFile.close();
 
+    oFile2.close();
     auto fFile = TFile(filename, "recreate");
     daughter_chi->Write();
     nondaughter_chi->Write();
@@ -415,7 +486,6 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
     eta_vs_phi_nondaughter->Write();
     resolution_vs_rrec->Write();
 
-    // inv_mass->Fit("gaus");
     inv_mass->Write();
 
     inv_mass_daughter->Write();
@@ -428,15 +498,23 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true)
     pi0_partial_resolution2->Write();
     pi0_partial_resolution3->Write();
 
-    pi0_p_resolution_vs_pgen->Write();
-    triton_p_resolution_vs_pgen->Write();
-    hyp_p_resolution_vs_pgen->Write();
-
+    pi0_pgen_vs_resolution->Write();
+    trit_pgen_vs_resolution->Write();
+    hyp_pgen_vs_resolution->Write();
+    pi0_resolution_zoomed->Write();
+    pi0_x_vs_resolution->Write();
+    pi0_y_vs_resolution->Write();
+    pi0_z_vs_resolution->Write();
+    pi0_y_partial->Write();
+    pi0_z_partial->Write();
+/*
     auto c = new TCanvas("c", "c", 800, 600);
     nondaughter_chi_normalized->SetLineColor(kRed);
     nondaughter_chi_normalized->DrawNormalized("P");
     daughter_chi->DrawNormalized("sameP");
     c->Write();
+
+    */
     /*
         auto c1 = new TCanvas("c", "c", 800, 600);
         nondaughter_radius->SetLineColor(kRed);
