@@ -8,4 +8,5 @@
 *.d
 *.so
 *.pcm
+*.txt
 core_dump*
