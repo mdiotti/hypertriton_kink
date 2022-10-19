@@ -48,6 +48,7 @@ const int tritonPDG = 1000010030;
 const int pi0PDG = 111;
 const double tritonMass = 2.808921;
 const double pi0Mass = 0.1349766;
+const double hypMassTh = 2.99131;
 TString chiLabel = "#chi^{2}";
 TString hypLabel = "M_{^{3}_{#Lambda}H} (GeV/c^{2})";
 int nBins = 100;
@@ -107,6 +108,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
     TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.5, 3.5);
+    TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass; m_{#pi^{0}};counts", nBins, 0, 0.2);
+
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
     TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -5, 5);
     TH1F *hyp_resolution = new TH1F("Hyp p resolution", "Hyp p resolution;Resolution;counts", nBins, -10, 10);
@@ -345,6 +348,13 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
                                                     float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
 
+                                                    float hypEFound = sqrt(hypPabs * hypPabs + hypMassTh * hypMassTh);
+                                                    float piEFound = hypEFound - tritE;
+                                                    float piMassFound = sqrt(piEFound * piEFound - piPabs * piPabs);
+
+                                               
+                                                    inv_mass_pi->Fill(piMassFound);
+
                                                     chi_squared->Fill(chi2);
                                                     resolution->Fill(res);
                                                     radius->Fill(recR);
@@ -367,40 +377,44 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     hyp_res_layers->Fill(nLayers, hyp_p_res);
                                                     trit_res_layers->Fill(nLayers, trit_p_res);
 
-                                                    if (pi0_p_res < -lim1)
+                                                    if (partial)
                                                     {
-                                                        hyp_lim1->Fill(hyp_p_res);
-                                                        trit_lim1->Fill(trit_p_res);
-                                                        pi0_lim1->Fill(pi0_p_res);
-                                                        hyp_rel_lim1->Fill(hyp_p_res / hypgenPabs);
-                                                    }
-                                                    if (pi0_p_res < -lim2)
-                                                    {
-                                                        hyp_lim2->Fill(hyp_p_res);
-                                                        trit_lim2->Fill(trit_p_res);
-                                                        pi0_lim2->Fill(pi0_p_res);
-                                                        hyp_rel_lim2->Fill(hyp_p_res / hypgenPabs);
-                                                    }
-                                                    if (pi0_p_res < -lim3)
-                                                    {
-                                                        hyp_lim3->Fill(hyp_p_res);
-                                                        trit_lim3->Fill(trit_p_res);
-                                                        pi0_lim3->Fill(pi0_p_res);
-                                                        hyp_rel_lim3->Fill(hyp_p_res / hypgenPabs);
-                                                    }
-                                                    if (pi0_p_res < -lim4)
-                                                    {
-                                                        hyp_lim4->Fill(hyp_p_res);
-                                                        trit_lim4->Fill(trit_p_res);
-                                                        pi0_lim4->Fill(pi0_p_res);
-                                                        hyp_rel_lim4->Fill(hyp_p_res / hypgenPabs);
-                                                    }
-                                                    if (pi0_p_res < -lim5)
-                                                    {
-                                                        hyp_lim5->Fill(hyp_p_res);
-                                                        trit_lim5->Fill(trit_p_res);
-                                                        pi0_lim5->Fill(pi0_p_res);
-                                                        hyp_rel_lim5->Fill(hyp_p_res / hypgenPabs);
+
+                                                        if (pi0_p_res < -lim1)
+                                                        {
+                                                            hyp_lim1->Fill(hyp_p_res);
+                                                            trit_lim1->Fill(trit_p_res);
+                                                            pi0_lim1->Fill(pi0_p_res);
+                                                            hyp_rel_lim1->Fill(hyp_p_res / hypgenPabs);
+                                                        }
+                                                        if (pi0_p_res < -lim2)
+                                                        {
+                                                            hyp_lim2->Fill(hyp_p_res);
+                                                            trit_lim2->Fill(trit_p_res);
+                                                            pi0_lim2->Fill(pi0_p_res);
+                                                            hyp_rel_lim2->Fill(hyp_p_res / hypgenPabs);
+                                                        }
+                                                        if (pi0_p_res < -lim3)
+                                                        {
+                                                            hyp_lim3->Fill(hyp_p_res);
+                                                            trit_lim3->Fill(trit_p_res);
+                                                            pi0_lim3->Fill(pi0_p_res);
+                                                            hyp_rel_lim3->Fill(hyp_p_res / hypgenPabs);
+                                                        }
+                                                        if (pi0_p_res < -lim4)
+                                                        {
+                                                            hyp_lim4->Fill(hyp_p_res);
+                                                            trit_lim4->Fill(trit_p_res);
+                                                            pi0_lim4->Fill(pi0_p_res);
+                                                            hyp_rel_lim4->Fill(hyp_p_res / hypgenPabs);
+                                                        }
+                                                        if (pi0_p_res < -lim5)
+                                                        {
+                                                            hyp_lim5->Fill(hyp_p_res);
+                                                            trit_lim5->Fill(trit_p_res);
+                                                            pi0_lim5->Fill(pi0_p_res);
+                                                            hyp_rel_lim5->Fill(hyp_p_res / hypgenPabs);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -425,6 +439,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     radius->Write();
 
     inv_mass->Write();
+    inv_mass_pi->Write();
 
     pi0_resolution->Write();
     hyp_resolution->Write();
