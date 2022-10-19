@@ -57,6 +57,21 @@ double res_bin_lim = 0.25;
 double eta_bin_lim = 0.1;
 double phi_bin_lim = 0.1;
 
+double lim1 = 1;
+TString limLabel1 = Form("%f", lim1);
+
+double lim2 = 2;
+TString limLabel2 = Form("%f", lim2);
+
+double lim3 = 4;
+TString limLabel3 = Form("%f", lim3);
+
+double lim4 = 6;
+TString limLabel4 = Form("%f", lim4);
+
+double lim5 = 8;
+TString limLabel5 = Form("%f", lim5);
+
 string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
 
 double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
@@ -76,7 +91,7 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
     return -1;
 }
 
-void mass_fit(TString path, TString filename, int tf_max = 40)
+void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = false)
 {
     bool cut = true;
     const int tf_min = 1;
@@ -93,12 +108,42 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.5, 3.5);
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
-    TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -10, 10);
+    TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -5, 5);
     TH1F *hyp_resolution = new TH1F("Hyp p resolution", "Hyp p resolution;Resolution;counts", nBins, -10, 10);
+    TH1F *pi0_resolution_normalized = new TH1F("Pi0 p resolution normalized", "#pi^{0} p resolution normalized;Resolution;counts", nBins, -10, 10);
+    TH1F *triton_resolution_normalized = new TH1F("Triton p resolution normalized", "Triton p resolution normalized;Resolution;counts", nBins, -1, 1);
+    TH1F *hyp_resolution_normalized = new TH1F("Hyp p resolution normalized", "Hyp p resolution normalized;Resolution;counts", nBins, -5, 5);
 
-    TH2F *resolution_vs_chi = new TH2F("Resolution vs chi2", "Resolution vs " + chiLabel + ";Resolution;" + chiLabel, nBins, -res_bin_lim, res_bin_lim, nBins, min_bins, 1);
-    TH2F *eta_vs_phi = new TH2F("Eta vs Phi", "Eta vs Phi daughter;#eta;#phi", nBins, -eta_bin_lim, eta_bin_lim, nBins, -phi_bin_lim, phi_bin_lim);
-    TH2F *resolution_vs_rrec = new TH2F("Resolution vs Rrec", "Resolution vs Rrec;Resolution;Rrec(cm)", nBins, -res_bin_lim, res_bin_lim, nBins, min_r, 40);
+    TH1F *hyp_rel_lim1 = new TH1F("Hyp p relative resolution " + limLabel1, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel1 + ";Resolution;counts", nBins, -1.5, 1.5);
+    TH1F *hyp_rel_lim2 = new TH1F("Hyp p relative resolution " + limLabel2, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel2 + ";Resolution;counts", nBins, -1.5, 1.5);
+    TH1F *hyp_rel_lim3 = new TH1F("Hyp p relative resolution " + limLabel3, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel3 + ";Resolution;counts", nBins, -1.5, 1.5);
+    TH1F *hyp_rel_lim4 = new TH1F("Hyp p relative resolution " + limLabel4, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel4 + ";Resolution;counts", nBins, -1.5, 1.5);
+    TH1F *hyp_rel_lim5 = new TH1F("Hyp p relative resolution " + limLabel5, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel5 + ";Resolution;counts", nBins, -1.5, 1.5);
+
+    TH1F *hyp_lim1 = new TH1F("Hyp p resolution " + limLabel1, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel1 + ";Resolution;counts", nBins, -15, 15);
+    TH1F *hyp_lim2 = new TH1F("Hyp p resolution " + limLabel2, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel2 + ";Resolution;counts", nBins, -15, 15);
+    TH1F *hyp_lim3 = new TH1F("Hyp p resolution " + limLabel3, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel3 + ";Resolution;counts", nBins, -15, 15);
+    TH1F *hyp_lim4 = new TH1F("Hyp p resolution " + limLabel4, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel4 + ";Resolution;counts", nBins, -15, 15);
+    TH1F *hyp_lim5 = new TH1F("Hyp p resolution " + limLabel5, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel5 + ";Resolution;counts", nBins, -15, 15);
+
+    TH1F *trit_lim1 = new TH1F("Triton p resolution " + limLabel1, "Triton p resolution when #pi^{0} resolution is <-" + limLabel1 + ";Resolution;counts", nBins, -5, 5);
+    TH1F *trit_lim2 = new TH1F("Triton p resolution " + limLabel2, "Triton p resolution when #pi^{0} resolution is <-" + limLabel2 + ";Resolution;counts", nBins, -5, 5);
+    TH1F *trit_lim3 = new TH1F("Triton p resolution " + limLabel3, "Triton p resolution when #pi^{0} resolution is <-" + limLabel3 + ";Resolution;counts", nBins, -5, 5);
+    TH1F *trit_lim4 = new TH1F("Triton p resolution " + limLabel4, "Triton p resolution when #pi^{0} resolution is <-" + limLabel4 + ";Resolution;counts", nBins, -5, 5);
+    TH1F *trit_lim5 = new TH1F("Triton p resolution " + limLabel5, "Triton p resolution when #pi^{0} resolution is <-" + limLabel5 + ";Resolution;counts", nBins, -5, 5);
+
+    TH1F *pi0_lim1 = new TH1F("Pi0 p resolution " + limLabel1, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel1 + ";Resolution;counts", nBins, 0, 25);
+    TH1F *pi0_lim2 = new TH1F("Pi0 p resolution " + limLabel2, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel2 + ";Resolution;counts", nBins, 0, 25);
+    TH1F *pi0_lim3 = new TH1F("Pi0 p resolution " + limLabel3, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel3 + ";Resolution;counts", nBins, 0, 25);
+    TH1F *pi0_lim4 = new TH1F("Pi0 p resolution " + limLabel4, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel4 + ";Resolution;counts", nBins, 0, 25);
+    TH1F *pi0_lim5 = new TH1F("Pi0 p resolution " + limLabel5, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel5 + ";Resolution;counts", nBins, 0, 25);
+
+    TH1F *hyp_layers_lim1 = new TH1F("Hyp layers " + limLabel1, "Hyp number of layers when #pi^{0} resolution is <-" + limLabel1 + ";Layers;counts", 5, 2.5, 7.5);
+
+    TH2F *hyp_res_decay = new TH2F("Hyp p resolution vs decay radius", "Hyp p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -6, 6);
+    TH2F *trit_res_decay = new TH2F("Triton p resolution vs decay radius", "Triton p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -2, 2);
+    TH2F *hyp_res_layers = new TH2F("Hyp p resolution vs layers", "Hyp p resolution vs layers;Layers;Resolution (GeV/c)", 5, 2.5, 7.5, nBins, -6, 6);
+    TH2F *trit_res_layers = new TH2F("Triton p resolution vs layers", "Triton p resolution vs layers;Layers;Resolution (GeV/c)", 5, 2.5, 7.5, nBins, -2, 2);
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -177,7 +222,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                         hypgenPabs = MCTrack.GetP();
                         MCTrack.GetMomentum(hypgenP);
                         auto hypITSTrack = ITStracks->at(iTrack);
-                        if (hypITSTrack.getNumberOfClusters() == 3) // 3 clusters recontruction doesn't work well
+                        int nLayers = hypITSTrack.getNumberOfClusters();
+                        if (nLayers == 3) // 3 clusters recontruction doesn't work well
                             continue;
 
                         int firstDauID = MCTrack.getFirstDaughterTrackId();
@@ -236,7 +282,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                     if (!tritfake && !fake)
                                     {
                                         // Fitting start
-                                        
+
                                         if (FITTEROPTION == "DCA")
                                         {
                                             try
@@ -289,7 +335,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                             continue;
                                                     }
 
-                                                    double res = (genR - recR)/genR;
+                                                    double res = (genR - recR) / genR;
 
                                                     float tritE = sqrt(tritPabs * tritPabs + tritonMass * tritonMass);
                                                     std::array<float, 3> piP = {hypP[0] - tritP[0], hypP[1] - tritP[1], hypP[2] - tritP[2]};
@@ -301,12 +347,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
 
                                                     chi_squared->Fill(chi2);
                                                     resolution->Fill(res);
-                                                    resolution_vs_chi->Fill(res, chi2);
-                                                    eta_vs_phi->Fill((etaHyp - etaTrit), (phiHyp - phiTrit));
                                                     radius->Fill(recR);
-                                                    inv_mass->Fill(hypMass);
-
-                                                    resolution_vs_rrec->Fill(res, recR);
                                                     inv_mass->Fill(hypMass);
 
                                                     double pi0_p_res = (pi0genPabs - piPabs);
@@ -316,7 +357,51 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     pi0_resolution->Fill(pi0_p_res);
                                                     triton_resolution->Fill(trit_p_res);
                                                     hyp_resolution->Fill(hyp_p_res);
-                                                    
+
+                                                    pi0_resolution_normalized->Fill(pi0_p_res / pi0genPabs);
+                                                    triton_resolution_normalized->Fill(trit_p_res / tritgenPabs);
+                                                    hyp_resolution_normalized->Fill(hyp_p_res / hypgenPabs);
+
+                                                    hyp_res_decay->Fill(recR, hyp_p_res);
+                                                    trit_res_decay->Fill(recR, trit_p_res);
+                                                    hyp_res_layers->Fill(nLayers, hyp_p_res);
+                                                    trit_res_layers->Fill(nLayers, trit_p_res);
+
+                                                    if (pi0_p_res < -lim1)
+                                                    {
+                                                        hyp_lim1->Fill(hyp_p_res);
+                                                        trit_lim1->Fill(trit_p_res);
+                                                        pi0_lim1->Fill(pi0_p_res);
+                                                        hyp_rel_lim1->Fill(hyp_p_res / hypgenPabs);
+                                                    }
+                                                    if (pi0_p_res < -lim2)
+                                                    {
+                                                        hyp_lim2->Fill(hyp_p_res);
+                                                        trit_lim2->Fill(trit_p_res);
+                                                        pi0_lim2->Fill(pi0_p_res);
+                                                        hyp_rel_lim2->Fill(hyp_p_res / hypgenPabs);
+                                                    }
+                                                    if (pi0_p_res < -lim3)
+                                                    {
+                                                        hyp_lim3->Fill(hyp_p_res);
+                                                        trit_lim3->Fill(trit_p_res);
+                                                        pi0_lim3->Fill(pi0_p_res);
+                                                        hyp_rel_lim3->Fill(hyp_p_res / hypgenPabs);
+                                                    }
+                                                    if (pi0_p_res < -lim4)
+                                                    {
+                                                        hyp_lim4->Fill(hyp_p_res);
+                                                        trit_lim4->Fill(trit_p_res);
+                                                        pi0_lim4->Fill(pi0_p_res);
+                                                        hyp_rel_lim4->Fill(hyp_p_res / hypgenPabs);
+                                                    }
+                                                    if (pi0_p_res < -lim5)
+                                                    {
+                                                        hyp_lim5->Fill(hyp_p_res);
+                                                        trit_lim5->Fill(trit_p_res);
+                                                        pi0_lim5->Fill(pi0_p_res);
+                                                        hyp_rel_lim5->Fill(hyp_p_res / hypgenPabs);
+                                                    }
                                                 }
                                             }
                                             catch (std::runtime_error &e)
@@ -337,9 +422,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     auto fFile = TFile(filename, "recreate");
     chi_squared->Write();
     resolution->Write();
-    resolution_vs_chi->Write();
-    eta_vs_phi->Write();
-    resolution_vs_rrec->Write();
     radius->Write();
 
     inv_mass->Write();
@@ -348,5 +430,51 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     hyp_resolution->Write();
     triton_resolution->Write();
 
+    pi0_resolution_normalized->Write();
+    hyp_resolution_normalized->Write();
+    triton_resolution_normalized->Write();
+
+    hyp_res_decay->Write();
+    trit_res_decay->Write();
+
+    hyp_res_layers->Write();
+    trit_res_layers->Write();
+
     fFile.Close();
+
+    if (partial)
+    {
+        auto fFile2 = TFile("partial_hyp.root", "recreate");
+        hyp_lim1->Write();
+        hyp_lim2->Write();
+        hyp_lim3->Write();
+        hyp_lim4->Write();
+        hyp_lim5->Write();
+        fFile2.Close();
+
+        auto fFile3 = TFile("partial_trit.root", "recreate");
+        trit_lim1->Write();
+        trit_lim2->Write();
+        trit_lim3->Write();
+        trit_lim4->Write();
+        trit_lim5->Write();
+        fFile3.Close();
+
+        auto fFile4 = TFile("partial_pi0.root", "recreate");
+        pi0_lim1->Write();
+        pi0_lim2->Write();
+        pi0_lim3->Write();
+        pi0_lim4->Write();
+        pi0_lim5->Write();
+        fFile4.Close();
+
+        auto fFile5 = TFile("partial_hyp_rel.root", "recreate");
+        hyp_rel_lim1->Write();
+        hyp_rel_lim2->Write();
+        hyp_rel_lim3->Write();
+        hyp_rel_lim4->Write();
+        hyp_rel_lim5->Write();
+        fFile5.Close();
+    }
+
 } // end of fitting function

@@ -119,9 +119,9 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true, b
     TH1F *pi0_partial_resolution3 = new TH1F("Pi0 p resolution3", "c p resolution with hyp and trit res < " + limLabel3 + ";Resolution;counts", nBins, -2, 2);
 
     double pxyz_range = 5;
-    //TH1F *pi0_x_resolution = new TH1F("Pi0 x resolution", "#pi^{0} p_{x} resolution;Resolution;counts", nBins, -pxyz_range, pxyz_range);
-    //TH1F *pi0_y_resolution = new TH1F("Pi0 y resolution", "#pi^{0} p_{y} resolution;Resolution;counts", nBins, -pxyz_range, pxyz_range);
-    //TH1F *pi0_z_resolution = new TH1F("Pi0 z resolution", "#pi^{0} p_{z} resolution;Resolution;counts", nBins, -pxyz_range, pxyz_range);
+    // TH1F *pi0_x_resolution = new TH1F("Pi0 x resolution", "#pi^{0} p_{x} resolution;Resolution;counts", nBins, -pxyz_range, pxyz_range);
+    // TH1F *pi0_y_resolution = new TH1F("Pi0 y resolution", "#pi^{0} p_{y} resolution;Resolution;counts", nBins, -pxyz_range, pxyz_range);
+    // TH1F *pi0_z_resolution = new TH1F("Pi0 z resolution", "#pi^{0} p_{z} resolution;Resolution;counts", nBins, -pxyz_range, pxyz_range);
 
     TH1F *pi0_y_partial = new TH1F("Pi0 y partial", "#pi^{0} p_{y} resolution with px res < " + px_limLabel + ";Resolution;counts", nBins, -pxyz_range, pxyz_range);
     TH1F *pi0_z_partial = new TH1F("Pi0 z partial", "#pi^{0} p_{z} resolution with px res < " + px_limLabel + ";Resolution;counts", nBins, -pxyz_range, pxyz_range);
@@ -350,13 +350,9 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true, b
                                                     float py_res = (pi0genP[1] - piP[1]) / pi0genP[1];
                                                     float pz_res = (pi0genP[2] - piP[2]) / pi0genP[2];
 
-
-                                                    pi0_x_vs_resolution->Fill(pi0genP[0],px_res);
-                                                    pi0_y_vs_resolution->Fill(pi0genP[1],py_res);
-                                                    pi0_z_vs_resolution->Fill(pi0genP[2],pz_res);
-                                                    
-                                            
-
+                                                    pi0_x_vs_resolution->Fill(pi0genP[0], px_res);
+                                                    pi0_y_vs_resolution->Fill(pi0genP[1], py_res);
+                                                    pi0_z_vs_resolution->Fill(pi0genP[2], pz_res);
 
                                                     if (isDaughter)
                                                     {
@@ -414,39 +410,38 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true, b
                                                         }
                                                     }
 
-                                                      if(abs(px_res)>=4)
+                                                    if (abs(px_res) >= 4)
                                                     {
                                                         pi0_y_partial->Fill(py_res);
                                                         pi0_z_partial->Fill(pz_res);
                                                     }
 
-                                                    if(abs(px_res)>=4)
+                                                    if (abs(px_res) >= 4)
                                                     {
-                                                       oFile2 << pxString << endl
-                                                              << pyString << endl
-                                                              << pzString << endl
-                                                              << endl;
+                                                        oFile2 << pxString << endl
+                                                               << pyString << endl
+                                                               << pzString << endl
+                                                               << endl;
                                                     }
 
-                                                    if(abs(py_res)>=4)
+                                                    if (abs(py_res) >= 4)
                                                     {
-                                                       oFile2 << pxString << endl
-                                                              << pyString << endl
-                                                              << pzString << endl
-                                                              << endl;
+                                                        oFile2 << pxString << endl
+                                                               << pyString << endl
+                                                               << pzString << endl
+                                                               << endl;
                                                     }
 
-                                                    if(abs(pz_res)>=4)
+                                                    if (abs(pz_res) >= 4)
                                                     {
-                                                       oFile2 << pxString << endl
-                                                              << pyString << endl
-                                                              << pzString << endl
-                                                              << endl;
+                                                        oFile2 << pxString << endl
+                                                               << pyString << endl
+                                                               << pzString << endl
+                                                               << endl;
                                                     }
 
                                                     oFile2 << "---------- Event End ----------" << endl
                                                            << endl;
-
 
                                                     // if (abs(pi0_p_res) >= 5)
                                                     //  cout << "pi0 res >= 5; trit_p_res: " << trit_p_res << " hyp_p_res: " << hyp_p_res << " pi0_p_res: " << pi0_p_res << endl;
@@ -507,14 +502,14 @@ void fitting(TString path, TString filename, int tf_max = 40, bool cut = true, b
     pi0_z_vs_resolution->Write();
     pi0_y_partial->Write();
     pi0_z_partial->Write();
-/*
-    auto c = new TCanvas("c", "c", 800, 600);
-    nondaughter_chi_normalized->SetLineColor(kRed);
-    nondaughter_chi_normalized->DrawNormalized("P");
-    daughter_chi->DrawNormalized("sameP");
-    c->Write();
+    /*
+        auto c = new TCanvas("c", "c", 800, 600);
+        nondaughter_chi_normalized->SetLineColor(kRed);
+        nondaughter_chi_normalized->DrawNormalized("P");
+        daughter_chi->DrawNormalized("sameP");
+        c->Write();
 
-    */
+        */
     /*
         auto c1 = new TCanvas("c", "c", 800, 600);
         nondaughter_radius->SetLineColor(kRed);
