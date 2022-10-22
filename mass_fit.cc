@@ -108,7 +108,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
     TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.5, 3.5);
-    TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass; m_{#pi^{0}};counts", nBins, 0, 0.2);
+    // TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass; m_{#pi^{0}};counts", nBins, -0.2, 0.2);
 
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
     TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -5, 5);
@@ -116,6 +116,10 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH1F *pi0_resolution_normalized = new TH1F("Pi0 p resolution normalized", "#pi^{0} p resolution normalized;Resolution;counts", nBins, -10, 10);
     TH1F *triton_resolution_normalized = new TH1F("Triton p resolution normalized", "Triton p resolution normalized;Resolution;counts", nBins, -1, 1);
     TH1F *hyp_resolution_normalized = new TH1F("Hyp p resolution normalized", "Hyp p resolution normalized;Resolution;counts", nBins, -5, 5);
+    TH1F *hyp_gen_p = new TH1F("Hyp gen p", "Hyp gen p;p (GeV/c);counts", nBins, 0, 10);
+    TH1F *hyp_rec_p = new TH1F("Hyp rec p", "Hyp rec p;p (GeV/c);counts", nBins, 0, 10);
+    TH1F *hyp_gen_r = new TH1F("Hyp gen r", "Hyp gen r;r (cm);counts", nBins, 15, 40);
+    TH1F *hyp_rec_r = new TH1F("Hyp rec r", "Hyp rec r;r (cm);counts", nBins, 15, 40);
 
     TH1F *hyp_rel_lim1 = new TH1F("Hyp p relative resolution " + limLabel1, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel1 + ";Resolution;counts", nBins, -1.5, 1.5);
     TH1F *hyp_rel_lim2 = new TH1F("Hyp p relative resolution " + limLabel2, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel2 + ";Resolution;counts", nBins, -1.5, 1.5);
@@ -141,12 +145,12 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH1F *pi0_lim4 = new TH1F("Pi0 p resolution " + limLabel4, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel4 + ";Resolution;counts", nBins, 0, 25);
     TH1F *pi0_lim5 = new TH1F("Pi0 p resolution " + limLabel5, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel5 + ";Resolution;counts", nBins, 0, 25);
 
-    TH1F *hyp_layers_lim1 = new TH1F("Hyp layers " + limLabel1, "Hyp number of layers when #pi^{0} resolution is <-" + limLabel1 + ";Layers;counts", 5, 2.5, 7.5);
-
     TH2F *hyp_res_decay = new TH2F("Hyp p resolution vs decay radius", "Hyp p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -6, 6);
     TH2F *trit_res_decay = new TH2F("Triton p resolution vs decay radius", "Triton p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -2, 2);
     TH2F *hyp_res_layers = new TH2F("Hyp p resolution vs layers", "Hyp p resolution vs layers;Layers;Resolution (GeV/c)", 5, 2.5, 7.5, nBins, -6, 6);
     TH2F *trit_res_layers = new TH2F("Triton p resolution vs layers", "Triton p resolution vs layers;Layers;Resolution (GeV/c)", 5, 2.5, 7.5, nBins, -2, 2);
+
+    double genEntries = 0;
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -201,6 +205,21 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
             for (unsigned int mcI{0}; mcI < size; ++mcI)
             {
                 mcTracksMatrix[n][mcI] = MCtracks->at(mcI);
+            }
+        }
+
+        for (int n = 0; n < nev; n++) // fill Gen histos
+        {
+            treeMCTracks->GetEvent(n);
+            unsigned int size = MCtracks->size();
+
+            for (unsigned int mcI{0}; mcI < size; ++mcI)
+            {
+                auto mcTrack = MCtracks->at(mcI);
+                hyp_gen_p->Fill(mcTrack.GetP());
+                double rGen = calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG);
+                hyp_gen_r->Fill(rGen);
+                genEntries++;
             }
         }
 
@@ -348,12 +367,20 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
                                                     float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
 
-                                                    float hypEFound = sqrt(hypPabs * hypPabs + hypMassTh * hypMassTh);
-                                                    float piEFound = hypEFound - tritE;
-                                                    float piMassFound = sqrt(piEFound * piEFound - piPabs * piPabs);
+                                                    if (hypPabs < tritPabs)
+                                                        continue;
 
-                                               
-                                                    inv_mass_pi->Fill(piMassFound);
+                                                    hyp_rec_p->Fill(hypPabs);
+                                                    double rRec = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
+                                                    hyp_rec_r->Fill(rRec);
+
+                                                    /*
+                                                float hypEFound = sqrt(hypPabs * hypPabs + hypMassTh * hypMassTh);
+                                                float piEFound = hypEFound - tritE;
+                                                float piMassFound = (piEFound * piEFound - piPabs * piPabs);
+                                                cout << "rec pion mass = " << piMassFound << endl;
+
+                                                inv_mass_pi->Fill(piMassFound); */
 
                                                     chi_squared->Fill(chi2);
                                                     resolution->Fill(res);
@@ -433,13 +460,19 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
         } // end of event loop
     }     // end of tf loop
 
+    double recEntries = hyp_rec_p->GetEntries();
+    double eff = recEntries / genEntries;
+
+    cout << "efficiency = " << eff << endl;
+    //efficiency = 1.56696e-06
+
     auto fFile = TFile(filename, "recreate");
     chi_squared->Write();
     resolution->Write();
     radius->Write();
 
     inv_mass->Write();
-    inv_mass_pi->Write();
+    // inv_mass_pi->Write();
 
     pi0_resolution->Write();
     hyp_resolution->Write();
@@ -454,6 +487,18 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
     hyp_res_layers->Write();
     trit_res_layers->Write();
+
+    TH1F *eff_p = (TH1F *)hyp_rec_p->Clone("Hyp Eff p");
+    eff_p->GetYaxis()->SetTitle("Efficiency");
+    eff_p->SetTitle("Hypertriton p Efficiency");
+    eff_p->Divide(hyp_gen_p);
+    eff_p->Write();
+
+    TH1F *eff_r = (TH1F *)hyp_rec_r->Clone("Hyp Eff r");
+    eff_r->GetYaxis()->SetTitle("Efficiency");
+    eff_r->SetTitle("Hypertriton r Efficiency");
+    eff_r->Divide(hyp_gen_r);
+    eff_r->Write();
 
     fFile.Close();
 
