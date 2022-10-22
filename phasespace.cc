@@ -40,8 +40,10 @@ const double tritonSmearing = 0.2; // 20%
 
 string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
 
-void phasespace(TString filename, int nEvents = 1000)
+void phasespace(TString filename, int nEvents = 1000, int seed = 0)
 {
+    gRandom->SetSeed(seed);
+
     if (!gROOT->GetClass("TGenPhaseSpace"))
         gSystem->Load("libPhysics");
 
@@ -62,8 +64,8 @@ void phasespace(TString filename, int nEvents = 1000)
         TLorentzVector *LorentzPi = event.GetDecay(0);
         TLorentzVector *LorentzTriton = event.GetDecay(1);
 
-        std::array<double, 3> piP = {LorentzPi->Px() * (1 + piSmearing * gRandom->Gaus(0, 1)), LorentzPi->Py() * (1 + piSmearing * gRandom->Gaus(0, 1)), LorentzPi->Pz() * (1 + piSmearing * gRandom->Gaus(0, 1))};
-        std::array<double, 3> tritonP = {LorentzTriton->Px() * (1 + tritonSmearing * gRandom->Gaus(0, 1)), LorentzTriton->Py() * (1 + tritonSmearing * gRandom->Gaus(0, 1)), LorentzTriton->Pz() * (1 + tritonSmearing * gRandom->Gaus(0, 1))};
+        std::array<double, 3> piP = {LorentzPi->Px() * gRandom->Gaus(1, piSmearing), LorentzPi->Py() * gRandom->Gaus(1, piSmearing), LorentzPi->Pz() * gRandom->Gaus(1, piSmearing)};
+        std::array<double, 3> tritonP = {LorentzTriton->Px() * gRandom->Gaus(1, tritonSmearing), LorentzTriton->Py() * gRandom->Gaus(1, tritonSmearing), LorentzTriton->Pz() * gRandom->Gaus(1, tritonSmearing)};
         std::array<double, 3> hypP = {piP[0] + tritonP[0], piP[1] + tritonP[1], piP[2] + tritonP[2]};
 
         double piPabs = sqrt(piP[0] * piP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
