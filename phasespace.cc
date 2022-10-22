@@ -39,6 +39,7 @@ const double piSmearing = 0.05;    // 5%
 const double tritonSmearing = 0.2; // 20%
 
 string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
+
 void phasespace(TString filename, int nEvents = 1000)
 {
     if (!gROOT->GetClass("TGenPhaseSpace"))
@@ -60,9 +61,6 @@ void phasespace(TString filename, int nEvents = 1000)
 
         TLorentzVector *LorentzPi = event.GetDecay(0);
         TLorentzVector *LorentzTriton = event.GetDecay(1);
-
-        double pi0P = LorentzPi->P();
-        double TritonP = LorentzTriton->P();
 
         std::array<double, 3> piP = {LorentzPi->Px() * (1 + piSmearing * gRandom->Gaus(0, 1)), LorentzPi->Py() * (1 + piSmearing * gRandom->Gaus(0, 1)), LorentzPi->Pz() * (1 + piSmearing * gRandom->Gaus(0, 1))};
         std::array<double, 3> tritonP = {LorentzTriton->Px() * (1 + tritonSmearing * gRandom->Gaus(0, 1)), LorentzTriton->Py() * (1 + tritonSmearing * gRandom->Gaus(0, 1)), LorentzTriton->Pz() * (1 + tritonSmearing * gRandom->Gaus(0, 1))};
