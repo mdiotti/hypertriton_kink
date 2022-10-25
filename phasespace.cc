@@ -39,11 +39,11 @@ const double piSmearing = 0.05;     // 5%
 const double tritonSmearing = 0.05; // 5%
 const double hypSmearing = 0.2;     // 20%
 
-const double hypPRange = 6;
+const double hypPRange = 3;
 
 // string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
 
-void phasespace(TString filename, int nEvents = 1000, int seed = 0)
+void phasespace(TString filename, int nEvents = 100000, int seed = 0)
 {
     gRandom->SetSeed(seed);
 
@@ -54,8 +54,9 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
     TH1F *h_tritonP = new TH1F("tritonP", "^{3}H p;p (GeV/c);counts", 100, 0, 6);
 
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.8, 4.5);
+    TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "Invariant mass;" + hypLabel + ";counts", nBins, 0, 0.2);
 
-    TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;" + hypLabel + ";p (GeV/c)", nBins, 2.8, 4.5, nBins, 0, 10);
+    TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;p_{gen} (GeV/c);" + hypLabel + ";counts", nBins, 0, 6, nBins, 2.8, 4.5);
 
     for (Int_t n = 0; n < nEvents; n++)
     {
@@ -63,7 +64,7 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
         double py = gRandom->Uniform(-hypPRange, hypPRange);
         double pz = gRandom->Uniform(-hypPRange, hypPRange);
         double pGen = sqrt(px * px + py * py + pz * pz);
-        double Energy = sqrt(px * px + py * py + pz * pz + hypMass * hypMass);
+        double Energy = sqrt(pGen * pGen + hypMass * hypMass);
 
         TLorentzVector hypGen = TLorentzVector(px, py, pz, Energy);
 
@@ -76,11 +77,11 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
         TLorentzVector *LorentzTriton = event.GetDecay(1);
 
         std::array<double, 3> tritonP = {gRandom->Gaus(LorentzTriton->Px(), tritonSmearing * LorentzTriton->Px()),
-                                        gRandom->Gaus(LorentzTriton->Py(), tritonSmearing * LorentzTriton->Py()),
-                                        gRandom->Gaus(LorentzTriton->Pz(), tritonSmearing * LorentzTriton->Pz())};
+                                         gRandom->Gaus(LorentzTriton->Py(), tritonSmearing * LorentzTriton->Py()),
+                                         gRandom->Gaus(LorentzTriton->Pz(), tritonSmearing * LorentzTriton->Pz())};
         std::array<double, 3> hypP = {gRandom->Gaus(hypGen.Px(), hypSmearing * hypGen.Px()),
-                                     gRandom->Gaus(hypGen.Py(), hypSmearing * hypGen.Py()),
-                                     gRandom->Gaus(hypGen.Pz(), hypSmearing * hypGen.Pz())};
+                                      gRandom->Gaus(hypGen.Py(), hypSmearing * hypGen.Py()),
+                                      gRandom->Gaus(hypGen.Pz(), hypSmearing * hypGen.Pz())};
         std::array<double, 3> piP = {hypP[0] - tritonP[0], hypP[1] - tritonP[1], hypP[2] - tritonP[2]};
 
         double piPabs = sqrt(piP[0] * piP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
@@ -90,24 +91,31 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
         double piE = sqrt(piPabs * piPabs + piMass * piMass);
         double tritonE = sqrt(tritonPabs * tritonPabs + tritonMass * tritonMass);
         double hypE = piE + tritonE;
-        
 
         if (hypPabs < tritonPabs)
             continue;
 
-        double hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
+        double hypRecM = sqrt(hypE * hypE - hypPabs * hypPabs);
+
+        float hypEFound = sqrt(hypPabs * hypPabs + hypMass * hypMass);
+        float piEFound = hypEFound - tritonE;
+
+        float piMassFound = (piEFound * piEFound - piPabs * piPabs);
+        if (piEFound * piEFound < piPabs * piPabs)
+            inv_mass_pi->Fill(piMassFound);
 
         h_piP->Fill(piPabs);
         h_tritonP->Fill(tritonPabs);
-        inv_mass->Fill(hypMass);
-        mass_vs_p->Fill(hypMass, pGen);
+        inv_mass->Fill(hypRecM);
+        mass_vs_p->Fill(pGen, hypRecM);
     }
 
     auto fFile = TFile(filename, "recreate");
-
+    
     h_piP->Write();
     h_tritonP->Write();
     inv_mass->Write();
+    inv_mass_pi->Write();
     mass_vs_p->Write();
 
     fFile.Close();
