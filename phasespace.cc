@@ -54,7 +54,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     TH1F *h_tritonP = new TH1F("tritonP", "^{3}H p;p (GeV/c);counts", 100, 0, 6);
 
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.8, 4.5);
-    TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "Invariant mass;" + hypLabel + ";counts", nBins, 0, 0.2);
+    TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "Invariant mass;M_{#pi^{0}};counts", nBins, 0, 0.3);
 
     TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;p_{gen} (GeV/c);" + hypLabel + ";counts", nBins, 0, 6, nBins, 2.8, 4.5);
 
@@ -96,12 +96,11 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
             continue;
 
         double hypRecM = sqrt(hypE * hypE - hypPabs * hypPabs);
-
         float hypEFound = sqrt(hypPabs * hypPabs + hypMass * hypMass);
         float piEFound = hypEFound - tritonE;
+        float piMassFound = sqrt(piEFound * piEFound - piPabs * piPabs);
 
-        float piMassFound = (piEFound * piEFound - piPabs * piPabs);
-        if (piEFound * piEFound < piPabs * piPabs)
+        if (piEFound * piEFound - piPabs * piPabs > 0)
             inv_mass_pi->Fill(piMassFound);
 
         h_piP->Fill(piPabs);
