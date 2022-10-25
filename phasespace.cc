@@ -51,17 +51,18 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
         gSystem->Load("libPhysics");
 
     TH1F *h_piP = new TH1F("piP", "#pi^{0}  p;p (GeV/c);counts", 100, 0, 1.5);
-    TH1F *h_tritonP = new TH1F("tritonP", "^{3}H p;p (GeV/c);counts", 100, 0, 3);
+    TH1F *h_tritonP = new TH1F("tritonP", "^{3}H p;p (GeV/c);counts", 100, 0, 6);
 
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.8, 4.5);
 
-    TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;p (GeV/c);" + hypLabel , nBins, 2.8, 4.5, nBins, 0, 10);
+    TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;p (GeV/c);" + hypLabel, nBins, 2.8, 4.5, nBins, 0, 10);
 
     for (Int_t n = 0; n < nEvents; n++)
     {
         double px = gRandom->Uniform(-hypPRange, hypPRange);
         double py = gRandom->Uniform(-hypPRange, hypPRange);
         double pz = gRandom->Uniform(-hypPRange, hypPRange);
+        double pGen = sqrt(px * px + py * py + pz * pz);
         double Energy = sqrt(px * px + py * py + pz * pz + hypMass * hypMass);
 
         TLorentzVector hypGen = TLorentzVector(px, py, pz, Energy);
@@ -104,7 +105,7 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
         h_piP->Fill(piPabs);
         h_tritonP->Fill(tritonPabs);
         inv_mass->Fill(hypMass);
-        mass_vs_p->Fill(hypMass, hypPabs);
+        mass_vs_p->Fill(hypMass, pGen);
     }
 
     auto fFile = TFile(filename, "recreate");
