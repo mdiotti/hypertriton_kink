@@ -54,8 +54,10 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
     TH1F *h_tritonP = new TH1F("tritonP", "^{3}H p;p (GeV/c);counts", 100, 0, 6);
 
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.8, 4.5);
+    TH1F *pi_mass = new TH1F("pi mass", "pi mass;M_{#pi^{0}} (GeV/c^{2});counts", nBins, 0.1, 0.2);
+    TH1F *triton_mass = new TH1F("triton mass", "triton mass;M_{^{3}_{#Lambda}H} (GeV/c^{2});counts", nBins, 2.7, 3.0);
 
-    TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;p (GeV/c);" + hypLabel, nBins, 2.8, 4.5, nBins, 0, 10);
+    TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;" + hypLabel + ";p (GeV/c)", nBins, 2.8, 4.5, nBins, 0, 10);
 
     for (Int_t n = 0; n < nEvents; n++)
     {
@@ -79,13 +81,6 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
         std::array<double, 3> hypP = {hypGen.Px() * gRandom->Gaus(1, hypSmearing), hypGen.Py() * gRandom->Gaus(1, hypSmearing), hypGen.Pz() * gRandom->Gaus(1, hypSmearing)};
         std::array<double, 3> piP = {hypP[0] - tritonP[0], hypP[1] - tritonP[1], hypP[2] - tritonP[2]};
 
-        TLorentzVector pi = TLorentzVector(piP[0], piP[1], piP[2], piMass);
-        TLorentzVector triton = TLorentzVector(tritonP[0], tritonP[1], tritonP[2], tritonMass);
-        TLorentzVector hyp = TLorentzVector(hypP[0], hypP[1], hypP[2], hypMass);
-
-        // hypP = {hypP[0] * gRandom->Gaus(1, hypSmearing), hypP[1] * gRandom->Gaus(1, hypSmearing), hypP[2] * gRandom->Gaus(1, hypSmearing)};
-        // tritonP = {tritonP[0] * gRandom->Gaus(1, tritonSmearing), tritonP[1] * gRandom->Gaus(1, tritonSmearing), tritonP[2] * gRandom->Gaus(1, tritonSmearing)};
-
         double piPabs = sqrt(piP[0] * piP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
         double tritonPabs = sqrt(tritonP[0] * tritonP[0] + tritonP[1] * tritonP[1] + tritonP[2] * tritonP[2]);
         double hypPabs = sqrt(hypP[0] * hypP[0] + hypP[1] * hypP[1] + hypP[2] * hypP[2]);
@@ -93,9 +88,7 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
         double piE = sqrt(piPabs * piPabs + piMass * piMass);
         double tritonE = sqrt(tritonPabs * tritonPabs + tritonMass * tritonMass);
         double hypE = piE + tritonE;
-
-        if (hypE * hypE < hypPabs * hypPabs)
-            continue;
+        
 
         if (hypPabs < tritonPabs)
             continue;
@@ -106,6 +99,8 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
         h_tritonP->Fill(tritonPabs);
         inv_mass->Fill(hypMass);
         mass_vs_p->Fill(hypMass, pGen);
+        pi_mass->Fill(LorentzPi->M());
+        triton_mass->Fill(LorentzTriton->M());
     }
 
     auto fFile = TFile(filename, "recreate");
@@ -113,7 +108,8 @@ void phasespace(TString filename, int nEvents = 1000, int seed = 0)
     h_piP->Write();
     h_tritonP->Write();
     inv_mass->Write();
-
+    pi_mass->Write();
+    triton_mass->Write();
     mass_vs_p->Write();
 
     fFile.Close();
