@@ -149,6 +149,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH2F *trit_res_decay = new TH2F("Triton p resolution vs decay radius", "Triton p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -2, 2);
     TH2F *hyp_res_layers = new TH2F("Hyp p resolution vs layers", "Hyp p resolution vs layers;Layers;Resolution (GeV/c)", 5, 2.5, 7.5, nBins, -6, 6);
     TH2F *trit_res_layers = new TH2F("Triton p resolution vs layers", "Triton p resolution vs layers;Layers;Resolution (GeV/c)", 5, 2.5, 7.5, nBins, -2, 2);
+    TH2F *p_vs_e = new TH2F("p_vs_e", "(p_{rec} - p_{gen}) vs (E_{rec} - E_{gen}); (p_{rec} - p_{gen}) (GeV/c); (E_{rec} - E_{gen}) (GeV/c);counts", nBins, -1, 1, nBins, -1, 1);
 
     double genEntries = 0;
 
@@ -242,6 +243,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                     if (abs(MCTrack.GetPdgCode()) == hypPDG)
                     {
                         hypgenPabs = MCTrack.GetP();
+                        double hypgenE = sqrt(hypgenPabs * hypgenPabs + hypMassTh * hypMassTh);
                         MCTrack.GetMomentum(hypgenP);
                         auto hypITSTrack = ITStracks->at(iTrack);
                         int nLayers = hypITSTrack.getNumberOfClusters();
@@ -404,6 +406,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     hyp_res_layers->Fill(nLayers, hyp_p_res);
                                                     trit_res_layers->Fill(nLayers, trit_p_res);
 
+                                                    p_vs_e->Fill(hypPabs - hypgenPabs, hypE - hypgenE);
+
                                                     if (partial)
                                                     {
 
@@ -464,7 +468,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     double eff = recEntries / genEntries;
 
     cout << "efficiency = " << eff << endl;
-    //efficiency = 1.56696e-06
+    // efficiency = 1.56696e-06
 
     auto fFile = TFile(filename, "recreate");
     chi_squared->Write();
@@ -499,6 +503,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     eff_r->SetTitle("Hypertriton r Efficiency");
     eff_r->Divide(hyp_gen_r);
     eff_r->Write();
+
+    p_vs_e->Write();
 
     fFile.Close();
 

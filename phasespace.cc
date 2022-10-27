@@ -58,6 +58,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "Invariant mass;M_{#pi^{0}};counts", nBins, 0, 0.3);
 
     TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;p_{gen} (GeV/c);" + hypLabel + ";counts", nBins, 0, 16, nBins, 2.9, 3.7);
+    TH2F *p_vs_e = new TH2F("p_vs_e", "(p_{rec} - p_{gen}) vs (E_{rec} - E_{gen}); (p_{rec} - p_{gen}) (GeV/c); (E_{rec} - E_{gen}) (GeV/c);counts", nBins, -1, 1, nBins, -1, 1);
 
     for (Int_t n = 0; n < nEvents; n++)
     {
@@ -68,8 +69,8 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         TLorentzVector hypGen = TLorentzVector(0, 0, 0, hypMass);
         hypGen.SetPtEtaPhiM(pT, eta, pi, hypMass);
 
-        // double Energy = hypGen.E();
         double pGen = hypGen.P();
+        double EGen = hypGen.E();
 
         TGenPhaseSpace event;
         event.SetDecay(hypGen, 2, new Double_t[2]{piMass, tritonMass});
@@ -112,6 +113,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         h_tritonP->Fill(tritonPabs);
         inv_mass->Fill(hypRecM);
         mass_vs_p->Fill(pGen, hypRecM);
+        p_vs_e->Fill(hypPabs - pGen, hypE - EGen);
     }
 
     auto fFile = TFile(filename, "recreate");
@@ -121,6 +123,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     inv_mass->Write();
     inv_mass_pi->Write();
     mass_vs_p->Write();
+    p_vs_e->Write();
 
     fFile.Close();
 }
