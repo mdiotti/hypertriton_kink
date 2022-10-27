@@ -68,7 +68,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         TLorentzVector hypGen = TLorentzVector(0, 0, 0, hypMass);
         hypGen.SetPtEtaPhiM(pT, eta, pi, hypMass);
 
-        //double Energy = hypGen.E();
+        // double Energy = hypGen.E();
         double pGen = hypGen.P();
 
         TGenPhaseSpace event;
@@ -87,12 +87,12 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         TLorentzVector HypRec = TLorentzVector(0, 0, 0, hypMass);
         HypRec.SetPtEtaPhiM(HypPtSmeared, eta, pi, hypMass);
 
-        TLorentzVector LorentzPi = TLorentzVector(HypRec.Px() - LorentzTriton->Px(), HypRec.Py() - LorentzTriton->Py(), HypRec.Pz() - LorentzTriton->Pz(), HypRec.E() - LorentzTriton->E());
-
+        TLorentzVector LorentzPi = TLorentzVector(HypRec.Px() - LorentzTriton->Px(), HypRec.Py() - LorentzTriton->Py(), HypRec.Pz() - LorentzTriton->Pz(), piMass);
+        LorentzPi.SetPtEtaPhiM(LorentzPi.Pt(), LorentzPi.Eta(), LorentzPi.Phi(), piMass);
         double tritonPabs = LorentzTriton->P();
         double tritonE = LorentzTriton->E();
         double piPabs = LorentzPi.P();
-        double piE = sqrt(piPabs * piPabs + piMass * piMass);
+        double piE = LorentzPi.E();
 
         double hypPabs = HypRec.P();
         double hypE = tritonE + piE;
@@ -102,7 +102,9 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         if (hypPabs < tritonPabs)
             continue;
 
-        float piMassFound = LorentzPi.M();
+        float hypEFound = sqrt(hypPabs * hypPabs + hypMass * hypMass);
+        float piEFound = hypEFound - tritonE;
+        float piMassFound = (piEFound * piEFound - piPabs * piPabs);
         if (piE * piE - piPabs * piPabs > 0)
             inv_mass_pi->Fill(piMassFound);
 
