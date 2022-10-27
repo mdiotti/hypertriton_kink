@@ -39,7 +39,7 @@ const double piSmearing = 0.05;     // 5%
 const double tritonSmearing = 0.05; // 5%
 const double hypSmearing = 0.2;     // 20%
 
-const double hypPRange = 3;
+const double hypPRange = 10;
 const double etaRange = 1;
 
 // string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
@@ -54,21 +54,21 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     TH1F *h_piP = new TH1F("piP", "#pi^{0}  p;p (GeV/c);counts", 100, 0, 1.5);
     TH1F *h_tritonP = new TH1F("tritonP", "^{3}H p;p (GeV/c);counts", 100, 0, 6);
 
-    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.8, 4.5);
+    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 3.5);
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "Invariant mass;M_{#pi^{0}};counts", nBins, 0, 0.3);
 
-    TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;p_{gen} (GeV/c);" + hypLabel + ";counts", nBins, 0, 6, nBins, 2.8, 4.5);
+    TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p;p_{gen} (GeV/c);" + hypLabel + ";counts", nBins, 0, 6, nBins, 2.9, 3.5);
 
     for (Int_t n = 0; n < nEvents; n++)
     {
         double pT = gRandom->Uniform(0, hypPRange);
         double eta = gRandom->Uniform(-etaRange, etaRange);
-        double pi = gRandom->Uniform(0, TMath::Pi() *2);
+        double pi = gRandom->Uniform(0, TMath::Pi() * 2);
 
         TLorentzVector hypGen = TLorentzVector(0, 0, 0, hypMass);
         hypGen.SetPtEtaPhiM(pT, eta, pi, hypMass);
 
-        double Energy = hypGen.E();
+        //double Energy = hypGen.E();
         double pGen = hypGen.P();
 
         TGenPhaseSpace event;
@@ -76,28 +76,34 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
 
         Double_t weight = event.Generate();
 
-        TLorentzVector *LorentzPi = event.GetDecay(0);
+        // TLorentzVector *LorentzPi = event.GetDecay(0);
         TLorentzVector *LorentzTriton = event.GetDecay(1);
 
         double HypPtSmeared = gRandom->Gaus(pT, hypSmearing * pT);
         double TritonPtSmeared = gRandom->Gaus(LorentzTriton->Pt(), tritonSmearing * LorentzTriton->Pt());
 
-        LorentzTriton->SetPtEtaPhiM(TritonPtSmeared, eta, pi, tritonMass);
+        LorentzTriton->SetPtEtaPhiM(TritonPtSmeared, LorentzTriton->Eta(), LorentzTriton->Phi(), tritonMass);
 
-        TLorentzVector HypRec = TLorentzVector(LorentzTriton->Px() + LorentzPi->Px(), LorentzTriton->Py() + LorentzPi->Py(), LorentzTriton->Pz() + LorentzPi->Pz(), LorentzTriton->E() + LorentzPi->E());
+        TLorentzVector HypRec = TLorentzVector(0, 0, 0, hypMass);
+        HypRec.SetPtEtaPhiM(HypPtSmeared, eta, pi, hypMass);
 
-        double hypRecM = HypRec.M();
-        
-        double hypPabs = HypRec.P();
+        TLorentzVector LorentzPi = TLorentzVector(HypRec.Px() - LorentzTriton->Px(), HypRec.Py() - LorentzTriton->Py(), HypRec.Pz() - LorentzTriton->Pz(), HypRec.E() - LorentzTriton->E());
+
         double tritonPabs = LorentzTriton->P();
-        double piPabs = LorentzPi->P();
-        double piEFound = LorentzPi->E();
+        double tritonE = LorentzTriton->E();
+        double piPabs = LorentzPi.P();
+        double piE = sqrt(piPabs * piPabs + piMass * piMass);
+
+        double hypPabs = tritonPabs + piPabs;
+        double hypE = tritonE + piE;
+
+        double hypRecM = sqrt(hypE * hypE - hypPabs * hypPabs);
 
         if (hypPabs < tritonPabs)
             continue;
 
-        float piMassFound = LorentzPi->M();
-        if (piEFound * piEFound - piPabs * piPabs > 0)
+        float piMassFound = LorentzPi.M();
+        if (piE * piE - piPabs * piPabs > 0)
             inv_mass_pi->Fill(piMassFound);
 
         h_piP->Fill(piPabs);
@@ -107,7 +113,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     }
 
     auto fFile = TFile(filename, "recreate");
-    
+
     h_piP->Write();
     h_tritonP->Write();
     inv_mass->Write();
