@@ -40,6 +40,7 @@ const double tritonSmearing = 0.05; // 5%
 const double hypSmearing = 0.2;     // 20%
 
 const double hypPRange = 3;
+const double etaRange = 1;
 
 // string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
 
@@ -60,13 +61,15 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
 
     for (Int_t n = 0; n < nEvents; n++)
     {
-        double px = gRandom->Uniform(-hypPRange, hypPRange);
-        double py = gRandom->Uniform(-hypPRange, hypPRange);
-        double pz = gRandom->Uniform(-hypPRange, hypPRange);
-        double pGen = sqrt(px * px + py * py + pz * pz);
-        double Energy = sqrt(pGen * pGen + hypMass * hypMass);
+        double pT = gRandom->Uniform(0, hypPRange);
+        double eta = gRandom->Uniform(-etaRange, etaRange);
+        double pi = gRandom->Uniform(0, TMath::Pi() *2);
 
-        TLorentzVector hypGen = TLorentzVector(px, py, pz, Energy);
+        TLorentzVector hypGen = TLorentzVector(0, 0, 0, hypMass);
+        hypGen.SetPtEtaPhiM(pT, eta, pi, hypMass);
+
+        double Energy = hypGen.E();
+        double pGen = hypGen.P();
 
         TGenPhaseSpace event;
         event.SetDecay(hypGen, 2, new Double_t[2]{piMass, tritonMass});
@@ -76,30 +79,24 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         TLorentzVector *LorentzPi = event.GetDecay(0);
         TLorentzVector *LorentzTriton = event.GetDecay(1);
 
-        std::array<double, 3> tritonP = {gRandom->Gaus(LorentzTriton->Px(), tritonSmearing * LorentzTriton->Px()),
-                                         gRandom->Gaus(LorentzTriton->Py(), tritonSmearing * LorentzTriton->Py()),
-                                         gRandom->Gaus(LorentzTriton->Pz(), tritonSmearing * LorentzTriton->Pz())};
-        std::array<double, 3> hypP = {gRandom->Gaus(hypGen.Px(), hypSmearing * hypGen.Px()),
-                                      gRandom->Gaus(hypGen.Py(), hypSmearing * hypGen.Py()),
-                                      gRandom->Gaus(hypGen.Pz(), hypSmearing * hypGen.Pz())};
-        std::array<double, 3> piP = {hypP[0] - tritonP[0], hypP[1] - tritonP[1], hypP[2] - tritonP[2]};
+        double HypPtSmeared = gRandom->Gaus(pT, hypSmearing * pT);
+        double TritonPtSmeared = gRandom->Gaus(LorentzTriton->Pt(), tritonSmearing * LorentzTriton->Pt());
 
-        double piPabs = sqrt(piP[0] * piP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
-        double tritonPabs = sqrt(tritonP[0] * tritonP[0] + tritonP[1] * tritonP[1] + tritonP[2] * tritonP[2]);
-        double hypPabs = sqrt(hypP[0] * hypP[0] + hypP[1] * hypP[1] + hypP[2] * hypP[2]);
+        LorentzTriton->SetPtEtaPhiM(TritonPtSmeared, eta, pi, tritonMass);
 
-        double piE = sqrt(piPabs * piPabs + piMass * piMass);
-        double tritonE = sqrt(tritonPabs * tritonPabs + tritonMass * tritonMass);
-        double hypE = piE + tritonE;
+        TLorentzVector HypRec = TLorentzVector(LorentzTriton->Px() + LorentzPi->Px(), LorentzTriton->Py() + LorentzPi->Py(), LorentzTriton->Pz() + LorentzPi->Pz(), LorentzTriton->E() + LorentzPi->E());
+
+        double hypRecM = HypRec.M();
+        
+        double hypPabs = HypRec.P();
+        double tritonPabs = LorentzTriton->P();
+        double piPabs = LorentzPi->P();
+        double piEFound = LorentzPi->E();
 
         if (hypPabs < tritonPabs)
             continue;
 
-        double hypRecM = sqrt(hypE * hypE - hypPabs * hypPabs);
-        float hypEFound = sqrt(hypPabs * hypPabs + hypMass * hypMass);
-        float piEFound = hypEFound - tritonE;
-        float piMassFound = sqrt(piEFound * piEFound - piPabs * piPabs);
-
+        float piMassFound = LorentzPi->M();
         if (piEFound * piEFound - piPabs * piPabs > 0)
             inv_mass_pi->Fill(piMassFound);
 
