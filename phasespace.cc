@@ -94,7 +94,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         double piPabs = LorentzPi.P();
         double piE = sqrt(piPabs * piPabs + piMass * piMass);
 
-        double hypPabs = tritonPabs + piPabs;
+        double hypPabs = HypRec.P();
         double hypE = tritonE + piE;
 
         double hypRecM = sqrt(hypE * hypE - hypPabs * hypPabs);
