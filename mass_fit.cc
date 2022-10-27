@@ -107,8 +107,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH1F *chi_squared = new TH1F("chi2", chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
     TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
     TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
-    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.5, 3.5);
-    // TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass; m_{#pi^{0}};counts", nBins, -0.2, 0.2);
+    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 3.7);
+    TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass; m_{#pi^{0}};counts", nBins, 0, 0.3);
 
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
     TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -5, 5);
@@ -150,6 +150,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH2F *hyp_res_layers = new TH2F("Hyp p resolution vs layers", "Hyp p resolution vs layers;Layers;Resolution (GeV/c)", 5, 2.5, 7.5, nBins, -6, 6);
     TH2F *trit_res_layers = new TH2F("Triton p resolution vs layers", "Triton p resolution vs layers;Layers;Resolution (GeV/c)", 5, 2.5, 7.5, nBins, -2, 2);
     TH2F *p_vs_e = new TH2F("p_vs_e", "(p_{rec} - p_{gen}) vs (E_{rec} - E_{gen}); (p_{rec} - p_{gen}) (GeV/c); (E_{rec} - E_{gen}) (GeV/c);counts", nBins, -1, 1, nBins, -1, 1);
+    TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p_{gen};p_{gen} (GeV/c);" + hypLabel + ";counts", nBins, 0, 16, nBins, 2.9, 3.7);
 
     double genEntries = 0;
 
@@ -376,13 +377,12 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     double rRec = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
                                                     hyp_rec_r->Fill(rRec);
 
-                                                    /*
-                                                float hypEFound = sqrt(hypPabs * hypPabs + hypMassTh * hypMassTh);
-                                                float piEFound = hypEFound - tritE;
-                                                float piMassFound = (piEFound * piEFound - piPabs * piPabs);
-                                                cout << "rec pion mass = " << piMassFound << endl;
+                                                    float hypEFound = sqrt(hypPabs * hypPabs + hypMassTh * hypMassTh);
+                                                    float piEFound = hypEFound - tritE;
+                                                    float piMassFound = sqrt(piEFound * piEFound - piPabs * piPabs);
+                                                    if (piEFound * piEFound - piPabs * piPabs > 0)
+                                                        inv_mass_pi->Fill(piMassFound);
 
-                                                inv_mass_pi->Fill(piMassFound); */
 
                                                     chi_squared->Fill(chi2);
                                                     resolution->Fill(res);
@@ -407,6 +407,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     trit_res_layers->Fill(nLayers, trit_p_res);
 
                                                     p_vs_e->Fill(hypPabs - hypgenPabs, hypE - hypgenE);
+                                                    mass_vs_p->Fill(hypgenPabs, hypMass);
 
                                                     if (partial)
                                                     {
@@ -476,7 +477,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     radius->Write();
 
     inv_mass->Write();
-    // inv_mass_pi->Write();
+    inv_mass_pi->Write();
 
     pi0_resolution->Write();
     hyp_resolution->Write();
@@ -505,6 +506,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     eff_r->Write();
 
     p_vs_e->Write();
+    mass_vs_p->Write();
 
     fFile.Close();
 
