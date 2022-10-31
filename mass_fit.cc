@@ -58,6 +58,8 @@ double res_bin_lim = 0.25;
 double eta_bin_lim = 0.1;
 double phi_bin_lim = 0.1;
 
+const double fontSize = 0.04;
+
 double lim1 = 1;
 TString limLabel1 = Form("%f", lim1);
 
@@ -477,6 +479,13 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
     cout << "efficiency = " << eff << endl;
     // efficiency = 1.56696e-06
+
+    inv_mass->GetXaxis()->SetTitleSize(fontSize);
+    inv_mass->GetYaxis()->SetTitleSize(fontSize);
+    bkg_inv_mass->GetXaxis()->SetTitleSize(fontSize);
+    bkg_inv_mass->GetYaxis()->SetTitleSize(fontSize);
+    tot_inv_mass->GetXaxis()->SetTitleSize(fontSize);
+    tot_inv_mass->GetYaxis()->SetTitleSize(fontSize);
 
     auto fFile = TFile(filename, "recreate");
     chi_squared->Write();

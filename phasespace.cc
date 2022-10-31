@@ -27,6 +27,8 @@ const double hypMass = 2.99131;
 const double piMass = 0.1349766;
 const double tritonMass = 2.808921;
 
+const double fontSize = 0.04;
+
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
 const int pi0PDG = 111;
@@ -125,6 +127,9 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         triton_resolution->Fill(tritonPGen - tritonPabs);
         hyp_resolution->Fill(pGen - hypPabs);
     }
+
+    inv_mass->GetXaxis()->SetTitleSize(fontSize);
+    inv_mass->GetYaxis()->SetTitleSize(fontSize);
 
     auto fFile = TFile(filename, "recreate");
 
