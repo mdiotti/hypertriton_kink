@@ -54,7 +54,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     TH1F *h_piP = new TH1F("piP", "#pi^{0}  p;p (GeV/c);counts", 100, 0, 1.5);
     TH1F *h_tritonP = new TH1F("tritonP", "^{3}H p;p (GeV/c);counts", 100, 0, 6);
 
-    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 3.7);
+    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass;M_{#pi^{0}};counts", nBins, 0, 0.05);
 
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);

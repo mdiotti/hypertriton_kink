@@ -107,8 +107,10 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH1F *chi_squared = new TH1F("chi2", chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
     TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
     TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
-    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 3.7);
+    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass; m_{#pi^{0}};counts", nBins, 0, 0.3);
+    TH1F *bkg_inv_mass = new TH1F("Background Invariant mass", "Background Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
+    TH1F *tot_inv_mass = new TH1F("Total Invariant mass", "Invariant mass: Signal and Background;" + hypLabel + ";counts", nBins, 2.9, 4);
 
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
     TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -5, 5);
@@ -300,8 +302,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                     if (trittrackID == tritID && tritevID == evID)
                                         isDaughter = true;
 
-                                    if (!isDaughter)
-                                        continue;
+                                    //if (!isDaughter)
+                                    //    continue;
 
                                     auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
                                     if (!tritfake && !fake)
@@ -370,6 +372,12 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
                                                     float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
 
+                                                    tot_inv_mass->Fill(hypMass);
+                                                    if (!isDaughter){
+                                                        bkg_inv_mass->Fill(hypMass);
+                                                        continue;
+                                                    }
+
                                                     if (hypPabs < tritPabs)
                                                         continue;
 
@@ -382,7 +390,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     float piMassFound = sqrt(piEFound * piEFound - piPabs * piPabs);
                                                     if (piEFound * piEFound - piPabs * piPabs > 0)
                                                         inv_mass_pi->Fill(piMassFound);
-
 
                                                     chi_squared->Fill(chi2);
                                                     resolution->Fill(res);
@@ -478,6 +485,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
     inv_mass->Write();
     inv_mass_pi->Write();
+    bkg_inv_mass->Write();
+    tot_inv_mass->Write();
 
     pi0_resolution->Write();
     hyp_resolution->Write();
