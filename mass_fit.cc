@@ -107,6 +107,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     }
 
     TH1F *chi_squared = new TH1F("chi2", chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
+    TH1F *bkg_chi_squared = new TH1F("bkg_chi2", "Background " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
     TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
     TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
@@ -377,6 +378,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     tot_inv_mass->Fill(hypMass);
                                                     if (!isDaughter){
                                                         bkg_inv_mass->Fill(hypMass);
+                                                        bkg_chi_squared->Fill(chi2);
                                                         continue;
                                                     }
 
@@ -489,6 +491,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
     auto fFile = TFile(filename, "recreate");
     chi_squared->Write();
+    bkg_chi_squared->Write();
     resolution->Write();
     radius->Write();
 
