@@ -123,8 +123,10 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH1F *pi0_resolution_normalized = new TH1F("Pi0 p resolution normalized", "#pi^{0} p resolution normalized;Resolution;counts", nBins, -10, 10);
     TH1F *triton_resolution_normalized = new TH1F("Triton p resolution normalized", "Triton p resolution normalized;Resolution;counts", nBins, -1, 1);
     TH1F *hyp_resolution_normalized = new TH1F("Hyp p resolution normalized", "Hyp p resolution normalized;Resolution;counts", nBins, -5, 5);
-    TH1F *hyp_gen_p = new TH1F("Hyp gen p", "Hyp gen p;p (GeV/c);counts", nBins, 0, 10);
-    TH1F *hyp_rec_p = new TH1F("Hyp rec p", "Hyp rec p;p (GeV/c);counts", nBins, 0, 10);
+    TH1F *hyp_gen_p = new TH1F("Hyp gen p", "Hyp gen p;p (GeV/c);counts", nBins, 0, 15);
+    TH1F *hyp_rec_p = new TH1F("Hyp rec p", "Hyp rec p;p (GeV/c);counts", nBins, 0, 15);
+    TH1F *hyp_gen_pt = new TH1F("Hyp gen pt", "Hyp gen pt;p_{T} (GeV/c);counts", nBins, 0, 12);
+    TH1F *hyp_rec_pt = new TH1F("Hyp rec pt", "Hyp rec pt;p_{T} (GeV/c);counts", nBins, 0, 12);
     TH1F *hyp_gen_r = new TH1F("Hyp gen r", "Hyp gen r;r (cm);counts", nBins, 15, 40);
     TH1F *hyp_rec_r = new TH1F("Hyp rec r", "Hyp rec r;r (cm);counts", nBins, 15, 40);
 
@@ -226,6 +228,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
             {
                 auto mcTrack = MCtracks->at(mcI);
                 hyp_gen_p->Fill(mcTrack.GetP());
+                hyp_gen_pt->Fill(mcTrack.GetPt());
                 double rGen = calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG);
                 hyp_gen_r->Fill(rGen);
                 genEntries++;
@@ -389,7 +392,10 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     if (hypPabs < tritPabs)
                                                         continue;
 
+                                                    double pt = sqrt(hypP[0] * hypP[0] + hypP[1] * hypP[1]);
+
                                                     hyp_rec_p->Fill(hypPabs);
+                                                    hyp_rec_pt->Fill(pt);
                                                     double rRec = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
                                                     hyp_rec_r->Fill(rRec);
 
@@ -501,6 +507,9 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     hyp_rec_r->GetXaxis()->SetTitleSize(fontSize);
     hyp_rec_r->GetYaxis()->SetTitleSize(fontSize);
 
+    hyp_rec_pt->GetXaxis()->SetTitleSize(fontSize);
+    hyp_rec_pt->GetYaxis()->SetTitleSize(fontSize);
+
     inv_mass_pi->GetXaxis()->SetTitleSize(fontSize);
     inv_mass_pi->GetYaxis()->SetTitleSize(fontSize);
 
@@ -542,6 +551,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
     trit_res_layers->GetXaxis()->SetTitleSize(fontSize);
     trit_res_layers->GetYaxis()->SetTitleSize(fontSize);
+    
 
     p_vs_e->GetXaxis()->SetTitleSize(fontSize);
     p_vs_e->GetYaxis()->SetTitleSize(fontSize);
@@ -583,6 +593,12 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     eff_r->SetTitle("Hypertriton r Efficiency");
     eff_r->Divide(hyp_gen_r);
     eff_r->Write();
+
+    TH1F *eff_pt = (TH1F *)hyp_rec_pt->Clone("Hyp Eff pt");
+    eff_pt->GetYaxis()->SetTitle("Efficiency");
+    eff_pt->SetTitle("Hypertriton pt Efficiency");
+    eff_pt->Divide(hyp_gen_pt);
+    eff_pt->Write();
 
     p_vs_e->Write();
     mass_vs_p->Write();
