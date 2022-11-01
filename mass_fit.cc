@@ -58,7 +58,8 @@ double res_bin_lim = 0.25;
 double eta_bin_lim = 0.1;
 double phi_bin_lim = 0.1;
 
-const double fontSize = 0.04;
+const double fontSize = 0.045;
+const double markerSize = 4;
 
 double lim1 = 1;
 TString limLabel1 = Form("%f", lim1);
@@ -106,7 +107,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
         phi_bin_lim = 0.03;
     }
 
-    TH1F *chi_squared = new TH1F("chi2", "Signal " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
+    TH1F *chi_squared = new TH1F("chi2", "" + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
+    TH1F *tot_chi_squared = new TH1F("tot_chi2", "Signal and Background " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
     TH1F *bkg_chi_squared = new TH1F("bkg_chi2", "Background " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 50);
     TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
     TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
@@ -305,8 +307,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                     if (trittrackID == tritID && tritevID == evID)
                                         isDaughter = true;
 
-                                    //if (!isDaughter)
-                                    //    continue;
+                                    // if (!isDaughter)
+                                    //     continue;
 
                                     auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
                                     if (!tritfake && !fake)
@@ -376,9 +378,11 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
 
                                                     tot_inv_mass->Fill(hypMass);
-                                                    if (!isDaughter){
+                                                    if (!isDaughter)
+                                                    {
                                                         bkg_inv_mass->Fill(hypMass);
                                                         bkg_chi_squared->Fill(chi2);
+                                                        tot_chi_squared->Fill(chi2);
                                                         continue;
                                                     }
 
@@ -484,10 +488,64 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
     inv_mass->GetXaxis()->SetTitleSize(fontSize);
     inv_mass->GetYaxis()->SetTitleSize(fontSize);
+
     bkg_inv_mass->GetXaxis()->SetTitleSize(fontSize);
     bkg_inv_mass->GetYaxis()->SetTitleSize(fontSize);
+
     tot_inv_mass->GetXaxis()->SetTitleSize(fontSize);
     tot_inv_mass->GetYaxis()->SetTitleSize(fontSize);
+
+    hyp_rec_p->GetXaxis()->SetTitleSize(fontSize);
+    hyp_rec_p->GetYaxis()->SetTitleSize(fontSize);
+
+    hyp_rec_r->GetXaxis()->SetTitleSize(fontSize);
+    hyp_rec_r->GetYaxis()->SetTitleSize(fontSize);
+
+    inv_mass_pi->GetXaxis()->SetTitleSize(fontSize);
+    inv_mass_pi->GetYaxis()->SetTitleSize(fontSize);
+
+    chi_squared->GetXaxis()->SetTitleSize(fontSize);
+    chi_squared->GetYaxis()->SetTitleSize(fontSize);
+
+    resolution->GetXaxis()->SetTitleSize(fontSize);
+    resolution->GetYaxis()->SetTitleSize(fontSize);
+
+    radius->GetXaxis()->SetTitleSize(fontSize);
+    radius->GetYaxis()->SetTitleSize(fontSize);
+
+    pi0_resolution->GetXaxis()->SetTitleSize(fontSize);
+    pi0_resolution->GetYaxis()->SetTitleSize(fontSize);
+
+    triton_resolution->GetXaxis()->SetTitleSize(fontSize);
+    triton_resolution->GetYaxis()->SetTitleSize(fontSize);
+
+    hyp_resolution->GetXaxis()->SetTitleSize(fontSize);
+    hyp_resolution->GetYaxis()->SetTitleSize(fontSize);
+
+    pi0_resolution_normalized->GetXaxis()->SetTitleSize(fontSize);
+    pi0_resolution_normalized->GetYaxis()->SetTitleSize(fontSize);
+
+    triton_resolution_normalized->GetXaxis()->SetTitleSize(fontSize);
+    triton_resolution_normalized->GetYaxis()->SetTitleSize(fontSize);
+
+    hyp_resolution_normalized->GetXaxis()->SetTitleSize(fontSize);
+    hyp_resolution_normalized->GetYaxis()->SetTitleSize(fontSize);
+
+    hyp_res_decay->GetXaxis()->SetTitleSize(fontSize);
+    hyp_res_decay->GetYaxis()->SetTitleSize(fontSize);
+
+    trit_res_decay->GetXaxis()->SetTitleSize(fontSize);
+    trit_res_decay->GetYaxis()->SetTitleSize(fontSize);
+
+    hyp_res_layers->GetXaxis()->SetTitleSize(fontSize);
+    hyp_res_layers->GetYaxis()->SetTitleSize(fontSize);
+
+    trit_res_layers->GetXaxis()->SetTitleSize(fontSize);
+    trit_res_layers->GetYaxis()->SetTitleSize(fontSize);
+
+    p_vs_e->GetXaxis()->SetTitleSize(fontSize);
+    p_vs_e->GetYaxis()->SetTitleSize(fontSize);
+
 
     auto fFile = TFile(filename, "recreate");
     chi_squared->Write();
@@ -528,6 +586,31 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
     p_vs_e->Write();
     mass_vs_p->Write();
+
+    TCanvas *c1 = new TCanvas("c1", "c1", 800, 600);
+    chi_squared->SetMarkerSize(markerSize);
+    chi_squared->GetXaxis()->SetTitleSize(fontSize);
+    chi_squared->GetYaxis()->SetTitleSize(fontSize);
+    chi_squared->Draw("EP");
+    tot_chi_squared->SetMarkerSize(markerSize);
+    tot_chi_squared->GetXaxis()->SetTitleSize(fontSize);
+    tot_chi_squared->GetYaxis()->SetTitleSize(fontSize);
+    tot_chi_squared->SetLineColor(kRed);
+    tot_chi_squared->Draw("sameEP");
+    c1->Write();
+
+    TCanvas *c2 = new TCanvas("c2", "c2", 800, 600);
+    inv_mass->SetMarkerSize(markerSize);
+    inv_mass->GetXaxis()->SetTitleSize(fontSize);
+    inv_mass->GetYaxis()->SetTitleSize(fontSize);
+    inv_mass->Draw("EP");
+    bkg_inv_mass->SetMarkerSize(markerSize);
+    bkg_inv_mass->GetXaxis()->SetTitleSize(fontSize);
+    bkg_inv_mass->GetYaxis()->SetTitleSize(fontSize);
+    bkg_inv_mass->SetLineColor(kRed);
+    bkg_inv_mass->SetLineColor(kGreen);
+    bkg_inv_mass->Draw("sameEP");
+    c2->Write();
 
     fFile.Close();
 

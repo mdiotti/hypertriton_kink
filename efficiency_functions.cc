@@ -50,6 +50,8 @@ const int tritonPDG = 1000010030;
 TString ptLabel = "#it{p}_{T} (GeV/#it{c})";
 TString resLabel = "Resolution: (gen-rec)/gen";
 
+const double fontSize = 0.045;
+
 double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
 {
     auto idStart = motherTrack.getFirstDaughterTrackId();
@@ -392,6 +394,48 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
 
         } // event loop
     }     // end of tf loop
+
+    hist_gen_pt->GetXaxis()->SetTitleSize(fontSize);
+    hist_gen_pt->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_gen_r->GetXaxis()->SetTitleSize(fontSize);
+    hist_gen_r->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_rec_pt_top->GetXaxis()->SetTitleSize(fontSize);
+    hist_rec_pt_top->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_rec_r_top->GetXaxis()->SetTitleSize(fontSize);
+    hist_rec_r_top->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_fake_pt_top->GetXaxis()->SetTitleSize(fontSize);
+    hist_fake_pt_top->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_fake_r_top->GetXaxis()->SetTitleSize(fontSize);
+    hist_fake_r_top->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_ris_4_top->GetXaxis()->SetTitleSize(fontSize);
+    hist_ris_4_top->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_ris_3_top->GetXaxis()->SetTitleSize(fontSize);
+    hist_ris_3_top->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_rec_pt_trit->GetXaxis()->SetTitleSize(fontSize);
+    hist_rec_pt_trit->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_rec_r_trit->GetXaxis()->SetTitleSize(fontSize);
+    hist_rec_r_trit->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_fake_pt_trit->GetXaxis()->SetTitleSize(fontSize);
+    hist_fake_pt_trit->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_fake_r_trit->GetXaxis()->SetTitleSize(fontSize);
+    hist_fake_r_trit->GetYaxis()->SetTitleSize(fontSize);
+
+    hist_ris_trit->GetXaxis()->SetTitleSize(fontSize);
+    hist_ris_trit->GetYaxis()->SetTitleSize(fontSize);
+
+    hCount->GetXaxis()->SetTitleSize(fontSize);
+    hCount->GetYaxis()->SetTitleSize(fontSize);
 
     auto fFile = TFile(filename, "recreate");
     hist_gen_pt->Write();
