@@ -47,10 +47,11 @@ using CompClusterExt = o2::itsmft::CompClusterExt;
 
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
+const double hypMass = 2.99131;
 TString ptLabel = "#it{p}_{T} (GeV/#it{c})";
 TString resLabel = "Resolution: (gen-rec)/gen";
 
-const double fontSize = 0.045;
+const double fontSize = 0.055;
 
 double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
 {
@@ -64,6 +65,23 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
         {
             auto radius = TMath::Sqrt((dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) * (dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) + (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()) * (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()));
             return radius;
+        }
+    }
+    return -1;
+}
+
+double calcDecayLenght(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
+{
+    auto idStart = motherTrack.getFirstDaughterTrackId();
+    auto idStop = motherTrack.getLastDaughterTrackId();
+    for (auto iD{idStart}; iD < idStop; ++iD)
+    {
+        auto dauTrack = MCTracks->at(iD);
+        //        if (dauTrack.GetPdgCode() == dauPDG)
+        if (abs(dauTrack.GetPdgCode()) == dauPDG)
+        {
+            auto dl = TMath::Sqrt((dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) * (dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) + (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()) * (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()) + (dauTrack.GetStartVertexCoordinatesZ() - motherTrack.GetStartVertexCoordinatesZ()) * (dauTrack.GetStartVertexCoordinatesZ() - motherTrack.GetStartVertexCoordinatesZ()));
+            return dl;
         }
     }
     return -1;
@@ -100,6 +118,10 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     TH1F *hist_gen_r = new TH1F("Hyp Gen r", "Hypertriton Generated Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_rec_r = new TH1F("Hyp Rec r", "Hypertriton Reconstructed Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_fake_r = new TH1F("Hyp True r", "Hypertriton True Radius;Radius (cm);counts", 50, 0, 50);
+
+    TH1F *hist_gen_ct = new TH1F("Hyp Gen ct", "Hypertriton Generated c_{t};c_{t} (cm);counts", 50, 0, 50);
+    TH1F *hist_rec_ct = new TH1F("Hyp Rec ct", "Hypertriton Reconstructed c_{t};c_{t} (cm);counts", 50, 0, 50);
+    TH1F *hist_fake_ct = new TH1F("Hyp True ct", "Hypertriton True c_{t};c_{t} (cm);counts", 50, 0, 50);
 
     // define triton track histograms
     TH1F *hist_gen_pt_trit = new TH1F("Trit Gen pt", "Triton Generated p_{T};" + ptLabel + ";counts", 30, 1, 10);
@@ -211,8 +233,11 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                 if (abs(mcTrack.GetPdgCode()) == hypPDG)
                 {
                     double radius = calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG);
+                    double dl = calcDecayLenght(&mcTracksMatrix[n], mcTrack, tritonPDG);
+                    double ct = hypMass * dl / mcTrack.GetP();
                     hist_gen_pt->Fill(mcTrack.GetPt());
                     hist_gen_r->Fill(radius);
+                    hist_gen_ct->Fill(ct);
                     int firstDauID = mcTrack.getFirstDaughterTrackId();
                     int nDau = mcTrack.getLastDaughterTrackId();
                     for (int iDau = firstDauID; iDau < nDau; iDau++)
@@ -224,6 +249,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                             hist_gen_r_top->Fill(radius);
                             hist_gen_pt_trit->Fill(dauTrack.GetPt());
                             hist_gen_r_trit->Fill(radius);
+
                         }
                     }
                 }
@@ -251,12 +277,16 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                         auto hypITSTrack = ITStracks->at(iTrack);
                         hist_rec_pt->Fill(mcTrack.GetPt());
                         auto radius = calcRadius(&mcTracksMatrix[evID], mcTrack, tritonPDG);
+                        double dl = calcDecayLenght(&mcTracksMatrix[evID], mcTrack, tritonPDG);
+                        double ct = hypMass * dl / mcTrack.GetP();
                         hist_rec_r->Fill(radius);
+                        hist_rec_ct->Fill(ct);
 
                         if (!fake)
                         {
                             hist_fake_pt->Fill(mcTrack.GetPt());
                             hist_fake_r->Fill(radius);
+                            hist_fake_ct->Fill(ct);
 
                             if (hypITSTrack.getNumberOfClusters() >= 4)
                                 hist_ris_4->Fill((mcTrack.GetPt() - hypITSTrack.getPt()) / mcTrack.GetPt());
@@ -401,6 +431,10 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     hist_gen_r->GetXaxis()->SetTitleSize(fontSize);
     hist_gen_r->GetYaxis()->SetTitleSize(fontSize);
 
+    hist_gen_ct->GetXaxis()->SetTitleSize(fontSize);
+    hist_gen_ct->GetYaxis()->SetTitleSize(fontSize);
+
+
     hist_rec_pt_top->GetXaxis()->SetTitleSize(fontSize);
     hist_rec_pt_top->GetYaxis()->SetTitleSize(fontSize);
 
@@ -441,6 +475,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     hist_gen_pt->Write();
     hist_rec_pt->Write();
     hist_fake_pt->Write();
+    hist_gen_ct->Write();
     hist_ris_3->Write();
     hist_ris_4->Write();
     hist_gen_r->Write();

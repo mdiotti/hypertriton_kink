@@ -61,21 +61,6 @@ double phi_bin_lim = 0.1;
 const double fontSize = 0.045;
 const double markerSize = 4;
 
-double lim1 = 1;
-TString limLabel1 = Form("%f", lim1);
-
-double lim2 = 2;
-TString limLabel2 = Form("%f", lim2);
-
-double lim3 = 4;
-TString limLabel3 = Form("%f", lim3);
-
-double lim4 = 6;
-TString limLabel4 = Form("%f", lim4);
-
-double lim5 = 8;
-TString limLabel5 = Form("%f", lim5);
-
 string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
 
 double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
@@ -95,7 +80,24 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
     return -1;
 }
 
-void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = false)
+double calcDecayLenght(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, int dauPDG)
+{
+    auto idStart = motherTrack.getFirstDaughterTrackId();
+    auto idStop = motherTrack.getLastDaughterTrackId();
+    for (auto iD{idStart}; iD < idStop; ++iD)
+    {
+        auto dauTrack = MCTracks->at(iD);
+        //        if (dauTrack.GetPdgCode() == dauPDG)
+        if (abs(dauTrack.GetPdgCode()) == dauPDG)
+        {
+            auto dl = TMath::Sqrt((dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) * (dauTrack.GetStartVertexCoordinatesX() - motherTrack.GetStartVertexCoordinatesX()) + (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()) * (dauTrack.GetStartVertexCoordinatesY() - motherTrack.GetStartVertexCoordinatesY()) + (dauTrack.GetStartVertexCoordinatesZ() - motherTrack.GetStartVertexCoordinatesZ()) * (dauTrack.GetStartVertexCoordinatesZ() - motherTrack.GetStartVertexCoordinatesZ()));
+            return dl;
+        }
+    }
+    return -1;
+}
+
+void mass_fit(TString path, TString filename, int tf_max = 40)
 {
     bool cut = true;
     const int tf_min = 1;
@@ -110,7 +112,9 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH1F *chi_squared = new TH1F("chi2", "" + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
     TH1F *tot_chi_squared = new TH1F("tot_chi2", "Signal and Background " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
     TH1F *bkg_chi_squared = new TH1F("bkg_chi2", "Background " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 50);
-    TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -res_bin_lim, res_bin_lim);
+    TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -0.1, 0.1);
+    TH1F *resolution_bkg = new TH1F("Radius Resolution Background", "Resolution;#Delta r;counts", nBins, -0.1, 0.1);
+    TH1F *resolution_dl = new TH1F("Decay Length Resolution", "Resolution;#Delta r;counts", nBins, -0.1, 0.1);
     TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass; m_{#pi^{0}};counts", nBins, 0, 0.3);
@@ -125,34 +129,13 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     TH1F *hyp_resolution_normalized = new TH1F("Hyp p resolution normalized", "Hyp p resolution normalized;Resolution;counts", nBins, -5, 5);
     TH1F *hyp_gen_p = new TH1F("Hyp gen p", "Hyp gen p;p (GeV/c);counts", nBins, 0, 15);
     TH1F *hyp_rec_p = new TH1F("Hyp rec p", "Hyp rec p;p (GeV/c);counts", nBins, 0, 15);
+    TH1F *hyp_selected_p = new TH1F("Hyp selected p", "Hyp selected p;p (GeV/c);counts", nBins, 0, 15);
     TH1F *hyp_gen_pt = new TH1F("Hyp gen pt", "Hyp gen pt;p_{T} (GeV/c);counts", nBins, 0, 12);
     TH1F *hyp_rec_pt = new TH1F("Hyp rec pt", "Hyp rec pt;p_{T} (GeV/c);counts", nBins, 0, 12);
+    TH1F *hyp_selected_pt = new TH1F("Hyp selected pt", "Hyp selected pt;p_{T} (GeV/c);counts", nBins, 0, 12);
     TH1F *hyp_gen_r = new TH1F("Hyp gen r", "Hyp gen r;r (cm);counts", nBins, 15, 40);
     TH1F *hyp_rec_r = new TH1F("Hyp rec r", "Hyp rec r;r (cm);counts", nBins, 15, 40);
-
-    TH1F *hyp_rel_lim1 = new TH1F("Hyp p relative resolution " + limLabel1, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel1 + ";Resolution;counts", nBins, -1.5, 1.5);
-    TH1F *hyp_rel_lim2 = new TH1F("Hyp p relative resolution " + limLabel2, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel2 + ";Resolution;counts", nBins, -1.5, 1.5);
-    TH1F *hyp_rel_lim3 = new TH1F("Hyp p relative resolution " + limLabel3, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel3 + ";Resolution;counts", nBins, -1.5, 1.5);
-    TH1F *hyp_rel_lim4 = new TH1F("Hyp p relative resolution " + limLabel4, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel4 + ";Resolution;counts", nBins, -1.5, 1.5);
-    TH1F *hyp_rel_lim5 = new TH1F("Hyp p relative resolution " + limLabel5, "Hyp p relative resolution when #pi^{0} resolution is <-" + limLabel5 + ";Resolution;counts", nBins, -1.5, 1.5);
-
-    TH1F *hyp_lim1 = new TH1F("Hyp p resolution " + limLabel1, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel1 + ";Resolution;counts", nBins, -15, 15);
-    TH1F *hyp_lim2 = new TH1F("Hyp p resolution " + limLabel2, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel2 + ";Resolution;counts", nBins, -15, 15);
-    TH1F *hyp_lim3 = new TH1F("Hyp p resolution " + limLabel3, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel3 + ";Resolution;counts", nBins, -15, 15);
-    TH1F *hyp_lim4 = new TH1F("Hyp p resolution " + limLabel4, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel4 + ";Resolution;counts", nBins, -15, 15);
-    TH1F *hyp_lim5 = new TH1F("Hyp p resolution " + limLabel5, "Hyp p resolution when #pi^{0} resolution is <-" + limLabel5 + ";Resolution;counts", nBins, -15, 15);
-
-    TH1F *trit_lim1 = new TH1F("Triton p resolution " + limLabel1, "Triton p resolution when #pi^{0} resolution is <-" + limLabel1 + ";Resolution;counts", nBins, -5, 5);
-    TH1F *trit_lim2 = new TH1F("Triton p resolution " + limLabel2, "Triton p resolution when #pi^{0} resolution is <-" + limLabel2 + ";Resolution;counts", nBins, -5, 5);
-    TH1F *trit_lim3 = new TH1F("Triton p resolution " + limLabel3, "Triton p resolution when #pi^{0} resolution is <-" + limLabel3 + ";Resolution;counts", nBins, -5, 5);
-    TH1F *trit_lim4 = new TH1F("Triton p resolution " + limLabel4, "Triton p resolution when #pi^{0} resolution is <-" + limLabel4 + ";Resolution;counts", nBins, -5, 5);
-    TH1F *trit_lim5 = new TH1F("Triton p resolution " + limLabel5, "Triton p resolution when #pi^{0} resolution is <-" + limLabel5 + ";Resolution;counts", nBins, -5, 5);
-
-    TH1F *pi0_lim1 = new TH1F("Pi0 p resolution " + limLabel1, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel1 + ";Resolution;counts", nBins, 0, 25);
-    TH1F *pi0_lim2 = new TH1F("Pi0 p resolution " + limLabel2, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel2 + ";Resolution;counts", nBins, 0, 25);
-    TH1F *pi0_lim3 = new TH1F("Pi0 p resolution " + limLabel3, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel3 + ";Resolution;counts", nBins, 0, 25);
-    TH1F *pi0_lim4 = new TH1F("Pi0 p resolution " + limLabel4, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel4 + ";Resolution;counts", nBins, 0, 25);
-    TH1F *pi0_lim5 = new TH1F("Pi0 p resolution " + limLabel5, "#pi^{0} p resolution when #pi^{0} resolution is <-" + limLabel5 + ";Resolution;counts", nBins, 0, 25);
+    TH1F *hyp_selected_r = new TH1F("Hyp selected r", "Hyp selected r;r (cm);counts", nBins, 15, 40);
 
     TH2F *hyp_res_decay = new TH2F("Hyp p resolution vs decay radius", "Hyp p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -6, 6);
     TH2F *trit_res_decay = new TH2F("Triton p resolution vs decay radius", "Triton p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -2, 2);
@@ -362,6 +345,11 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     std::array<float, 3> R = ft2.getPCACandidatePos();
                                                     double recR = sqrt(R[0] * R[0] + R[1] * R[1]);
 
+                                                    double genDL = calcDecayLenght(&mcTracksMatrix[evID], MCTrack, tritonPDG);
+                                                    double recDL = sqrt(R[0] * R[0] + R[1] * R[1] + R[2] * R[2]);
+
+                                                    
+
                                                     if (cut)
                                                     {
                                                         if (recR < 18)
@@ -371,6 +359,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     }
 
                                                     double res = (genR - recR) / genR;
+                                                    double resDL = (genDL - recDL) / genDL;
 
                                                     float tritE = sqrt(tritPabs * tritPabs + tritonMass * tritonMass);
                                                     std::array<float, 3> piP = {hypP[0] - tritP[0], hypP[1] - tritP[1], hypP[2] - tritP[2]};
@@ -386,6 +375,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                         bkg_inv_mass->Fill(hypMass);
                                                         bkg_chi_squared->Fill(chi2);
                                                         tot_chi_squared->Fill(chi2);
+                                                        resolution_bkg->Fill(res);
                                                         continue;
                                                     }
 
@@ -407,6 +397,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
 
                                                     chi_squared->Fill(chi2);
                                                     resolution->Fill(res);
+                                                    resolution_dl->Fill(resDL);
                                                     radius->Fill(recR);
                                                     inv_mass->Fill(hypMass);
 
@@ -430,45 +421,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
                                                     p_vs_e->Fill(hypPabs - hypgenPabs, hypE - hypgenE);
                                                     mass_vs_p->Fill(hypgenPabs, hypMass);
 
-                                                    if (partial)
-                                                    {
-
-                                                        if (pi0_p_res < -lim1)
-                                                        {
-                                                            hyp_lim1->Fill(hyp_p_res);
-                                                            trit_lim1->Fill(trit_p_res);
-                                                            pi0_lim1->Fill(pi0_p_res);
-                                                            hyp_rel_lim1->Fill(hyp_p_res / hypgenPabs);
-                                                        }
-                                                        if (pi0_p_res < -lim2)
-                                                        {
-                                                            hyp_lim2->Fill(hyp_p_res);
-                                                            trit_lim2->Fill(trit_p_res);
-                                                            pi0_lim2->Fill(pi0_p_res);
-                                                            hyp_rel_lim2->Fill(hyp_p_res / hypgenPabs);
-                                                        }
-                                                        if (pi0_p_res < -lim3)
-                                                        {
-                                                            hyp_lim3->Fill(hyp_p_res);
-                                                            trit_lim3->Fill(trit_p_res);
-                                                            pi0_lim3->Fill(pi0_p_res);
-                                                            hyp_rel_lim3->Fill(hyp_p_res / hypgenPabs);
-                                                        }
-                                                        if (pi0_p_res < -lim4)
-                                                        {
-                                                            hyp_lim4->Fill(hyp_p_res);
-                                                            trit_lim4->Fill(trit_p_res);
-                                                            pi0_lim4->Fill(pi0_p_res);
-                                                            hyp_rel_lim4->Fill(hyp_p_res / hypgenPabs);
-                                                        }
-                                                        if (pi0_p_res < -lim5)
-                                                        {
-                                                            hyp_lim5->Fill(hyp_p_res);
-                                                            trit_lim5->Fill(trit_p_res);
-                                                            pi0_lim5->Fill(pi0_p_res);
-                                                            hyp_rel_lim5->Fill(hyp_p_res / hypgenPabs);
-                                                        }
-                                                    }
+                                                    
                                                 }
                                             }
                                             catch (std::runtime_error &e)
@@ -519,6 +472,9 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     resolution->GetXaxis()->SetTitleSize(fontSize);
     resolution->GetYaxis()->SetTitleSize(fontSize);
 
+    resolution_dl->GetXaxis()->SetTitleSize(fontSize);
+    resolution_dl->GetYaxis()->SetTitleSize(fontSize);
+
     radius->GetXaxis()->SetTitleSize(fontSize);
     radius->GetYaxis()->SetTitleSize(fontSize);
 
@@ -561,6 +517,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     chi_squared->Write();
     bkg_chi_squared->Write();
     resolution->Write();
+    resolution_dl->Write();
     radius->Write();
 
     inv_mass->Write();
@@ -623,46 +580,23 @@ void mass_fit(TString path, TString filename, int tf_max = 40, bool partial = fa
     bkg_inv_mass->SetMarkerSize(markerSize);
     bkg_inv_mass->GetXaxis()->SetTitleSize(fontSize);
     bkg_inv_mass->GetYaxis()->SetTitleSize(fontSize);
-    bkg_inv_mass->SetLineColor(kRed);
+    //bkg_inv_mass->SetLineColor(kRed);
     bkg_inv_mass->SetLineColor(kGreen);
     bkg_inv_mass->Draw("sameEP");
     c2->Write();
 
+    TCanvas *c3 = new TCanvas("c3", "c3", 800, 600);
+    resolution->SetMarkerSize(markerSize);
+    resolution->GetXaxis()->SetTitleSize(fontSize);
+    resolution->GetYaxis()->SetTitleSize(fontSize);
+    resolution->Draw("EP");
+    resolution_bkg->SetMarkerSize(markerSize);
+    resolution_bkg->GetXaxis()->SetTitleSize(fontSize);
+    resolution_bkg->GetYaxis()->SetTitleSize(fontSize);
+    resolution_bkg->SetLineColor(kRed);
+    resolution_bkg->Draw("sameEP");
+    c3->Write();
+
     fFile.Close();
-
-    if (partial)
-    {
-        auto fFile2 = TFile("partial_hyp.root", "recreate");
-        hyp_lim1->Write();
-        hyp_lim2->Write();
-        hyp_lim3->Write();
-        hyp_lim4->Write();
-        hyp_lim5->Write();
-        fFile2.Close();
-
-        auto fFile3 = TFile("partial_trit.root", "recreate");
-        trit_lim1->Write();
-        trit_lim2->Write();
-        trit_lim3->Write();
-        trit_lim4->Write();
-        trit_lim5->Write();
-        fFile3.Close();
-
-        auto fFile4 = TFile("partial_pi0.root", "recreate");
-        pi0_lim1->Write();
-        pi0_lim2->Write();
-        pi0_lim3->Write();
-        pi0_lim4->Write();
-        pi0_lim5->Write();
-        fFile4.Close();
-
-        auto fFile5 = TFile("partial_hyp_rel.root", "recreate");
-        hyp_rel_lim1->Write();
-        hyp_rel_lim2->Write();
-        hyp_rel_lim3->Write();
-        hyp_rel_lim4->Write();
-        hyp_rel_lim5->Write();
-        fFile5.Close();
-    }
 
 } // end of fitting function
