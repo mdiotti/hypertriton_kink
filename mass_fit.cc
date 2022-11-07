@@ -460,11 +460,12 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     cout << "b4layer = " << b4layer << endl;
     cout << "b4daughters = " << b4daughters << endl;
     /*
-    b4cut = 2979687
-    b4chi = 8246399
-    b4p = 1523
-    b4layer = 43339
-    b4daughters = 39165
+    b4chi = 8'246'399
+    b4cut = 2'979'687
+    b4layer = 43'339
+    b4daughters = 39'165
+    b4p = 1'523
+    final = 977
     */
 
     inv_mass->GetXaxis()->SetTitleSize(fontSize);
