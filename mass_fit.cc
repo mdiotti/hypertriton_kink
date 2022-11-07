@@ -151,7 +151,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     int b4layer = 0;
     int b4daughters = 0;
 
-
     for (int tf = tf_min; tf < tf_max; tf++)
     {
         TString tf_string = Form("%d", tf);
@@ -433,8 +432,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
 
                                                     p_vs_e->Fill(hypPabs - hypgenPabs, hypE - hypgenE);
                                                     mass_vs_p->Fill(hypgenPabs, hypMass);
-
-                                                    
                                                 }
                                             }
                                             catch (std::runtime_error &e)
@@ -455,13 +452,20 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     double recEntries = hyp_rec_p->GetEntries();
     double eff = recEntries / entries;
 
-    cout << "efficiency = " << eff << endl;     // efficiency = 1.56696e-06
+    cout << "efficiency = " << eff << endl; // efficiency = 1.56696e-06
 
     cout << "b4cut = " << b4cut << endl;
     cout << "b4chi = " << b4chi << endl;
     cout << "b4p = " << b4p << endl;
     cout << "b4layer = " << b4layer << endl;
     cout << "b4daughters = " << b4daughters << endl;
+    /*
+    b4cut = 2979687
+    b4chi = 8246399
+    b4p = 1523
+    b4layer = 43339
+    b4daughters = 39165
+    */
 
     inv_mass->GetXaxis()->SetTitleSize(fontSize);
     inv_mass->GetYaxis()->SetTitleSize(fontSize);
@@ -525,11 +529,9 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
 
     trit_res_layers->GetXaxis()->SetTitleSize(fontSize);
     trit_res_layers->GetYaxis()->SetTitleSize(fontSize);
-    
 
     p_vs_e->GetXaxis()->SetTitleSize(fontSize);
     p_vs_e->GetYaxis()->SetTitleSize(fontSize);
-
 
     auto fFile = TFile(filename, "recreate");
     chi_squared->Write();
@@ -598,7 +600,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     bkg_inv_mass->SetMarkerSize(markerSize);
     bkg_inv_mass->GetXaxis()->SetTitleSize(fontSize);
     bkg_inv_mass->GetYaxis()->SetTitleSize(fontSize);
-    //bkg_inv_mass->SetLineColor(kRed);
+    // bkg_inv_mass->SetLineColor(kRed);
     bkg_inv_mass->SetLineColor(kGreen);
     bkg_inv_mass->Draw("sameEP");
     c2->Write();
