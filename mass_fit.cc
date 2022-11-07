@@ -58,7 +58,7 @@ double res_bin_lim = 0.25;
 double eta_bin_lim = 0.1;
 double phi_bin_lim = 0.1;
 
-const double fontSize = 0.045;
+const double fontSize = 0.055;
 const double markerSize = 4;
 
 string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
@@ -114,7 +114,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     TH1F *bkg_chi_squared = new TH1F("bkg_chi2", "Background " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 50);
     TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -0.1, 0.1);
     TH1F *resolution_bkg = new TH1F("Radius Resolution Background", "Resolution;#Delta r;counts", nBins, -0.1, 0.1);
-    TH1F *resolution_dl = new TH1F("Decay Length Resolution", "Resolution;#Delta r;counts", nBins, -0.1, 0.1);
+    TH1F *resolution_dl = new TH1F("Decay Length Resolution", "Resolution;(L_{gen} - L_{rec})/L_{gen};counts", nBins, -0.25, 0.25);
     TH1F *radius = new TH1F("Radius", "Radius;Rrec(cm);counts", nBins, min_r, 40);
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass; m_{#pi^{0}};counts", nBins, 0, 0.3);
@@ -144,7 +144,13 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     TH2F *p_vs_e = new TH2F("p_vs_e", "(p_{rec} - p_{gen}) vs (E_{rec} - E_{gen}); (p_{rec} - p_{gen}) (GeV/c); (E_{rec} - E_{gen}) (GeV/c);counts", nBins, -1, 1, nBins, -1, 1);
     TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p_{gen};p_{gen} (GeV/c);" + hypLabel + ";counts", nBins, 0, 16, nBins, 2.9, 3.7);
 
-    double genEntries = 0;
+    int entries = 0;
+    int b4cut = 0;
+    int b4chi = 0;
+    int b4p = 0;
+    int b4layer = 0;
+    int b4daughters = 0;
+
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -214,7 +220,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                 hyp_gen_pt->Fill(mcTrack.GetPt());
                 double rGen = calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG);
                 hyp_gen_r->Fill(rGen);
-                genEntries++;
+                entries++;
             }
         }
 
@@ -241,6 +247,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                         MCTrack.GetMomentum(hypgenP);
                         auto hypITSTrack = ITStracks->at(iTrack);
                         int nLayers = hypITSTrack.getNumberOfClusters();
+
+                        b4layer++;
                         if (nLayers == 3) // 3 clusters recontruction doesn't work well
                             continue;
 
@@ -261,6 +269,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                             }
                         }
 
+                        b4daughters++;
                         if (tritID == 0)
                             continue; // if no triton daughter, improves speed
 
@@ -337,6 +346,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     etaTrit = tritITSTPCtrack.getEta();
                                                     phiTrit = tritITSTPCtrack.getPhi();
 
+                                                    b4chi++;
+
                                                     if (ft2.getChi2AtPCACandidate() < 0)
                                                         continue;
 
@@ -348,7 +359,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     double genDL = calcDecayLenght(&mcTracksMatrix[evID], MCTrack, tritonPDG);
                                                     double recDL = sqrt(R[0] * R[0] + R[1] * R[1] + R[2] * R[2]);
 
-                                                    
+                                                    b4cut++;
 
                                                     if (cut)
                                                     {
@@ -378,6 +389,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                         resolution_bkg->Fill(res);
                                                         continue;
                                                     }
+
+                                                    b4p++;
 
                                                     if (hypPabs < tritPabs)
                                                         continue;
@@ -440,10 +453,15 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     }     // end of tf loop
 
     double recEntries = hyp_rec_p->GetEntries();
-    double eff = recEntries / genEntries;
+    double eff = recEntries / entries;
 
-    cout << "efficiency = " << eff << endl;
-    // efficiency = 1.56696e-06
+    cout << "efficiency = " << eff << endl;     // efficiency = 1.56696e-06
+
+    cout << "b4cut = " << b4cut << endl;
+    cout << "b4chi = " << b4chi << endl;
+    cout << "b4p = " << b4p << endl;
+    cout << "b4layer = " << b4layer << endl;
+    cout << "b4daughters = " << b4daughters << endl;
 
     inv_mass->GetXaxis()->SetTitleSize(fontSize);
     inv_mass->GetYaxis()->SetTitleSize(fontSize);
