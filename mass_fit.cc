@@ -1,4 +1,3 @@
-
 #if !defined(CLING) || defined(ROOTCLING)
 #include "CommonDataFormat/RangeReference.h"
 #include "ReconstructionDataFormats/Cascade.h"
@@ -133,9 +132,13 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     TH1F *hyp_gen_pt = new TH1F("Hyp gen pt", "Hyp gen pt;p_{T} (GeV/c);counts", nBins, 0, 12);
     TH1F *hyp_rec_pt = new TH1F("Hyp rec pt", "Hyp rec pt;p_{T} (GeV/c);counts", nBins, 0, 12);
     TH1F *hyp_selected_pt = new TH1F("Hyp selected pt", "Hyp selected pt;p_{T} (GeV/c);counts", nBins, 0, 12);
-    TH1F *hyp_gen_r = new TH1F("Hyp gen r", "Hyp gen r;r (cm);counts", nBins, 15, 40);
-    TH1F *hyp_rec_r = new TH1F("Hyp rec r", "Hyp rec r;r (cm);counts", nBins, 15, 40);
-    TH1F *hyp_selected_r = new TH1F("Hyp selected r", "Hyp selected r;r (cm);counts", nBins, 15, 40);
+    TH1F *hyp_gen_r = new TH1F("Hyp gen r", "Hyp gen r;r (cm);counts", nBins, 15, 50);
+    TH1F *hyp_rec_r = new TH1F("Hyp rec r", "Hyp rec r;r (cm);counts", nBins, 15, 50);
+    TH1F *hyp_selected_r = new TH1F("Hyp selected r", "Hyp selected r;r (cm);counts", nBins, 15, 50);
+
+    TH1F *hyp_rec_b4cut_pt = new TH1F("Hyp rec b4cut pt", "Hyp rec b4cut;p_{T} (GeV/c);counts", nBins, 0, 12);
+    TH1F *hyp_rec_b4cut_r = new TH1F("Hyp rec b4cut r", "Hyp rec b4cut;r (cm);counts", nBins, 15, 50);
+    TH1F *hyp_rec_b4cut_p = new TH1F("Hyp rec b4cut p", "Hyp rec b4cut;p (GeV/c);counts", nBins, 0, 15);
 
     TH2F *hyp_res_decay = new TH2F("Hyp p resolution vs decay radius", "Hyp p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -6, 6);
     TH2F *trit_res_decay = new TH2F("Triton p resolution vs decay radius", "Triton p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -2, 2);
@@ -144,12 +147,16 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     TH2F *p_vs_e = new TH2F("p_vs_e", "(p_{rec} - p_{gen}) vs (E_{rec} - E_{gen}); (p_{rec} - p_{gen}) (GeV/c); (E_{rec} - E_{gen}) (GeV/c);counts", nBins, -1, 1, nBins, -1, 1);
     TH2F *mass_vs_p = new TH2F("mass_vs_p", "Mass vs p_{gen};p_{gen} (GeV/c);" + hypLabel + ";counts", nBins, 0, 16, nBins, 2.9, 3.7);
 
-    int entries = 0;
+    double entries = 0;
+
+    int counts = 0;
     int b4cut = 0;
     int b4chi = 0;
     int b4p = 0;
-    int b4layer = 0;
+    int b4clusters = 0;
     int b4daughters = 0;
+
+    int startfit = 0;
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -214,12 +221,17 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
 
             for (unsigned int mcI{0}; mcI < size; ++mcI)
             {
-                auto mcTrack = MCtracks->at(mcI);
-                hyp_gen_p->Fill(mcTrack.GetP());
-                hyp_gen_pt->Fill(mcTrack.GetPt());
-                double rGen = calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG);
-                hyp_gen_r->Fill(rGen);
-                entries++;
+                auto mcTrack = mcTracksMatrix[n][mcI];
+
+                if (abs(mcTrack.GetPdgCode()) == hypPDG)
+                {
+                    auto mcTrack = MCtracks->at(mcI);
+                    hyp_gen_p->Fill(mcTrack.GetP());
+                    hyp_gen_pt->Fill(mcTrack.GetPt());
+                    double rGen = calcRadius(&mcTracksMatrix[n], mcTrack, tritonPDG);
+                    hyp_gen_r->Fill(rGen);
+                    entries++;
+                }
             }
         }
 
@@ -247,7 +259,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                         auto hypITSTrack = ITStracks->at(iTrack);
                         int nLayers = hypITSTrack.getNumberOfClusters();
 
-                        b4layer++;
+                        b4clusters++;
                         if (nLayers == 3) // 3 clusters recontruction doesn't work well
                             continue;
 
@@ -285,6 +297,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
 
                         double genR = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
 
+                        bool counted = false;
+
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
                             bool isDaughter = false;
@@ -301,13 +315,21 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                     if (trittrackID == tritID && tritevID == evID)
                                         isDaughter = true;
 
-                                    // if (!isDaughter)
-                                    //     continue;
+                                    if (isDaughter && !tritfake && !fake)
+                                        isDaughter = true;
+                                    else
+                                        isDaughter = false;
+
+                                    if (isDaughter)
+                                        counts++;
 
                                     auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
                                     if (!tritfake && !fake)
                                     {
                                         // Fitting start
+
+                                        if (isDaughter)
+                                            startfit++;
 
                                         if (FITTEROPTION == "DCA")
                                         {
@@ -322,7 +344,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                 ft2.propagateTracksToVertex();
                                                 if (ft2.isPropagateTracksToVertexDone() == true)
                                                 {
-
                                                     auto hypTrackDCA = ft2.getTrack(0);
                                                     auto tritTrackDCA = ft2.getTrack(1);
 
@@ -345,20 +366,31 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     etaTrit = tritITSTPCtrack.getEta();
                                                     phiTrit = tritITSTPCtrack.getPhi();
 
-                                                    b4chi++;
+                                                    std::array<float, 3> R = ft2.getPCACandidatePos();
+                                                    double recR = sqrt(R[0] * R[0] + R[1] * R[1]);
+
+                                                    if (!counted)
+                                                    {
+                                                        hyp_rec_b4cut_p->Fill(hypPabs);
+                                                        hyp_rec_b4cut_pt->Fill(hypTrackDCA.getPt());
+                                                        hyp_rec_b4cut_r->Fill(recR);
+
+                                                        counted = true;
+                                                    }
+
+                                                    if (isDaughter)
+                                                        b4chi++;
 
                                                     if (ft2.getChi2AtPCACandidate() < 0)
                                                         continue;
 
                                                     double chi2 = ft2.getChi2AtPCACandidate();
 
-                                                    std::array<float, 3> R = ft2.getPCACandidatePos();
-                                                    double recR = sqrt(R[0] * R[0] + R[1] * R[1]);
-
                                                     double genDL = calcDecayLenght(&mcTracksMatrix[evID], MCTrack, tritonPDG);
                                                     double recDL = sqrt(R[0] * R[0] + R[1] * R[1] + R[2] * R[2]);
 
-                                                    b4cut++;
+                                                    if (isDaughter)
+                                                        b4cut++;
 
                                                     if (cut)
                                                     {
@@ -378,7 +410,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     float hypE = piE + tritE;
 
                                                     float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
-
                                                     tot_inv_mass->Fill(hypMass);
                                                     if (!isDaughter)
                                                     {
@@ -389,7 +420,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                         continue;
                                                     }
 
-                                                    b4p++;
+                                                    if (isDaughter)
+                                                        b4p++;
 
                                                     if (hypPabs < tritPabs)
                                                         continue;
@@ -454,20 +486,25 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
 
     cout << "efficiency = " << eff << endl; // efficiency = 1.56696e-06
 
-    cout << "b4cut = " << b4cut << endl;
+    cout << "counts = " << counts << endl;
+    cout << "startfit = " << startfit << endl;
     cout << "b4chi = " << b4chi << endl;
+    cout << "b4cut = " << b4cut << endl;
+    // cout << "b4clusters = " << b4clusters << endl;
+    // cout << "b4daughters = " << b4daughters << endl;
     cout << "b4p = " << b4p << endl;
-    cout << "b4layer = " << b4layer << endl;
-    cout << "b4daughters = " << b4daughters << endl;
+    cout << "final = " << 977 << endl;
+
     /*
-    b4chi = 8'246'399
-    b4cut = 2'979'687
-    b4layer = 43'339
-    b4daughters = 39'165
-    b4p = 1'523
+    efficiency = 0.010438
+    counts = 1715
+    startfit = 1715
+    b4chi = 1681
+    b4cut = 1679
+    b4p = 1523
     final = 977
     */
-
+   
     inv_mass->GetXaxis()->SetTitleSize(fontSize);
     inv_mass->GetYaxis()->SetTitleSize(fontSize);
 
@@ -577,6 +614,34 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     eff_pt->SetTitle("Hypertriton pt Efficiency");
     eff_pt->Divide(hyp_gen_pt);
     eff_pt->Write();
+
+    TH1F *eff_b4_cut_pt = (TH1F *)hyp_rec_pt->Clone("Hyp Fit Eff pt");
+    eff_b4_cut_pt->GetYaxis()->SetTitle("Fitting Efficiency");
+    eff_b4_cut_pt->SetTitle("Hypertriton pt Fitting Efficiency");
+    eff_b4_cut_pt->Divide(hyp_rec_b4cut_pt);
+    eff_b4_cut_pt->Write();
+
+    TH1F *eff_b4_cut_r = (TH1F *)hyp_rec_r->Clone("Hyp Fit Eff r");
+    eff_b4_cut_r->GetYaxis()->SetTitle("Fitting Efficiency");
+    eff_b4_cut_r->SetTitle("Hypertriton r Fitting Efficiency");
+    eff_b4_cut_r->Divide(hyp_rec_b4cut_r);
+    eff_b4_cut_r->Write();
+
+    TH1F *eff_b4_cut_p = (TH1F *)hyp_rec_p->Clone("Hyp Fit Eff p");
+    eff_b4_cut_p->GetYaxis()->SetTitle("Fitting Efficiency");
+    eff_b4_cut_p->SetTitle("Hypertriton p Fitting Efficiency");
+    eff_b4_cut_p->Divide(hyp_rec_b4cut_p);
+    eff_b4_cut_p->Write();
+
+    hyp_gen_pt->Write();
+    hyp_rec_b4cut_pt->Write();
+    hyp_rec_pt->Write();
+    hyp_gen_r->Write();
+    hyp_rec_b4cut_r->Write();
+    hyp_rec_r->Write();
+    hyp_gen_p->Write();
+    hyp_rec_b4cut_p->Write();
+    hyp_rec_p->Write();
 
     p_vs_e->Write();
     mass_vs_p->Write();
