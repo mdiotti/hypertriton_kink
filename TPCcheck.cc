@@ -42,6 +42,7 @@ using namespace o2::itsmft;
 using Vec3 = ROOT::Math::SVector<double, 3>;
 
 using TrackITS = o2::its::TrackITS;
+using TrackTPC = o2::tpc::TrackTPC;
 
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
@@ -97,7 +98,8 @@ double calcDecayLenght(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrac
     return -1;
 }
 
-void TPCcheck(TString path, TString filename, int tf_max = 40){
+void TPCcheck(TString path, TString filename, int tf_max = 40)
+{
     bool cut = true;
     const int tf_min = 1;
     int tf_lenght = tf_max - tf_min + 1;
@@ -108,6 +110,11 @@ void TPCcheck(TString path, TString filename, int tf_max = 40){
         phi_bin_lim = 0.03;
     }
 
+    TH1F *trit_gen_pt = new TH1F("Hyp gen pt", "Hyp gen pt;p_{T} (GeV/c);counts", nBins, 0, 12);
+    TH1F *trit_gen_r = new TH1F("Hyp gen r", "Hyp gen r;r (cm);counts", nBins, 15, 50);
+    TH1F *trit_rec_pt = new TH1F("Hyp rec pt", "Hyp rec pt;p_{T} (GeV/c);counts", nBins, 0, 12);
+    TH1F *trit_rec_r = new TH1F("Hyp rec r", "Hyp rec r;r (cm);counts", nBins, 15, 50);
+
     for (int tf = tf_min; tf < tf_max; tf++)
     {
         TString tf_string = Form("%d", tf);
@@ -115,6 +122,8 @@ void TPCcheck(TString path, TString filename, int tf_max = 40){
 
         auto fITS = TFile::Open(tf_path + "/o2trac_its.root");
         auto fITSTPC = TFile::Open(tf_path + "/o2match_itstpc.root");
+
+        auto fTPC = TFile::Open(tf_path + "/o2trac_tpc.root"); // DA AGGIUSTARE
         auto fMCTracks = TFile::Open(tf_path + "/sgn_" + tf_string + "_Kine.root");
 
         TString string_to_convert = tf_path + "/o2sim_grp.root";
@@ -124,6 +133,8 @@ void TPCcheck(TString path, TString filename, int tf_max = 40){
         // Trees
         auto treeMCTracks = (TTree *)fMCTracks->Get("o2sim");
         auto treeITS = (TTree *)fITS->Get("o2sim");
+
+        auto treeTPC = (TTree *)fITSTPC->Get("MatchedTracks"); // DA AGGIUSTARE
         auto treeITSTPC = (TTree *)fITSTPC->Get("matchTPCITS");
 
         // Tracks
@@ -139,21 +150,97 @@ void TPCcheck(TString path, TString filename, int tf_max = 40){
         treeMCTracks->SetBranchAddress("MCTrack", &MCtracks);
         treeITS->SetBranchAddress("ITSTrackMCTruth", &labITSvec);
         treeITS->SetBranchAddress("ITSTrack", &ITStracks);
-        treeTPC->SetBranchAddress("TPCTrackMCTruth", &labTPCvec);
-        treeTPC->SetBranchAddress("TPCTrack", &TPCtracks);
 
+        treeTPC->SetBranchAddress("TPCTrackMCTruth", &labTPCvec); // DA AGGIUSTARES
+        treeTPC->SetBranchAddress("TPCTrack", &TPCtracks);        // DA AGGIUSTARE
+
+        std::vector<std::vector<MCTrack>> mcTracksMatrix;
+        auto nev = treeMCTracks->GetEntriesFast();
+        unsigned int nTracks[nev];
+        mcTracksMatrix.resize(nev);
+
+        for (int n = 0; n < nev; n++) // fill mcTracksMatrix
+        {
+            treeMCTracks->GetEvent(n);
+            unsigned int size = MCtracks->size();
+            nTracks[n] = size;
+
+            mcTracksMatrix[n].resize(size);
+
+            for (unsigned int mcI{0}; mcI < size; ++mcI)
+            {
+                mcTracksMatrix[n][mcI] = MCtracks->at(mcI);
+            }
+        }
+
+        for (int n = 0; n < nev; n++) // fill Gen histos
+        {
+            treeMCTracks->GetEvent(n);
+            unsigned int size = MCtracks->size();
+
+            for (unsigned int mcI{0}; mcI < size; ++mcI)
+            {
+                auto mcTrack = mcTracksMatrix[n][mcI];
+
+                if (abs(mcTrack.GetPdgCode()) == tritonPDG)
+                {
+                    auto mcTrack = MCtracks->at(mcI);
+                    auto hypID = mcTrack.getMotherTrackId();
+                    auto hypTrack = mcTracksMatrix[n][hypID];
+                    trit_gen_pt->Fill(mcTrack.GetPt());
+                    double rGen = calcRadius(&mcTracksMatrix[n], hypTrack, tritonPDG);
+                    trit_gen_r->Fill(rGen);
+                }
+            }
+        }
+
+        for (int event = 0; event < treeTPC->GetEntriesFast(); event++)
+        {
+            if (!treeTPC->GetEvent(event))
+                continue;
+
+            for (unsigned int iTrack{0}; iTrack < labITSvec->size(); ++iTrack)
+            {
+                auto tritTPCTrack = TPCtracks->at(iTrack);
+                auto lab = labTPCvec->at(iTrack);
+                int trackID, evID, srcID;
+                bool fake;
+                lab.get(trackID, evID, srcID, fake);
+                if (!lab.isNoise() && lab.isValid())
+                {
+
+                    auto MCTrack = mcTracksMatrix[evID][trackID];
+                    if (abs(MCTrack.GetPdgCode()) == tritonPDG)
+                    {
+                        auto hypID = MCTrack.getMotherTrackId();
+                        auto hypTrack = mcTracksMatrix[evID][hypID];
+                        double genR = calcRadius(&mcTracksMatrix[evID], hypTrack, tritonPDG);
+                        double tritPt = tritTPCTrack.getPt();
+                        trit_rec_pt->Fill(tritPt);
+                        trit_rec_r->Fill(genR);
+                    }
+                }
+            }
+        }
     }
 
+    auto fFile = TFile(filename, "recreate");
+    trit_gen_pt->Write();
+    trit_rec_pt->Write();
+    trit_gen_r->Write();
+    trit_rec_r->Write();
 
+    TH1F *eff_pt = (TH1F *)trit_rec_pt->Clone("Trit Eff p");
+    eff_pt->GetYaxis()->SetTitle("Efficiency");
+    eff_pt->SetTitle("Triton p_{T} Efficiency");
+    eff_pt->Divide(trit_gen_pt);
+    eff_pt->Write();
 
+    TH1F *eff_r = (TH1F *)trit_rec_r->Clone("Trit Eff r");
+    eff_r->GetYaxis()->SetTitle("Efficiency");
+    eff_r->SetTitle("Triton r Efficiency");
+    eff_r->Divide(trit_gen_r);
+    eff_r->Write();
 
-
-
+    fFile.Close();
 }
-
-
-
-
-
-
-
