@@ -354,7 +354,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     eff_r->GetXaxis()->SetTitleSize(fontSize);
     eff_r->GetYaxis()->SetTitleSize(fontSize);
     eff_r->GetYaxis()->SetTitle("Efficiency");
-    eff_r->SetTitle("Hypertriton r Efficiency");
+    eff_r->SetTitle("Topology r Efficiency");
     eff_r->Divide(gen_r);
     eff_r->Write();
 
@@ -362,7 +362,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     eff_true_r->GetXaxis()->SetTitleSize(fontSize);
     eff_true_r->GetYaxis()->SetTitleSize(fontSize);
     eff_true_r->GetYaxis()->SetTitle("Efficiency");
-    eff_true_r->SetTitle("Hypertriton r Efficiency");
+    eff_true_r->SetTitle("Topology true r Efficiency");
     eff_true_r->Divide(gen_r);
     eff_true_r->Write();
 
@@ -370,7 +370,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     eff_fit_r->GetXaxis()->SetTitleSize(fontSize);
     eff_fit_r->GetYaxis()->SetTitleSize(fontSize);
     eff_fit_r->GetYaxis()->SetTitle("Efficiency");
-    eff_fit_r->SetTitle("Hypertriton r Efficiency");
+    eff_fit_r->SetTitle("Topology Fit r Efficiency");
     eff_fit_r->Divide(gen_r);
     eff_fit_r->Write();
 
@@ -378,7 +378,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     eff_true_fit_r->GetXaxis()->SetTitleSize(fontSize);
     eff_true_fit_r->GetYaxis()->SetTitleSize(fontSize);
     eff_true_fit_r->GetYaxis()->SetTitle("Efficiency");
-    eff_true_fit_r->SetTitle("Hypertriton r Efficiency");
+    eff_true_fit_r->SetTitle("Topology Fit True r Efficiency");
     eff_true_fit_r->Divide(gen_r);
     eff_true_fit_r->Write();
 
