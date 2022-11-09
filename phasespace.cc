@@ -59,6 +59,8 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass;M_{#pi^{0}};counts", nBins, 0, 0.05);
 
+    TH1F *inv_mass_corrected = new TH1F("Invariant mass corrected", "Invariant mass corrected;" + hypLabel + ";counts", nBins, 2.9, 4);
+
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
     TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -5, 5);
     TH1F *hyp_resolution = new TH1F("Hyp p resolution", "Hyp p resolution;Resolution;counts", nBins, -10, 10);
@@ -93,24 +95,36 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         double TritonPtSmeared = gRandom->Gaus(LorentzTriton->Pt(), tritonSmearing * LorentzTriton->Pt());
 
         LorentzTriton->SetPtEtaPhiM(TritonPtSmeared, LorentzTriton->Eta(), LorentzTriton->Phi(), tritonMass);
+        double tritonPabs = LorentzTriton->P();
 
         TLorentzVector HypRec = TLorentzVector(0, 0, 0, hypMass);
         HypRec.SetPtEtaPhiM(HypPtSmeared, eta, pi, hypMass);
+        double hypPabs = HypRec.P();
+
+        bool corrected = false;
+        
+                while((hypPabs * hypPabs + hypMass * hypMass) < (tritonPabs * tritonPabs + tritonMass * tritonMass))
+                {
+                    double pTrec = HypRec.Pt();
+                    double deltapT =  abs(gRandom->Gaus(0, hypSmearing * pTrec));
+                    double pTrecSmeared = pTrec + deltapT;
+                    HypRec.SetPtEtaPhiM(pTrecSmeared, HypRec.Eta(), HypRec.Phi(), hypMass);
+                    hypPabs = HypRec.P();
+                    corrected = true;
+                }
+        
+
+       // if ((hypPabs * hypPabs + hypMass * hypMass) < (tritonPabs * tritonPabs + tritonMass * tritonMass))
+        //    continue;
 
         TLorentzVector LorentzPi = TLorentzVector(HypRec.Px() - LorentzTriton->Px(), HypRec.Py() - LorentzTriton->Py(), HypRec.Pz() - LorentzTriton->Pz(), piMass);
         LorentzPi.SetPtEtaPhiM(LorentzPi.Pt(), LorentzPi.Eta(), LorentzPi.Phi(), piMass);
-        double tritonPabs = LorentzTriton->P();
         double tritonE = LorentzTriton->E();
         double piPabs = LorentzPi.P();
         double piE = LorentzPi.E();
 
-        double hypPabs = HypRec.P();
         double hypE = tritonE + piE;
-
         double hypRecM = sqrt(hypE * hypE - hypPabs * hypPabs);
-
-        if (hypPabs < tritonPabs)
-            continue;
 
         float hypEFound = sqrt(hypPabs * hypPabs + hypMass * hypMass);
         float piEFound = hypEFound - tritonE;
@@ -120,7 +134,10 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
 
         h_piP->Fill(piPabs);
         h_tritonP->Fill(tritonPabs);
-        inv_mass->Fill(hypRecM);
+        if (!corrected)
+            inv_mass->Fill(hypRecM);
+        else
+            inv_mass_corrected->Fill(hypRecM);
         mass_vs_p->Fill(pGen, hypRecM);
         p_vs_e->Fill(hypPabs - pGen, hypE - EGen);
         pi0_resolution->Fill(piPGen - piPabs);
@@ -160,12 +177,27 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     h_piP->Write();
     h_tritonP->Write();
     inv_mass->Write();
+    inv_mass_corrected->Write();
     inv_mass_pi->Write();
     pi0_resolution->Write();
     triton_resolution->Write();
     hyp_resolution->Write();
     mass_vs_p->Write();
     p_vs_e->Write();
+
+    double markerSize = 0.8;
+
+    TCanvas *c1 = new TCanvas("c1", "c1", 800, 600);
+    inv_mass->SetMarkerSize(markerSize);
+    inv_mass->GetXaxis()->SetTitleSize(fontSize);
+    inv_mass->GetYaxis()->SetTitleSize(fontSize);
+    inv_mass->DrawNormalized("EP");
+    inv_mass_corrected->SetMarkerSize(markerSize);
+    inv_mass_corrected->GetXaxis()->SetTitleSize(fontSize);
+    inv_mass_corrected->GetYaxis()->SetTitleSize(fontSize);
+    inv_mass_corrected->SetLineColor(kGreen);
+    inv_mass_corrected->DrawNormalized("sameEP");
+    c1->Write();
 
     fFile.Close();
 }

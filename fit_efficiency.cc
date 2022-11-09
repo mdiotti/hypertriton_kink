@@ -86,6 +86,25 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     TH1F *fit_r = new TH1F("Topology fit r", "Topology fit r;r (cm);counts", nBins, min_r, max_r);
     TH1F *true_fit_r = new TH1F("Topology true fit r", "Topology true fit r;r (cm);counts", nBins, min_r, max_r);
 
+    TH1F *p_res_fake = new TH1F("p_res_fake", "p_res_fake;p_{rec} - p_{gen} (GeV/c);counts", nBins, -0.5, 0.5);
+
+    int total = 0;
+    int total_true = 0;
+    int fitted = 0;
+    int fitted_true = 0;
+    int positive_chi = 0;
+    int positive_chi_true = 0;
+    int rNotCutted = 0;
+    int rNotCutted_true = 0;
+    int EtaPhiNotCutted = 0;
+    int EtaPhiNotCutted_true = 0;
+    int PositiveMomentum = 0;
+    int PositiveMomentum_true = 0;
+
+    int tritFake = 0;
+    int hypFake = 0;
+    int bothFake = 0;
+
     for (int tf = tf_min; tf < tf_max; tf++)
     {
         TString tf_string = Form("%d", tf);
@@ -189,6 +208,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                     auto MCTrack = mcTracksMatrix[evID][trackID];
                     if (abs(MCTrack.GetPdgCode()) == hypPDG)
                     {
+                        double pGen = MCTrack.GetP();
                         double genR = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
 
                         hypgenPabs = MCTrack.GetP();
@@ -220,9 +240,6 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                         if (tritID == 0)
                             continue; // if no triton daughter, improves speed
 
-                        bool counted = false;
-                        bool countedTrue = false;
-
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
                             bool isDaughter = false;
@@ -236,11 +253,10 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                 auto tritMCTrack = mcTracksMatrix[tritevID][trittrackID];
                                 if (abs(tritMCTrack.GetPdgCode()) == tritonPDG)
                                 {
-                                    if (!counted)
-                                    {
-                                        rec_r->Fill(genR);
-                                        counted = true;
-                                    }
+                                    if (trittrackID != tritID || tritevID != evID)
+                                        continue;
+
+                                    rec_r->Fill(genR);
 
                                     if (trittrackID == tritID && tritevID == evID)
                                         isDaughter = true;
@@ -255,11 +271,13 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                     if (true) // fits also the fake tracks
                                     {
 
-                                        if (!tritfake && !fake && !countedTrue)
+                                        if (!tritfake && !fake)
                                         {
                                             true_r->Fill(genR);
-                                            countedTrue = true;
+                                            total_true++;
                                         }
+                                        total++;
+
                                         // Fitting start
 
                                         if (FITTEROPTION == "DCA")
@@ -297,18 +315,23 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                     etaTrit = tritITSTPCtrack.getEta();
                                                     phiTrit = tritITSTPCtrack.getPhi();
 
+                                                    if (!tritfake && !fake)
+                                                        fitted_true++;
+
+                                                    fitted++;
+
                                                     if (ft2.getChi2AtPCACandidate() < 0)
                                                         continue;
+
+                                                    if (!tritfake && !fake)
+                                                        positive_chi_true++;
+
+                                                    positive_chi++;
 
                                                     double chi2 = ft2.getChi2AtPCACandidate();
 
                                                     std::array<float, 3> R = ft2.getPCACandidatePos();
                                                     double recR = sqrt(R[0] * R[0] + R[1] * R[1]);
-
-                                                    if (recR < 18)
-                                                        continue;
-                                                    if (std::abs(etaHyp - etaTrit) > 0.03 || std::abs(phiHyp - phiTrit) > 0.03)
-                                                        continue;
 
                                                     float tritE = sqrt(tritPabs * tritPabs + tritonMass * tritonMass);
                                                     std::array<float, 3> piP = {hypP[0] - tritP[0], hypP[1] - tritP[1], hypP[2] - tritP[2]};
@@ -318,8 +341,42 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                     float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
                                                     double pt = sqrt(hypP[0] * hypP[0] + hypP[1] * hypP[1]);
 
+                                                    double p_res = (hypPabs - pGen);
+
+                                                    if (tritfake || fake)
+                                                    {
+                                                        p_res_fake->Fill(p_res);
+                                                        if (tritfake)
+                                                            tritFake++;
+                                                        if (fake)
+                                                            hypFake++;
+                                                        if (tritfake && fake)
+                                                            bothFake++;
+                                                    }
+
+                                                    if (recR < 18)
+                                                        continue;
+
+                                                    if (!tritfake && !fake)
+                                                        rNotCutted_true++;
+
+                                                    rNotCutted++;
+
+                                                    if (std::abs(etaHyp - etaTrit) > 0.03 || std::abs(phiHyp - phiTrit) > 0.03)
+                                                        continue;
+
+                                                    if (!tritfake && !fake)
+                                                        EtaPhiNotCutted_true++;
+
+                                                    EtaPhiNotCutted++;
+
                                                     if (hypPabs < tritPabs)
                                                         continue;
+
+                                                    if (!tritfake && !fake)
+                                                        PositiveMomentum_true++;
+
+                                                    PositiveMomentum++;
 
                                                     double rRec = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
                                                     fit_r->Fill(rRec);
@@ -342,6 +399,46 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
         }
     }
 
+    cout << "Total Topology events " << total << endl;
+    cout << "Fitted events " << fitted << endl;
+    cout << "Positive chi2 events " << positive_chi << endl;
+    cout << "R not cutted events " << rNotCutted << endl;
+    cout << "Eta and Phi not cutted events " << EtaPhiNotCutted << endl;
+    cout << "p_hyp > p_trit  events " << PositiveMomentum << endl
+         << endl;
+
+    cout << "Total Topology true events " << total_true << endl;
+    cout << "Fitted true events " << fitted_true << endl;
+    cout << "Positive chi2 true events " << positive_chi_true << endl;
+    cout << "R not cutted true events " << rNotCutted_true << endl;
+    cout << "Eta and Phi not cutted true events " << EtaPhiNotCutted_true << endl;
+    cout << "p_hyp > p_trit  true events " << PositiveMomentum_true << endl
+         << endl;
+
+    cout << "Triton fake events " << tritFake << endl;
+    cout << "Hyp fake events " << hypFake << endl;
+    cout << "Both fake events " << bothFake << endl;
+
+    /*
+Total Topology events 8144
+Fitted events 8065
+Positive chi2 events 7970
+R not cutted events 3946
+Eta and Phi not cutted events 3466
+p_hyp > p_trit  events 1735
+
+Total Topology true events 1715
+Fitted true events 1681
+Positive chi2 true events 1679
+R not cutted true events 1676
+Eta and Phi not cutted true events 1523
+p_hyp > p_trit  true events 977
+
+Triton fake events 998
+Hyp fake events 6151
+Both fake events 858
+    */
+
     auto fFile = TFile(filename, "recreate");
 
     gen_r->Write();
@@ -349,6 +446,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     true_r->Write();
     fit_r->Write();
     true_fit_r->Write();
+    p_res_fake->Write();
 
     TH1F *eff_r = (TH1F *)rec_r->Clone("Top Eff r");
     eff_r->GetXaxis()->SetTitleSize(fontSize);

@@ -123,7 +123,7 @@ void TPCcheck(TString path, TString filename, int tf_max = 40)
         auto fITS = TFile::Open(tf_path + "/o2trac_its.root");
         auto fITSTPC = TFile::Open(tf_path + "/o2match_itstpc.root");
 
-        auto fTPC = TFile::Open(tf_path + "/o2trac_tpc.root"); // DA AGGIUSTARE
+        auto fTPC = TFile::Open(tf_path + "/tpctracks.root");
         auto fMCTracks = TFile::Open(tf_path + "/sgn_" + tf_string + "_Kine.root");
 
         TString string_to_convert = tf_path + "/o2sim_grp.root";
@@ -133,8 +133,7 @@ void TPCcheck(TString path, TString filename, int tf_max = 40)
         // Trees
         auto treeMCTracks = (TTree *)fMCTracks->Get("o2sim");
         auto treeITS = (TTree *)fITS->Get("o2sim");
-
-        auto treeTPC = (TTree *)fITSTPC->Get("MatchedTracks"); // DA AGGIUSTARE
+        auto treeTPC = (TTree *)fITSTPC->Get("tpcrec");
         auto treeITSTPC = (TTree *)fITSTPC->Get("matchTPCITS");
 
         // Tracks
@@ -145,14 +144,14 @@ void TPCcheck(TString path, TString filename, int tf_max = 40)
         // Labels
         std::vector<o2::MCCompLabel> *labITSvec = nullptr;
         std::vector<o2::MCCompLabel> *labTPCvec = nullptr;
+        
 
         // Branches
         treeMCTracks->SetBranchAddress("MCTrack", &MCtracks);
         treeITS->SetBranchAddress("ITSTrackMCTruth", &labITSvec);
         treeITS->SetBranchAddress("ITSTrack", &ITStracks);
-
-        treeTPC->SetBranchAddress("TPCTrackMCTruth", &labTPCvec); // DA AGGIUSTARES
-        treeTPC->SetBranchAddress("TPCTrack", &TPCtracks);        // DA AGGIUSTARE
+        treeTPC->SetBranchAddress("TPCTracksMCTruth", &labTPCvec);
+        treeTPC->SetBranchAddress("TPCTracks", &TPCtracks);
 
         std::vector<std::vector<MCTrack>> mcTracksMatrix;
         auto nev = treeMCTracks->GetEntriesFast();
@@ -199,7 +198,7 @@ void TPCcheck(TString path, TString filename, int tf_max = 40)
             if (!treeTPC->GetEvent(event))
                 continue;
 
-            for (unsigned int iTrack{0}; iTrack < labITSvec->size(); ++iTrack)
+            for (unsigned int iTrack{0}; iTrack < labTPCvec->size(); ++iTrack)
             {
                 auto tritTPCTrack = TPCtracks->at(iTrack);
                 auto lab = labTPCvec->at(iTrack);
