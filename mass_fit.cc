@@ -108,15 +108,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
         phi_bin_lim = 0.03;
     }
 
-    int counts = 0;
-    int b4chi = 0;
-    int b4cut = 0;
-    int b4p = 0;
-    int final = 977;
-
     TH1F *chi_squared = new TH1F("chi2", "" + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
     TH1F *tot_chi_squared = new TH1F("tot_chi2", "Signal and Background " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 1);
-    TH1F *bkg_chi_squared = new TH1F("bkg_chi2", "Background " + chiLabel + ";" + chiLabel + ";counts", nBins, min_bins, 50);
     TH1F *resolution = new TH1F("Radius Resolution", "Resolution;#Delta r;counts", nBins, -0.1, 0.1);
     TH1F *resolution_bkg = new TH1F("Radius Resolution Background", "Resolution;#Delta r;counts", nBins, -0.1, 0.1);
     TH1F *resolution_dl = new TH1F("Decay Length Resolution", "Resolution;(L_{gen} - L_{rec})/L_{gen};counts", nBins, -0.25, 0.25);
@@ -124,7 +117,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass; m_{#pi^{0}};counts", nBins, 0, 0.3);
     TH1F *bkg_inv_mass = new TH1F("Background Invariant mass", "Background Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
-    TH1F *tot_inv_mass = new TH1F("Total Invariant mass", "Invariant mass: Signal and Background;" + hypLabel + ";counts", nBins, 2.9, 4);
 
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
     TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -5, 5);
@@ -133,13 +125,8 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     TH1F *triton_resolution_normalized = new TH1F("Triton p resolution normalized", "Triton p resolution normalized;Resolution;counts", nBins, -1, 1);
     TH1F *hyp_resolution_normalized = new TH1F("Hyp p resolution normalized", "Hyp p resolution normalized;Resolution;counts", nBins, -5, 5);
 
-    TH1F *top_gen_pt = new TH1F("Hyp gen pt", "Hyp gen pt;p_{T} (GeV/c);counts", nBins, 0, 12);
-    TH1F *top_rec_pt = new TH1F("Hyp rec pt", "Hyp rec pt;p_{T} (GeV/c);counts", nBins, 0, 12);
-    TH1F *top_fitted_pt = new TH1F("Hyp fitted pt", "Hyp fitted pt;p_{T} (GeV/c);counts", nBins, 0, 12);
-    TH1F *top_gen_r = new TH1F("Hyp gen r", "Hyp gen r;r (cm);counts", nBins, 15, 50);
-    TH1F *top_rec_r = new TH1F("Hyp rec r", "Hyp rec r;r (cm);counts", nBins, 15, 50);
-    TH1F *top_fitted_r = new TH1F("Hyp fitted r", "Hyp fitted r;r (cm);counts", nBins, 15, 50);
-
+    TH1F *inv_mass_momentum = new TH1F("Invariant mass momentum", "Invariant mass momentum;" + hypLabel + ";counts", nBins, 2.9, 4);
+    TH1F *chi_momentum = new TH1F("Chi momentum", "Chi momentum;" + chiLabel + ";counts", nBins, min_bins, 1);
     TH2F *hyp_res_decay = new TH2F("Hyp p resolution vs decay radius", "Hyp p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -6, 6);
     TH2F *trit_res_decay = new TH2F("Triton p resolution vs decay radius", "Triton p resolution vs decay radius;Radius (cm) ;Resolution (GeV/c)", nBins, 15, 40, nBins, -2, 2);
     TH2F *hyp_res_layers = new TH2F("Hyp p resolution vs layers", "Hyp p resolution vs layers;Layers;Resolution (GeV/c)", 5, 2.5, 7.5, nBins, -6, 6);
@@ -223,11 +210,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                     for (int iDau = firstDauID; iDau <= nDau; iDau++)
                     {
                         auto dauTrack = mcTracksMatrix[n][iDau];
-                        if (abs(dauTrack.GetPdgCode()) == tritonPDG)
-                        {
-                            top_gen_pt->Fill(mcTrack.GetPt());
-                            top_gen_r->Fill(rGen);
-                        }
+                        
                     }
                 }
             }
@@ -258,6 +241,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                         MCTrack.GetMomentum(hypgenP);
                         auto hypITSTrack = ITStracks->at(iTrack);
                         int nLayers = hypITSTrack.getNumberOfClusters();
+
 
                         if (nLayers == 3) // 3 clusters recontruction doesn't work well
                             continue;
@@ -314,14 +298,11 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                     if (isDaughter && !tritfake && !fake)
                                         isSignal = true;
 
-                                    if (isSignal)
-                                        counts++;
+                               
 
                                     auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
                                     if (!tritfake && !fake)
                                     {
-                                        top_rec_pt->Fill(MCTrack.GetPt());
-                                        top_rec_r->Fill(genR);
                                         // Fitting start
 
                                         if (FITTEROPTION == "DCA")
@@ -359,9 +340,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     etaTrit = tritITSTPCtrack.getEta();
                                                     phiTrit = tritITSTPCtrack.getPhi();
 
-                                                    if (isSignal)
-                                                        b4chi++;
-
                                                     if (ft2.getChi2AtPCACandidate() < 0)
                                                         continue;
 
@@ -371,9 +349,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     double recR = sqrt(R[0] * R[0] + R[1] * R[1]);
                                                     double genDL = calcDecayLenght(&mcTracksMatrix[evID], MCTrack, tritonPDG);
                                                     double recDL = sqrt(R[0] * R[0] + R[1] * R[1] + R[2] * R[2]);
-
-                                                    if (isSignal)
-                                                        b4cut++;
 
                                                     if (cut)
                                                     {
@@ -393,27 +368,26 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     float hypE = piE + tritE;
 
                                                     float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
-                                                    tot_inv_mass->Fill(hypMass);
                                                     if (!isDaughter)
                                                     {
-                                                        bkg_inv_mass->Fill(hypMass);
-                                                        bkg_chi_squared->Fill(chi2);
-                                                        tot_chi_squared->Fill(chi2);
+                                                        /*    bkg_inv_mass->Fill(hypMass);
+                                                            bkg_chi_squared->Fill(chi2);
+                                                            tot_chi_squared->Fill(chi2);
+                                                        */
                                                         resolution_bkg->Fill(res);
                                                         continue;
                                                     }
 
-                                                    if (isSignal)
-                                                        b4p++;
+                                                    bool momentum = false;
 
-                                                    if (hypPabs < tritPabs)
-                                                        continue;
+                                                     if (hypPabs < tritPabs)
+                                                        momentum = true;
 
                                                     double pt = sqrt(hypP[0] * hypP[0] + hypP[1] * hypP[1]);
 
-                                                    top_fitted_pt->Fill(pt);
+                                                    
                                                     double rRec = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
-                                                    top_fitted_r->Fill(rRec);
+                                                    
 
                                                     float hypEFound = sqrt(hypPabs * hypPabs + hypMassTh * hypMassTh);
                                                     float piEFound = hypEFound - tritE;
@@ -421,11 +395,18 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
                                                     if (piEFound * piEFound - piPabs * piPabs > 0)
                                                         inv_mass_pi->Fill(piMassFound);
 
-                                                    chi_squared->Fill(chi2);
+                                                    if (!momentum)
+                                                        chi_squared->Fill(chi2);
+                                                    else
+                                                        chi_momentum->Fill(chi2);
                                                     resolution->Fill(res);
                                                     resolution_dl->Fill(resDL);
                                                     radius->Fill(recR);
-                                                    inv_mass->Fill(hypMass);
+
+                                                    if (!momentum)
+                                                        inv_mass->Fill(hypMass);
+                                                    else
+                                                        inv_mass_momentum->Fill(hypMass);
 
                                                     double pi0_p_res = (pi0genPabs - piPabs);
                                                     double trit_p_res = (tritgenPabs - tritPabs);
@@ -463,11 +444,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
         } // end of event loop
     }     // end of tf loop
 
-    cout << "counts = " << counts << endl;
-    cout << "b4chi = " << b4chi << endl;
-    cout << "b4cut = " << b4cut << endl;
-    cout << "b4p = " << b4p << endl;
-    cout << "final = " << final << endl;
     /*
     efficiency = 0.010438
     counts = 1715
@@ -484,14 +460,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     bkg_inv_mass->GetXaxis()->SetTitleSize(fontSize);
     bkg_inv_mass->GetYaxis()->SetTitleSize(fontSize);
 
-    tot_inv_mass->GetXaxis()->SetTitleSize(fontSize);
-    tot_inv_mass->GetYaxis()->SetTitleSize(fontSize);
-
-    top_rec_r->GetXaxis()->SetTitleSize(fontSize);
-    top_rec_r->GetYaxis()->SetTitleSize(fontSize);
-
-    top_rec_pt->GetXaxis()->SetTitleSize(fontSize);
-    top_rec_pt->GetYaxis()->SetTitleSize(fontSize);
 
     inv_mass_pi->GetXaxis()->SetTitleSize(fontSize);
     inv_mass_pi->GetYaxis()->SetTitleSize(fontSize);
@@ -543,7 +511,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
 
     auto fFile = TFile(filename, "recreate");
     chi_squared->Write();
-    bkg_chi_squared->Write();
+    chi_momentum->Write();
     resolution->Write();
     resolution_dl->Write();
     radius->Write();
@@ -551,7 +519,7 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     inv_mass->Write();
     inv_mass_pi->Write();
     bkg_inv_mass->Write();
-    tot_inv_mass->Write();
+    inv_mass_momentum->Write();
 
     pi0_resolution->Write();
     hyp_resolution->Write();
@@ -567,38 +535,6 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     hyp_res_layers->Write();
     trit_res_layers->Write();
 
-    top_gen_pt->Write();
-    top_rec_pt->Write();
-    top_fitted_pt->Write();
-    top_gen_r->Write();
-    top_rec_r->Write();
-    top_fitted_r->Write();
-
-
-    TH1F *eff_r = (TH1F *)top_rec_r->Clone("Hyp Eff r");
-    eff_r->GetYaxis()->SetTitle("Efficiency");
-    eff_r->SetTitle("Hypertriton r Efficiency");
-    eff_r->Divide(top_gen_r);
-    eff_r->Write();
-
-    TH1F *eff_pt = (TH1F *)top_rec_pt->Clone("Hyp Eff pt");
-    eff_pt->GetYaxis()->SetTitle("Efficiency");
-    eff_pt->SetTitle("Hypertriton pt Efficiency");
-    eff_pt->Divide(top_gen_pt);
-    eff_pt->Write();
-
-    TH1F *eff_fit_pt = (TH1F *)top_fitted_pt->Clone("Hyp Fit Eff pt");
-    eff_fit_pt->GetYaxis()->SetTitle("Fitting Efficiency");
-    eff_fit_pt->SetTitle("Hypertriton pt Fitting Efficiency");
-    eff_fit_pt->Divide(top_rec_pt);
-    eff_fit_pt->Write();
-
-    TH1F *eff_fit_r = (TH1F *)top_fitted_r->Clone("Hyp Fit Eff r");
-    eff_fit_r->GetYaxis()->SetTitle("Fitting Efficiency");
-    eff_fit_r->SetTitle("Hypertriton r Fitting Efficiency");
-    eff_fit_r->Divide(top_rec_r);
-    eff_fit_r->Write();
-
     p_vs_e->Write();
     mass_vs_p->Write();
 
@@ -607,24 +543,24 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
     chi_squared->GetXaxis()->SetTitleSize(fontSize);
     chi_squared->GetYaxis()->SetTitleSize(fontSize);
     chi_squared->Draw("EP");
-    tot_chi_squared->SetMarkerSize(markerSize);
-    tot_chi_squared->GetXaxis()->SetTitleSize(fontSize);
-    tot_chi_squared->GetYaxis()->SetTitleSize(fontSize);
-    tot_chi_squared->SetLineColor(kRed);
-    tot_chi_squared->Draw("sameEP");
+    chi_momentum->SetMarkerSize(markerSize);
+    chi_momentum->GetXaxis()->SetTitleSize(fontSize);
+    chi_momentum->GetYaxis()->SetTitleSize(fontSize);
+    chi_momentum->SetLineColor(kRed);
+    chi_momentum->Draw("sameEP");
     c1->Write();
 
     TCanvas *c2 = new TCanvas("c2", "c2", 800, 600);
     inv_mass->SetMarkerSize(markerSize);
     inv_mass->GetXaxis()->SetTitleSize(fontSize);
     inv_mass->GetYaxis()->SetTitleSize(fontSize);
-    inv_mass->Draw("EP");
-    bkg_inv_mass->SetMarkerSize(markerSize);
-    bkg_inv_mass->GetXaxis()->SetTitleSize(fontSize);
-    bkg_inv_mass->GetYaxis()->SetTitleSize(fontSize);
-    // bkg_inv_mass->SetLineColor(kRed);
-    bkg_inv_mass->SetLineColor(kGreen);
-    bkg_inv_mass->Draw("sameEP");
+    inv_mass->DrawNormalized("EP");
+    chi_momentum->SetMarkerSize(markerSize);
+    chi_momentum->GetXaxis()->SetTitleSize(fontSize);
+    chi_momentum->GetYaxis()->SetTitleSize(fontSize);
+    // chi_momentum->SetLineColor(kRed);
+    chi_momentum->SetLineColor(kGreen);
+    chi_momentum->DrawNormalized("sameEP");
     c2->Write();
 
     TCanvas *c3 = new TCanvas("c3", "c3", 800, 600);
