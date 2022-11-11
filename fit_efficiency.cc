@@ -8,6 +8,9 @@
 #include "DataFormatsITS/TrackITS.h"
 #include "ReconstructionDataFormats/TrackTPCITS.h"
 #include "DataFormatsITSMFT/ROFRecord.h"
+#include "DataFormatsITSMFT/TrkClusRef.h"
+#include "SimulationDataFormat/MCTruthContainer.h"
+#include "DataFormatsITSMFT/CompCluster.h"
 
 #include "DetectorsVertexing/DCAFitterN.h"
 #include "DataFormatsParameters/GRPObject.h"
@@ -41,6 +44,8 @@ using namespace o2::itsmft;
 using Vec3 = ROOT::Math::SVector<double, 3>;
 
 using TrackITS = o2::its::TrackITS;
+using MCLabCont = o2::dataformats::MCTruthContainer<o2::MCCompLabel>;
+using CompClusterExt = o2::itsmft::CompClusterExt;
 
 const int hypPDG = 1010010030;
 const int tritonPDG = 1000010030;
@@ -86,7 +91,8 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     TH1F *fit_r = new TH1F("Topology fit r", "Topology fit r;r (cm);counts", nBins, min_r, max_r);
     TH1F *true_fit_r = new TH1F("Topology true fit r", "Topology true fit r;r (cm);counts", nBins, min_r, max_r);
 
-    TH1F *p_res_fake = new TH1F("p_res_fake", "p_res_fake;p_{rec} - p_{gen} (GeV/c);counts", nBins, -0.5, 0.5);
+    TH1F *p_res_fake = new TH1F("p_res_fake", "p_res_fake;p_{rec} - p_{gen} (GeV/c);counts", nBins, -5, 5);
+    TH1F *p_res_true = new TH1F("p_res", "p_res;p_{rec} - p_{gen} (GeV/c);counts", nBins, -5, 5);
 
     int total = 0;
     int total_true = 0;
@@ -104,6 +110,9 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     int tritFake = 0;
     int hypFake = 0;
     int bothFake = 0;
+
+    int clusterMother = 0;
+    int clusterMotherTot = 0;
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -133,6 +142,11 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
         // Labels
         std::vector<o2::MCCompLabel> *labITSvec = nullptr;
         std::vector<o2::MCCompLabel> *labITSTPCvec = nullptr;
+        MCLabCont *clusLabArr = nullptr;
+
+        // Clusters
+        std::vector<CompClusterExt> *ITSclus = nullptr;
+        std::vector<int> *ITSTrackClusIdx = nullptr;
 
         // Branches
         treeMCTracks->SetBranchAddress("MCTrack", &MCtracks);
@@ -140,6 +154,11 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
         treeITS->SetBranchAddress("ITSTrack", &ITStracks);
         treeITSTPC->SetBranchAddress("TPCITS", &ITSTPCtracks);
         treeITSTPC->SetBranchAddress("MatchMCTruth", &labITSTPCvec);
+
+        treeITSclus->SetBranchAddress("ITSClusterMCTruth", &clusLabArr);
+        treeITSclus->SetBranchAddress("ITSClusterComp", &ITSclus);
+        treeITS->SetBranchAddress("ITSTrackClusIdx", &ITSTrackClusIdx);
+
         // std::map<std::string, std::vector<o2::MCCompLabel> *> map{{"ITS", labITSvec}};
 
         // mc start
@@ -349,10 +368,48 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                         if (tritfake)
                                                             tritFake++;
                                                         if (fake)
+                                                        {
+                                                            bool fakeFind = false;
+
+                                                            int firstClus = hypITSTrack.getFirstClusterEntry();
+                                                            int nClus = hypITSTrack.getNumberOfClusters();
+                                                            int lastClus = firstClus + nClus;
+
+                                                            int layer = 0;
+
+                                                            for (int iClus = firstClus; iClus < lastClus; iClus++)
+                                                            {
+                                                                auto &labCls = (clusLabArr->getLabels(ITSTrackClusIdx->at(iClus)))[0];
+                                                                int clustertrackID, clusterevID, clustersrcID;
+                                                                bool clusterfake;
+                                                                labCls.get(clustertrackID, clusterevID, clustersrcID, clusterfake);
+
+                                                                if (hypITSTrack.isFakeOnLayer(layer))
+                                                                // if (clusterfake)
+                                                                {
+                                                                    auto clusterMCTrack = mcTracksMatrix[clusterevID][clustertrackID];
+                                                                    //if (tritevID == clusterevID && trittrackID == clustertrackID)
+                                                                    if (evID == clusterevID && tritID == clustertrackID)
+                                                                    {
+                                                                        clusterMotherTot++;
+                                                                        if (!fakeFind)
+                                                                        {
+                                                                            fakeFind = true;
+                                                                            clusterMother++;
+                                                                        }
+                                                                    }
+                                                                }
+                                                                layer++;
+                                                            }
+
                                                             hypFake++;
+                                                        }
+
                                                         if (tritfake && fake)
                                                             bothFake++;
                                                     }
+                                                    else
+                                                        p_res_true->Fill(p_res);
 
                                                     if (recR < 18)
                                                         continue;
@@ -377,7 +434,6 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                         PositiveMomentum_true++;
 
                                                     PositiveMomentum++;
-                                                    
 
                                                     double rRec = calcRadius(&mcTracksMatrix[evID], MCTrack, tritonPDG);
                                                     fit_r->Fill(rRec);
@@ -420,6 +476,9 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     cout << "Hyp fake events " << hypFake << endl;
     cout << "Both fake events " << bothFake << endl;
 
+    cout << "Cluster mother total events " << clusterMotherTot << endl;
+    cout << "Cluster mother events " << clusterMother << endl;
+
     /*
 Total Topology events 8144
 Fitted events 8065
@@ -440,6 +499,12 @@ Hyp fake events 6151
 Both fake events 858
     */
 
+    /*
+    Cluster mother total events 171
+ Cluster mother events 162
+
+    */
+
     auto fFile = TFile(filename, "recreate");
 
     gen_r->Write();
@@ -448,6 +513,7 @@ Both fake events 858
     fit_r->Write();
     true_fit_r->Write();
     p_res_fake->Write();
+    p_res_true->Write();
 
     TH1F *eff_r = (TH1F *)rec_r->Clone("Top Eff r");
     eff_r->GetXaxis()->SetTitleSize(fontSize);
