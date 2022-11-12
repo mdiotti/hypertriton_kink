@@ -91,6 +91,9 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     TH1F *fit_r = new TH1F("Topology fit r", "Topology fit r;r (cm);counts", nBins, min_r, max_r);
     TH1F *true_fit_r = new TH1F("Topology true fit r", "Topology true fit r;r (cm);counts", nBins, min_r, max_r);
 
+    TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
+    TH1F *inv_mass_reintroducted = new TH1F("Invariant mass reintroducted", "Invariant mass reintroducted;" + hypLabel + ";counts", nBins, 2.9, 4);
+
     TH1F *p_res_fake = new TH1F("p_res_fake", "p_res_fake;p_{rec} - p_{gen} (GeV/c);counts", nBins, -5, 5);
     TH1F *p_res_true = new TH1F("p_res", "p_res;p_{rec} - p_{gen} (GeV/c);counts", nBins, -5, 5);
 
@@ -111,8 +114,8 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     int hypFake = 0;
     int bothFake = 0;
 
-    int clusterMother = 0;
-    int clusterMotherTot = 0;
+    int clusterMotherFake = 0;
+    int allClusterMotherFake = 0;
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
@@ -362,6 +365,8 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
 
                                                     double p_res = (hypPabs - pGen);
 
+                                                    bool reintroduced = false;
+
                                                     if (tritfake || fake)
                                                     {
                                                         p_res_fake->Fill(p_res);
@@ -369,13 +374,13 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                             tritFake++;
                                                         if (fake)
                                                         {
-                                                            bool fakeFind = false;
-
                                                             int firstClus = hypITSTrack.getFirstClusterEntry();
                                                             int nClus = hypITSTrack.getNumberOfClusters();
                                                             int lastClus = firstClus + nClus;
 
                                                             int layer = 0;
+                                                            int nFake = hypITSTrack.getNFakeClusters();
+                                                            int nFakeFound = 0;
 
                                                             for (int iClus = firstClus; iClus < lastClus; iClus++)
                                                             {
@@ -388,14 +393,14 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                                 // if (clusterfake)
                                                                 {
                                                                     auto clusterMCTrack = mcTracksMatrix[clusterevID][clustertrackID];
-                                                                    //if (tritevID == clusterevID && trittrackID == clustertrackID)
-                                                                    if (evID == clusterevID && tritID == clustertrackID)
+                                                                    if (tritevID == clusterevID && trittrackID == clustertrackID)
                                                                     {
-                                                                        clusterMotherTot++;
-                                                                        if (!fakeFind)
+                                                                        clusterMotherFake++;
+                                                                        nFakeFound++;
+                                                                        if (nFakeFound == nFake)
                                                                         {
-                                                                            fakeFind = true;
-                                                                            clusterMother++;
+                                                                            allClusterMotherFake++;
+                                                                            reintroduced = true;
                                                                         }
                                                                     }
                                                                 }
@@ -439,6 +444,15 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                     fit_r->Fill(rRec);
                                                     if (!tritfake && !fake)
                                                         true_fit_r->Fill(rRec);
+                                                    
+                                                    if(reintroduced){
+                                                       tritfake = false;
+                                                       fake = false;
+                                                       inv_mass_reintroducted->Fill(hypMass);
+                                                    }
+
+                                                    if (!tritfake && !fake)
+                                                        inv_mass->Fill(hypMass);
                                                 }
                                             }
                                             catch (std::runtime_error &e)
@@ -476,8 +490,8 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
     cout << "Hyp fake events " << hypFake << endl;
     cout << "Both fake events " << bothFake << endl;
 
-    cout << "Cluster mother total events " << clusterMotherTot << endl;
-    cout << "Cluster mother events " << clusterMother << endl;
+    cout << "Track with all fake clusters that are daughter's " << allClusterMotherFake << endl;
+    cout << "Track with at least one fake cluster that is daughter's " << clusterMotherFake << endl;
 
     /*
 Total Topology events 8144
@@ -497,13 +511,14 @@ p_hyp > p_trit  true events 977
 Triton fake events 998
 Hyp fake events 6151
 Both fake events 858
-    */
 
-    /*
-    Cluster mother total events 171
- Cluster mother events 162
 
-    */
+Cluster mother total events 171
+Cluster mother events 162
+
+Track with all fake clusters that are daughter's 42
+Track with at least one fake cluster that is daughter's 171
+*/
 
     auto fFile = TFile(filename, "recreate");
 
@@ -514,6 +529,9 @@ Both fake events 858
     true_fit_r->Write();
     p_res_fake->Write();
     p_res_true->Write();
+
+    inv_mass->Write();
+    inv_mass_reintroducted->Write();
 
     TH1F *eff_r = (TH1F *)rec_r->Clone("Top Eff r");
     eff_r->GetXaxis()->SetTitleSize(fontSize);
