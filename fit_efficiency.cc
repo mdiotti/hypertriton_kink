@@ -538,6 +538,7 @@ Track with at least one fake cluster that is daughter's 171
 
     inv_mass->Write();
     inv_mass_reintroducted->Write();
+    inv_mass_more_reintroducted->Write();
 
     TH1F *eff_r = (TH1F *)rec_r->Clone("Top Eff r");
     eff_r->GetXaxis()->SetTitleSize(fontSize);
