@@ -93,6 +93,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
 
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_reintroducted = new TH1F("Invariant mass reintroducted", "Invariant mass reintroducted;" + hypLabel + ";counts", nBins, 2.9, 4);
+    TH1F *inv_mass_more_reintroducted = new TH1F("Invariant mass more reintroducted", "Invariant mass more reintroducted;" + hypLabel + ";counts", nBins, 2.9, 4);
 
     TH1F *p_res_fake = new TH1F("p_res_fake", "p_res_fake;p_{rec} - p_{gen} (GeV/c);counts", nBins, -5, 5);
     TH1F *p_res_true = new TH1F("p_res", "p_res;p_{rec} - p_{gen} (GeV/c);counts", nBins, -5, 5);
@@ -366,6 +367,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                     double p_res = (hypPabs - pGen);
 
                                                     bool reintroduced = false;
+                                                    bool moreReintroduced = false;
 
                                                     if (tritfake || fake)
                                                     {
@@ -395,6 +397,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                                     auto clusterMCTrack = mcTracksMatrix[clusterevID][clustertrackID];
                                                                     if (tritevID == clusterevID && trittrackID == clustertrackID)
                                                                     {
+                                                                        moreReintroduced = true;
                                                                         clusterMotherFake++;
                                                                         nFakeFound++;
                                                                         if (nFakeFound == nFake)
@@ -444,15 +447,18 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                                                     fit_r->Fill(rRec);
                                                     if (!tritfake && !fake)
                                                         true_fit_r->Fill(rRec);
-                                                    
-                                                    if(reintroduced){
-                                                       tritfake = false;
-                                                       fake = false;
-                                                       inv_mass_reintroducted->Fill(hypMass);
+
+                                                    if (reintroduced)
+                                                    {
+                                                        tritfake = false;
+                                                        fake = false;
+                                                        inv_mass_reintroducted->Fill(hypMass);
                                                     }
 
                                                     if (!tritfake && !fake)
                                                         inv_mass->Fill(hypMass);
+                                                    else if (moreReintroduced)
+                                                        inv_mass_more_reintroducted->Fill(hypMass);
                                                 }
                                             }
                                             catch (std::runtime_error &e)
