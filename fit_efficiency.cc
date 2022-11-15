@@ -1,6 +1,5 @@
 #if !defined(CLING) || defined(ROOTCLING)
 #include "CommonDataFormat/RangeReference.h"
-#include "ReconstructionDataFormats/Cascade.h"
 #include "ReconstructionDataFormats/PID.h"
 #include "ReconstructionDataFormats/V0.h"
 #include "SimulationDataFormat/MCCompLabel.h"
@@ -37,7 +36,6 @@ using namespace vertexing;
 using GIndex = o2::dataformats::VtxTrackIndex;
 using V0 = o2::dataformats::V0;
 using MCTrack = o2::MCTrack;
-using Cascade = o2::dataformats::Cascade;
 using RRef = o2::dataformats::RangeReference<int, int>;
 using VBracket = o2::math_utils::Bracket<int>;
 using namespace o2::itsmft;
@@ -77,7 +75,7 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
     return -1;
 }
 
-void fit_efficiency(TString path, TString filename, int tf_max = 40)
+void fit_efficiency(TString path, TString filename, int tf_max = 80)
 {
 
     const int tf_min = 1;
@@ -120,6 +118,9 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
+        if (tf == 71)
+            continue;
+
         TString tf_string = Form("%d", tf);
         TString tf_path = path + "tf" + tf_string;
 
@@ -251,7 +252,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
                         TVector3 tritgenP;
                         for (int iDau = firstDauID; iDau <= nDau; iDau++)
                         {
-                            if (mcTracksMatrix[evID][iDau].GetPdgCode() == tritonPDG)
+                            if (abs(mcTracksMatrix[evID][iDau].GetPdgCode()) == tritonPDG)
                             {
                                 tritID = iDau;
                                 tritgenPabs = mcTracksMatrix[evID][iDau].GetP();
@@ -435,8 +436,9 @@ void fit_efficiency(TString path, TString filename, int tf_max = 40)
 
                                                     EtaPhiNotCutted++;
 
-                                                    if (hypPabs < tritPabs)
-                                                        continue;
+                                                    // if (hypPabs < tritPabs)
+                                                    // if((hypPabs * hypPabs + hypMassTh * hypMassTh) < (tritPabs * tritPabs + tritonMass * tritonMass))
+                                                    //     continue;
 
                                                     if (!tritfake && !fake)
                                                         PositiveMomentum_true++;
@@ -505,14 +507,14 @@ Fitted events 8065
 Positive chi2 events 7970
 R not cutted events 3946
 Eta and Phi not cutted events 3466
-p_hyp > p_trit  events 1735
+p_hyp > p_trit  events 1735   //// Con taglio sull'energia 1812
 
 Total Topology true events 1715
 Fitted true events 1681
 Positive chi2 true events 1679
 R not cutted true events 1676
 Eta and Phi not cutted true events 1523
-p_hyp > p_trit  true events 977
+p_hyp > p_trit  true events 977  //// Con taglio sull'energia 1039
 
 Triton fake events 998
 Hyp fake events 6151

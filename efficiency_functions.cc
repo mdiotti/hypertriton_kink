@@ -101,9 +101,9 @@ std::array<int, 2> matchCompLabelToMC(const std::vector<std::vector<o2::MCTrack>
     return compRef;
 }
 
-const int nBins = 100; 
+const int nBins = 100;
 
-void efficiency_functions(TString path, TString filename, int tf_max = 40)
+void efficiency_functions(TString path, TString filename, int tf_max = 80)
 {
     const int tf_min = 1;
     int tf_lenght = tf_max - tf_min + 1;
@@ -112,9 +112,9 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     TH1F *hCount = new TH1F("Counts", "Hypertriton Counts; 1: daughter triton, 2: non daughter triton, 3: other particle;counts", 3, 0.5, 3.5); // 1: daughter triton, 2: non daughter triton, 3: other particle
 
     // define hypertriton track histograms
-    TH1F *hist_gen_pt = new TH1F("Hyp Gen pt", "Hypertriton Generated p_{T};" + ptLabel + ";counts", nBins, 0 , 12);
-    TH1F *hist_rec_pt = new TH1F("Hyp Rec pt", "Hypertriton Reconstructed p_{T};" + ptLabel + ";counts", nBins, 0 , 12);
-    TH1F *hist_fake_pt = new TH1F("Hyp True pt", "Hypertriton True p_{T};" + ptLabel + ";counts", nBins, 0 , 12);
+    TH1F *hist_gen_pt = new TH1F("Hyp Gen pt", "Hypertriton Generated p_{T};" + ptLabel + ";counts", nBins, 0, 12);
+    TH1F *hist_rec_pt = new TH1F("Hyp Rec pt", "Hypertriton Reconstructed p_{T};" + ptLabel + ";counts", nBins, 0, 12);
+    TH1F *hist_fake_pt = new TH1F("Hyp True pt", "Hypertriton True p_{T};" + ptLabel + ";counts", nBins, 0, 12);
     TH1F *hist_ris_3 = new TH1F("Hyp Res 3 hit", "Hypertriton Resolution p_{T} 3 hit;" + resLabel + ";counts", 30, -1, 1);
     TH1F *hist_ris_4 = new TH1F("Hyp Res 4 hit", "Hypertriton Resolution p_{T} 4 hit;" + resLabel + ";counts", 30, -1, 1);
     TH1F *hist_gen_r = new TH1F("Hyp Gen r", "Hypertriton Generated Radius;Radius (cm);counts", 50, 0, 50);
@@ -126,18 +126,18 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
     TH1F *hist_fake_ct = new TH1F("Hyp True ct", "Hypertriton True c_{t};c_{t} (cm);counts", 50, 0, 50);
 
     // define triton track histograms
-    TH1F *hist_gen_pt_trit = new TH1F("Trit Gen pt", "Triton Generated p_{T};" + ptLabel + ";counts", nBins, 0 , 12);
-    TH1F *hist_rec_pt_trit = new TH1F("Trit Rec pt", "Triton Reconstructed p_{T};" + ptLabel + ";counts", nBins, 0 , 12);
-    TH1F *hist_fake_pt_trit = new TH1F("Trit True pt", "Triton True p_{T};" + ptLabel + ";counts", nBins, 0 , 12);
-    TH1F *hist_ris_trit = new TH1F("Trit Res", "Triton Resolution p_{T} 3 hit;" + resLabel + ";counts", 30, -0.25, 0.25);
+    TH1F *hist_gen_pt_trit = new TH1F("Trit Gen pt", "Triton Generated p_{T};" + ptLabel + ";counts", nBins, 0, 12);
+    TH1F *hist_rec_pt_trit = new TH1F("Trit Rec pt", "Triton Reconstructed p_{T};" + ptLabel + ";counts", nBins, 0, 12);
+    TH1F *hist_fake_pt_trit = new TH1F("Trit True pt", "Triton True p_{T};" + ptLabel + ";counts", nBins, 0, 12);
+    TH1F *hist_ris_trit = new TH1F("Trit Res", "Triton Resolution p_{T};" + resLabel + ";counts", 30, -0.25, 0.25);
     TH1F *hist_gen_r_trit = new TH1F("Trit Gen r", "Triton Generated Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_rec_r_trit = new TH1F("Trit Rec r", "Triton Reconstructed Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_fake_r_trit = new TH1F("Trit True r", "Triton True Radius;Radius (cm);counts", 50, 0, 50);
 
     // define topology histograms
-    TH1F *hist_gen_pt_top = new TH1F("Top Gen pt", "Topology Generated p_{T};" + ptLabel + ";counts", nBins, 0 , 12);
-    TH1F *hist_rec_pt_top = new TH1F("Top Rec pt", "Topology Reconstructed p_{T};" + ptLabel + ";counts", nBins, 0 , 12);
-    TH1F *hist_fake_pt_top = new TH1F("Top True pt", "Topology True p_{T};" + ptLabel + ";counts", nBins, 0 , 12);
+    TH1F *hist_gen_pt_top = new TH1F("Top Gen pt", "Topology Generated p_{T};" + ptLabel + ";counts", nBins, 0, 12);
+    TH1F *hist_rec_pt_top = new TH1F("Top Rec pt", "Topology Reconstructed p_{T};" + ptLabel + ";counts", nBins, 0, 12);
+    TH1F *hist_fake_pt_top = new TH1F("Top True pt", "Topology True p_{T};" + ptLabel + ";counts", nBins, 0, 12);
     TH1F *hist_ris_3_top = new TH1F("Top Res 3 hit", "Topology Resolution p_{T} 3 hit;" + resLabel + ";counts", 30, -1, 1);
     TH1F *hist_ris_4_top = new TH1F("Top Res 4 hit", "Topology Resolution p_{T} 4 hit;" + resLabel + ";counts", 30, -1, 1);
     TH1F *hist_gen_r_top = new TH1F("Top Gen r", "Topology Generated Radius;Radius (cm);counts", 50, 0, 50);
@@ -146,6 +146,8 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
+        if (tf == 71)
+            continue;
         TString tf_string = Form("%d", tf);
         TString tf_path = path + "tf" + tf_string;
 
@@ -241,16 +243,18 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                     hist_gen_ct->Fill(ct);
                     int firstDauID = mcTrack.getFirstDaughterTrackId();
                     int nDau = mcTrack.getLastDaughterTrackId();
+                    LOG(info) << "--------------------";
+                    LOG(info) << "Hyp found!";
                     for (int iDau = firstDauID; iDau <= nDau; iDau++)
                     {
                         auto dauTrack = mcTracksMatrix[n][iDau];
+                        LOG(info) << " Dau PDG: " << mcTracksMatrix[n][iDau].GetPdgCode();
                         if (abs(dauTrack.GetPdgCode()) == tritonPDG)
                         {
                             hist_gen_pt_top->Fill(mcTrack.GetPt());
                             hist_gen_r_top->Fill(radius);
                             hist_gen_pt_trit->Fill(dauTrack.GetPt());
                             hist_gen_r_trit->Fill(radius);
-
                         }
                     }
                 }
@@ -302,7 +306,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
                         int tritID = 0;
                         for (int iDau = firstDauID; iDau < nDau; iDau++)
                         {
-                            if (mcTracksMatrix[evID][iDau].GetPdgCode() == tritonPDG)
+                            if (abs(mcTracksMatrix[evID][iDau].GetPdgCode()) == tritonPDG)
                             {
                                 tritID = iDau;
                                 break;
@@ -434,7 +438,6 @@ void efficiency_functions(TString path, TString filename, int tf_max = 40)
 
     hist_gen_ct->GetXaxis()->SetTitleSize(fontSize);
     hist_gen_ct->GetYaxis()->SetTitleSize(fontSize);
-
 
     hist_rec_pt_top->GetXaxis()->SetTitleSize(fontSize);
     hist_rec_pt_top->GetYaxis()->SetTitleSize(fontSize);

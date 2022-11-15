@@ -59,6 +59,8 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass;M_{#pi^{0}};counts", nBins, 0, 0.05);
 
+    TH1F *kink_angle = new TH1F("Kink angle", "Kink angle;#theta_{kink} (rad);counts", nBins, 0, 10);
+
     //TH1F *inv_mass_corrected = new TH1F("Invariant mass corrected", "Invariant mass corrected;" + hypLabel + ";counts", nBins, 2.9, 4);
 
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
@@ -129,6 +131,8 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         if (piE * piE - piPabs * piPabs > 0)
             inv_mass_pi->Fill(piMassFound);
 
+        double angle = HypRec.Angle(LorentzTriton->Vect())/TMath::Pi()*180;
+
         h_piP->Fill(piPabs);
         h_tritonP->Fill(tritonPabs);
         //if (!corrected)
@@ -140,6 +144,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         pi0_resolution->Fill(piPGen - piPabs);
         triton_resolution->Fill(tritonPGen - tritonPabs);
         hyp_resolution->Fill(pGen - hypPabs);
+        kink_angle->Fill(angle);
     }
 
     h_piP->GetXaxis()->SetTitleSize(fontSize);
@@ -181,6 +186,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     hyp_resolution->Write();
     mass_vs_p->Write();
     p_vs_e->Write();
+    kink_angle->Write();
 
     double markerSize = 0.8;
 /*

@@ -1,6 +1,5 @@
 #if !defined(CLING) || defined(ROOTCLING)
 #include "CommonDataFormat/RangeReference.h"
-#include "ReconstructionDataFormats/Cascade.h"
 #include "ReconstructionDataFormats/PID.h"
 #include "ReconstructionDataFormats/V0.h"
 #include "SimulationDataFormat/MCCompLabel.h"
@@ -34,7 +33,6 @@ using namespace vertexing;
 using GIndex = o2::dataformats::VtxTrackIndex;
 using V0 = o2::dataformats::V0;
 using MCTrack = o2::MCTrack;
-using Cascade = o2::dataformats::Cascade;
 using RRef = o2::dataformats::RangeReference<int, int>;
 using VBracket = o2::math_utils::Bracket<int>;
 using namespace o2::itsmft;
@@ -96,7 +94,7 @@ double calcDecayLenght(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrac
     return -1;
 }
 
-void mass_fit(TString path, TString filename, int tf_max = 40)
+void mass_fit(TString path, TString filename, int tf_max = 80)
 {
     bool cut = true;
     const int tf_min = 1;
@@ -136,6 +134,10 @@ void mass_fit(TString path, TString filename, int tf_max = 40)
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
+
+        if (tf == 71)
+            continue;
+
         TString tf_string = Form("%d", tf);
         TString tf_path = path + "tf" + tf_string;
 
