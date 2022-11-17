@@ -194,7 +194,7 @@ void TPCcheck(TString path, TString filename, int tf_max = 80)
 
                         auto tritTPCTrack = TPCtracks->at(iTrack);
                         double recR = calcRadius(&mcTracksMatrix[evID], hypTrack, tritonPDG);
-                        double tritPt = tritTPCTrack.getPt();
+                        double tritPt = MCTrack.GetPt();
                         trit_rec_pt->Fill(tritPt);
                         trit_rec_r->Fill(recR);
 

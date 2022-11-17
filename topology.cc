@@ -158,6 +158,20 @@ void topology(TString path, TString filename, int tf_max = 80)
     int clusterMotherFake = 0;
     int allClusterMotherFake = 0;
 
+    // Geometry
+    TString string_to_convert = path + "tf1/o2sim_geometry.root";
+    std::string path_string(string_to_convert.Data());
+    o2::base::GeometryManager::loadGeometry(path_string);
+
+    // Matching ITS tracks to MC tracks and V0
+    std::array<int, 2> ITSref = {-1, 1};
+    o2::its::TrackITS ITStrack;
+    std::array<std::array<int, 2>, 7> clsRef;
+
+    // Load Geometry
+    auto gman = o2::its::GeometryTGeo::Instance();
+    gman->fillMatrixCache(o2::math_utils::bit2Mask(o2::math_utils::TransformType::T2L, o2::math_utils::TransformType::L2G));
+
     for (int tf = tf_min; tf <= tf_max; tf++)
     {
         LOG(info) << "Processing TF " << tf;
@@ -169,11 +183,6 @@ void topology(TString path, TString filename, int tf_max = 80)
         auto fMCTracks = TFile::Open(tf_path + "/sgn_" + tf_string + "_Kine.root");
         auto fClusITS = TFile::Open(tf_path + "/o2clus_its.root");
 
-        // Geometry
-        TString string_to_convert = tf_path + "/o2sim_geometry.root";
-        std::string path_string(string_to_convert.Data());
-        o2::base::GeometryManager::loadGeometry(path_string);
-
         // GRP
         TString string_to_convert2 = tf_path + "/o2sim_grp.root";
         std::string path_string_grp(string_to_convert2.Data());
@@ -184,15 +193,6 @@ void topology(TString path, TString filename, int tf_max = 80)
         auto treeITS = (TTree *)fITS->Get("o2sim");
         auto treeITSTPC = (TTree *)fITSTPC->Get("matchTPCITS");
         auto treeITSclus = (TTree *)fClusITS->Get("o2sim");
-
-        // Matching ITS tracks to MC tracks and V0
-        std::array<int, 2> ITSref = {-1, 1};
-        o2::its::TrackITS ITStrack;
-        std::array<std::array<int, 2>, 7> clsRef;
-
-        // Load Geometry
-        auto gman = o2::its::GeometryTGeo::Instance();
-        gman->fillMatrixCache(o2::math_utils::bit2Mask(o2::math_utils::TransformType::T2L, o2::math_utils::TransformType::L2G));
 
         // Tracks
         std::vector<MCTrack> *MCtracks = nullptr;
@@ -321,7 +321,7 @@ void topology(TString path, TString filename, int tf_max = 80)
                         int nLayers = hypITSTrack.getNumberOfClusters();
                         if (nLayers == 3) // 3 clusters recontruction doesn't work well
                             continue;
-                        
+
                         auto dautherTrack = mcTracksMatrix[evID][tritID];
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
@@ -412,6 +412,7 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                     auto ncl = hypITSTrack.getNumberOfClusters();
 
                                                     int nFake = hypITSTrack.getNFakeClusters();
+
                                                     int nFakeFound = 0;
                                                     n_cluster_fake->Fill(nFake);
                                                     bool secondbin = false;
@@ -431,6 +432,8 @@ void topology(TString path, TString filename, int tf_max = 80)
 
                                                             if (hypITSTrack.isFakeOnLayer(layer))
                                                             {
+                                                                if (nFake == 0)
+                                                                    LOG(info) << "nFake = " << nFake << " Layer = " << layer << " nClusters = " << ncl << " PDG = " << PDG;
                                                                 fake_layer->Fill(layer);
 
                                                                 if (abs(PDG) == tritonPDG)
