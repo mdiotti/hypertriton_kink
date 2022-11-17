@@ -107,8 +107,6 @@ void clustertest(TString path, TString filename, int tf_max = 80)
     int topologyFound = 0;
     for (int tf = tf_min; tf < tf_max; tf++)
     {
-        if (tf == 71)
-            continue;
 
         TString tf_string = Form("%d", tf);
         TString tf_path = path + "tf" + tf_string;
@@ -432,7 +430,7 @@ void clustertest(TString path, TString filename, int tf_max = 80)
                                             }
                                         }
                                     }
-                                } // Fitting end
+                                }
                             }
                         }
                     }

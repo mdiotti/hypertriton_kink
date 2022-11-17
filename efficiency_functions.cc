@@ -109,7 +109,7 @@ void efficiency_functions(TString path, TString filename, int tf_max = 80)
     int tf_lenght = tf_max - tf_min + 1;
 
     // counts histogram of fake hyp
-    TH1F *hCount = new TH1F("Counts", "Hypertriton Counts; 1: daughter triton, 2: non daughter triton, 3: other particle;counts", 3, 0.5, 3.5); // 1: daughter triton, 2: non daughter triton, 3: other particle
+    TH1F *hCount = new TH1F("Counts", "Hypertriton Fake Track Belonging; 1: daughter triton, 2: non daughter triton, 3: other particle;counts", 3, 0.5, 3.5); // 1: daughter triton, 2: non daughter triton, 3: other particle
 
     // define hypertriton track histograms
     TH1F *hist_gen_pt = new TH1F("Hyp Gen pt", "Hypertriton Generated p_{T};" + ptLabel + ";counts", nBins, 0, 12);
@@ -144,10 +144,8 @@ void efficiency_functions(TString path, TString filename, int tf_max = 80)
     TH1F *hist_rec_r_top = new TH1F("Top Rec r", "Topology Reconstructed Radius;Radius (cm);counts", 50, 0, 50);
     TH1F *hist_fake_r_top = new TH1F("Top True r", "Topology True Radius;Radius (cm);counts", 50, 0, 50);
 
-    for (int tf = tf_min; tf < tf_max; tf++)
+    for (int tf = tf_min; tf <= tf_max; tf++)
     {
-        if (tf == 71)
-            continue;
         TString tf_string = Form("%d", tf);
         TString tf_path = path + "tf" + tf_string;
 
@@ -195,8 +193,6 @@ void efficiency_functions(TString path, TString filename, int tf_max = 80)
         treeITSclus->SetBranchAddress("ITSClusterMCTruth", &clusLabArr);
         treeITS->SetBranchAddress("ITSTrackClusIdx", &ITSTrackClusIdx);
 
-        // std::map<std::string, std::vector<o2::MCCompLabel> *> map{{"ITS", labITSvec}};
-
         // Matching ITS tracks to MC tracks and V0
         std::array<int, 2> ITSref = {-1, 1};
         o2::its::TrackITS ITStrack;
@@ -243,12 +239,9 @@ void efficiency_functions(TString path, TString filename, int tf_max = 80)
                     hist_gen_ct->Fill(ct);
                     int firstDauID = mcTrack.getFirstDaughterTrackId();
                     int nDau = mcTrack.getLastDaughterTrackId();
-                    LOG(info) << "--------------------";
-                    LOG(info) << "Hyp found!";
                     for (int iDau = firstDauID; iDau <= nDau; iDau++)
                     {
                         auto dauTrack = mcTracksMatrix[n][iDau];
-                        LOG(info) << " Dau PDG: " << mcTracksMatrix[n][iDau].GetPdgCode();
                         if (abs(dauTrack.GetPdgCode()) == tritonPDG)
                         {
                             hist_gen_pt_top->Fill(mcTrack.GetPt());

@@ -118,9 +118,7 @@ void fit_efficiency(TString path, TString filename, int tf_max = 80)
 
     for (int tf = tf_min; tf < tf_max; tf++)
     {
-        if (tf == 71)
-            continue;
-
+        LOG(info) << "Processing TF " << tf;
         TString tf_string = Form("%d", tf);
         TString tf_path = path + "tf" + tf_string;
 
@@ -520,12 +518,32 @@ Triton fake events 998
 Hyp fake events 6151
 Both fake events 858
 
-
 Cluster mother total events 171
 Cluster mother events 162
 
 Track with all fake clusters that are daughter's 42
 Track with at least one fake cluster that is daughter's 171
+
+NEW FILE
+Total Topology events 15384
+Fitted events 15206
+Positive chi2 events 15024
+R not cutted events 7455
+Eta and Phi not cutted events 6534
+p_hyp > p_trit  events 6534
+
+Total Topology true events 3256
+Fitted true events 3192
+Positive chi2 true events 3183
+R not cutted true events 3172
+Eta and Phi not cutted true events 2889
+p_hyp > p_trit  true events 2889
+
+Triton fake events 2000
+Hyp fake events 11557
+Both fake events 1716
+Track with all fake clusters that are daughter's 59
+Track with at least one fake cluster that is daughter's 290
 */
 
     auto fFile = TFile(filename, "recreate");
