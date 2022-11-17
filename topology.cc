@@ -140,16 +140,16 @@ void topology(TString path, TString filename, int tf_max = 80)
     TH1F *hist_fake_pt_top = new TH1F("Top True pt", "Topology True p_{T};" + ptLabel + ";counts", nBins, 0, 12);
     TH1F *hist_ris_3_top = new TH1F("Top Res 3 hit", "Topology Resolution p_{T} 3 hit;" + resLabel + ";counts", 30, -1, 1);
     TH1F *hist_ris_4_top = new TH1F("Top Res 4 hit", "Topology Resolution p_{T} 4 hit;" + resLabel + ";counts", 30, -1, 1);
-    TH1F *hist_gen_ct_top = new TH1F("Top Gen r", "Topology Generated c_{t};c_{t} (cm);counts", 50, 0, 50);
-    TH1F *hist_rec_ct_top = new TH1F("Top Rec r", "Topology Reconstructed c_{t};c_{t} (cm);counts", 50, 0, 50);
-    TH1F *hist_fake_ct_top = new TH1F("Top True r", "Topology True c_{t};c_{t} (cm);counts", 50, 0, 50);
+    TH1F *hist_gen_ct_top = new TH1F("Top Gen c_{t}", "Topology Generated c_{t};c_{t} (cm);counts", 50, 0, 50);
+    TH1F *hist_rec_ct_top = new TH1F("Top Rec c_{t}", "Topology Reconstructed c_{t};c_{t} (cm);counts", 50, 0, 50);
+    TH1F *hist_fake_ct_top = new TH1F("Top True c_{t}", "Topology True c_{t};c_{t} (cm);counts", 50, 0, 50);
 
     // define fit histograms
     TH1F *chi_squared = new TH1F("chi2", "" + chiLabel + ";" + chiLabel + ";counts", nBins, 0, 1);
     TH1F *chi_squared_fake = new TH1F("chi2_fake", "Fake " + chiLabel + ";" + chiLabel + ";counts", nBins, 0, 1);
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_fake = new TH1F("Invariant mass fake", "Invariant mass fake;" + hypLabel + ";counts", nBins, 2.9, 4);
-    TH1F *fit_ct = new TH1F("Topology fit r", "Topology fit r;r (cm);counts", 50, 0, 50);
+    TH1F *fit_ct = new TH1F("Topology fit c_{t}", "Topology fit c_{t};c_{t} (cm);counts", 50, 0, 50);
 
     // define cluster histograms
     TH1F *n_cluster_fake = new TH1F("n_cluster_fake", "Number of fake clusters per track;N_{fake cluster};counts", 7, -0.5, 6.5);
@@ -318,6 +318,10 @@ void topology(TString path, TString filename, int tf_max = 80)
                         if (tritID == -10)
                             continue; // if no triton daughter, improves speed
 
+                        int nLayers = hypITSTrack.getNumberOfClusters();
+                        if (nLayers == 3) // 3 clusters recontruction doesn't work well
+                            continue;
+                        
                         auto dautherTrack = mcTracksMatrix[evID][tritID];
                         for (unsigned int jTrack{0}; jTrack < labITSTPCvec->size(); ++jTrack)
                         {
@@ -340,11 +344,10 @@ void topology(TString path, TString filename, int tf_max = 80)
                                     if (evID == tritevID && tritID == trittrackID)
                                         isDaughter = true;
 
-                                    auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
-
-                                    int nLayers = hypITSTrack.getNumberOfClusters();
-                                    if (nLayers == 3) // 3 clusters recontruction doesn't work well
+                                    if (!isDaughter)
                                         continue;
+
+                                    auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
 
                                     if (FITTEROPTION == "DCA")
                                     {
@@ -393,6 +396,7 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                 std::array<float, 3> R = ft2.getPCACandidatePos();
                                                 double recDl = sqrt(R[0] * R[0] + R[1] * R[1] + R[2] * R[2]);
                                                 double recCt = hypMassTh * recDl / hypPabs;
+                                                double recR = sqrt(R[0] * R[0] + R[1] * R[1]);
 
                                                 float tritE = sqrt(tritPabs * tritPabs + tritonMass * tritonMass);
                                                 std::array<float, 3> piP = {hypP[0] - tritP[0], hypP[1] - tritP[1], hypP[2] - tritP[2]};
@@ -423,22 +427,19 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                         if (clsRef[layer][0] > -1 && clsRef[layer][1] > -1)
                                                         {
                                                             auto MCTrack = mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]];
-                                                            int pdg = MCTrack.GetPdgCode();
+                                                            int PDG = MCTrack.GetPdgCode();
 
                                                             if (hypITSTrack.isFakeOnLayer(layer))
                                                             {
                                                                 fake_layer->Fill(layer);
-                                                                double PDG = MCTrack.GetPdgCode();
 
                                                                 if (abs(PDG) == tritonPDG)
                                                                 {
                                                                     if (clsRef[layer][0] == evID && clsRef[layer][1] == tritID)
                                                                     {
-                                                                        clusterMotherFake++;
                                                                         nFakeFound++;
                                                                         if (nFakeFound == nFake)
                                                                         {
-                                                                            allClusterMotherFake++;
                                                                             firstbin = true;
                                                                         }
                                                                     }
@@ -458,6 +459,12 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                             hCount->Fill(3);
                                                     }
                                                 }
+
+                                                if (recR < 18)
+                                                    continue;
+                                                if (std::abs(etaHyp - etaTrit) > 0.03 || std::abs(phiHyp - phiTrit) > 0.03)
+                                                    continue;
+
                                                 if (!tritfake && !fake)
                                                     inv_mass->Fill(hypMass);
                                                 else
@@ -495,7 +502,8 @@ void topology(TString path, TString filename, int tf_max = 80)
                             continue;
 
                         auto tritITSTPCTrack = ITSTPCtracks->at(iTrack);
-                        hist_rec_pt_trit->Fill(tritITSTPCTrack.getPt());
+                        double recPt = mcTrack.GetPt();
+                        hist_rec_pt_trit->Fill(recPt);
 
                         auto tritDl = calcDecayLenght(&mcTracksMatrix[evID], motherTrack, tritonPDG);
                         double tritCt = hypMassTh * tritDl / mcTrack.GetP();
@@ -503,7 +511,7 @@ void topology(TString path, TString filename, int tf_max = 80)
 
                         if (!fake)
                         {
-                            hist_fake_pt_trit->Fill(mcTrack.GetPt());
+                            hist_fake_pt_trit->Fill(recPt);
                             hist_fake_ct_trit->Fill(tritCt);
 
                             hist_ris_trit->Fill((mcTrack.GetPt() - tritITSTPCTrack.getPt()) / mcTrack.GetPt());

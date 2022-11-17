@@ -53,11 +53,6 @@ const double hypMassTh = 2.99131;
 TString chiLabel = "#chi^{2}";
 TString hypLabel = "M_{^{3}_{#Lambda}H} (GeV/c^{2})";
 int nBins = 100;
-double min_bins = 0;
-double min_r = 0;
-double res_bin_lim = 0.25;
-double eta_bin_lim = 0.1;
-double phi_bin_lim = 0.1;
 
 const double fontSize = 0.055;
 const double markerSize = 4;
@@ -127,23 +122,18 @@ void TPCcheck(TString path, TString filename, int tf_max = 80)
 
         // Trees
         auto treeMCTracks = (TTree *)fMCTracks->Get("o2sim");
-        auto treeITS = (TTree *)fITS->Get("o2sim");
         auto treeTPC = (TTree *)fTPC->Get("tpcrec");
         auto treeITSTPC = (TTree *)fITSTPC->Get("matchTPCITS");
 
         // Tracks
         std::vector<MCTrack> *MCtracks = nullptr;
-        std::vector<TrackITS> *ITStracks = nullptr;
         std::vector<TrackTPC> *TPCtracks = nullptr;
 
         // Labels
-        std::vector<o2::MCCompLabel> *labITSvec = nullptr;
         std::vector<o2::MCCompLabel> *labTPCvec = nullptr;
 
         // Branches
         treeMCTracks->SetBranchAddress("MCTrack", &MCtracks);
-        treeITS->SetBranchAddress("ITSTrackMCTruth", &labITSvec);
-        treeITS->SetBranchAddress("ITSTrack", &ITStracks);
         treeTPC->SetBranchAddress("TPCTracksMCTruth", &labTPCvec);
         treeTPC->SetBranchAddress("TPCTracks", &TPCtracks);
 
@@ -203,7 +193,6 @@ void TPCcheck(TString path, TString filename, int tf_max = 80)
                             continue;
 
                         auto tritTPCTrack = TPCtracks->at(iTrack);
-
                         double recR = calcRadius(&mcTracksMatrix[evID], hypTrack, tritonPDG);
                         double tritPt = tritTPCTrack.getPt();
                         trit_rec_pt->Fill(tritPt);
