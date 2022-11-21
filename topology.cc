@@ -57,6 +57,12 @@ TString resLabel = "Resolution: (gen-rec)/gen";
 TString chiLabel = "#chi^{2}";
 TString hypLabel = "M_{^{3}_{#Lambda}H} (GeV/c^{2})";
 
+const int electronPDG = 11;
+const int muonPDG = 13;
+const int kaonPDG = 321;
+const int pionPDG = 211;
+const int protonPDG = 2212;
+
 const double fontSize = 0.055;
 const int nBins = 100;
 string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
@@ -149,11 +155,13 @@ void topology(TString path, TString filename, int tf_max = 80)
     TH1F *chi_squared_fake = new TH1F("chi2_fake", "Fake " + chiLabel + ";" + chiLabel + ";counts", nBins, 0, 1);
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_fake = new TH1F("Invariant mass fake", "Invariant mass fake;" + hypLabel + ";counts", nBins, 2.9, 4);
-    TH1F *fit_ct = new TH1F("Topology fit c_{t}", "Topology fit c_{t};c_{t} (cm);counts", 50, 0, 50);
+    TH1F *fit_ct = new TH1F("Topology fit ct", "Topology fit c_{t};c_{t} (cm);counts", 50, 0, 50);
+    TH1F *fit_pt = new TH1F("Topology fit pT", "Topology fit p_{T};" + ptLabel + ";counts", nBins, 0, 12);
 
     // define cluster histograms
     TH1F *n_cluster_fake = new TH1F("n_cluster_fake", "Number of fake clusters per track;N_{fake cluster};counts", 7, -0.5, 6.5);
     TH1F *fake_layer = new TH1F("fake_layer", "Layer of the fake cluster;layer;counts", 7, -0.5, 6.5);
+    TH1F *nontriton_cluster = new TH1F("nontriton_cluster", "Type of non-triton fake clusters; 1:electron 2:muon 3:pion 4:kaon 5:proton 6:hypertriton ;counts", 6, 0.5, 6.5);
 
     int clusterMotherFake = 0;
     int allClusterMotherFake = 0;
@@ -451,6 +459,21 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                                         secondbin = true;
                                                                     }
                                                                 }
+                                                                else
+                                                                {
+                                                                    if (abs(PDG) == electronPDG)
+                                                                        nontriton_cluster->Fill(1);
+                                                                    else if (abs(PDG) == muonPDG)
+                                                                        nontriton_cluster->Fill(2);
+                                                                    else if (abs(PDG) == pionPDG)
+                                                                        nontriton_cluster->Fill(3);
+                                                                    else if (abs(PDG) == kaonPDG)
+                                                                        nontriton_cluster->Fill(4);
+                                                                    else if (abs(PDG) == protonPDG)
+                                                                        nontriton_cluster->Fill(5);
+                                                                    else if (abs(PDG) == hypPDG)
+                                                                        nontriton_cluster->Fill(6);
+                                                                }
                                                             }
                                                         }
 
@@ -474,6 +497,7 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                     inv_mass_fake->Fill(hypMass);
 
                                                 fit_ct->Fill(recCt);
+                                                fit_pt->Fill(pt);
                                             }
                                         }
                                         catch (std::runtime_error &e)
@@ -661,10 +685,21 @@ void topology(TString path, TString filename, int tf_max = 80)
     eff_fit_r->Divide(hist_gen_ct);
     eff_fit_r->Write();
 
+    fit_pt->Write();
+
+    TH1F *eff_fit_pt = (TH1F *)fit_pt->Clone("Top Eff fit pt");
+    eff_fit_pt->GetXaxis()->SetTitleSize(fontSize);
+    eff_fit_pt->GetYaxis()->SetTitleSize(fontSize);
+    eff_fit_pt->GetYaxis()->SetTitle("Efficiency");
+    eff_fit_pt->SetTitle("Topology Fit p_{T} Efficiency");
+    eff_fit_pt->Divide(hist_gen_pt);
+    eff_fit_pt->Write();
+
     // cluster directory
     clusterDir->cd();
     n_cluster_fake->Write();
     fake_layer->Write();
+    nontriton_cluster->Write();
 
     fFile.Close();
 }

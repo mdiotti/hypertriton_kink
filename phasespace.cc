@@ -59,7 +59,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     TH1F *inv_mass = new TH1F("Invariant mass", "Invariant mass;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *inv_mass_pi = new TH1F("Invariant mass pi", "#pi^{0} Invariant mass;M_{#pi^{0}};counts", nBins, 0, 0.05);
 
-    TH1F *kink_angle = new TH1F("Kink angle", "Kink angle;#theta_{kink} (rad);counts", nBins, 0, 10);
+    TH1F *kink_angle = new TH1F("Kink angle", "Kink angle;#theta_{kink} (degrees);counts", nBins, 0, 10);
 
     //TH1F *inv_mass_corrected = new TH1F("Invariant mass corrected", "Invariant mass corrected;" + hypLabel + ";counts", nBins, 2.9, 4);
 
