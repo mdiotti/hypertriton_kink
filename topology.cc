@@ -420,11 +420,11 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                     auto ncl = hypITSTrack.getNumberOfClusters();
 
                                                     int nFake = hypITSTrack.getNFakeClusters();
-
                                                     int nFakeFound = 0;
                                                     n_cluster_fake->Fill(nFake);
                                                     bool secondbin = false;
                                                     bool firstbin = false;
+                                                    bool thirdbin = false;
 
                                                     for (int icl = 0; icl < ncl; icl++)
                                                     {
@@ -461,6 +461,7 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                                 }
                                                                 else
                                                                 {
+                                                                    thirdbin = true;
                                                                     if (abs(PDG) == electronPDG)
                                                                         nontriton_cluster->Fill(1);
                                                                     else if (abs(PDG) == muonPDG)
@@ -481,8 +482,9 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                             hCount->Fill(1);
                                                         else if (secondbin)
                                                             hCount->Fill(2);
-                                                        else
+                                                        else if(thirdbin)
                                                             hCount->Fill(3);
+                                                            else hCount->Fill(4);
                                                     }
                                                 }
 
