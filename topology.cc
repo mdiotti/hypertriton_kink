@@ -113,6 +113,56 @@ double calcDecayLenght(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrac
     return -1;
 }
 
+int particle_output(int PDG)
+{
+    if (abs(PDG) == electronPDG)
+        return 1;
+    if (abs(PDG) == muonPDG)
+        return 2;
+    if (abs(PDG) == pionPDG)
+        return 3;
+    if (abs(PDG) == kaonPDG)
+        return 4;
+    if (abs(PDG) == protonPDG)
+        return 5;
+    if (abs(PDG) == hypPDG)
+        return 6;
+    if (abs(PDG) == tritonPDG)
+        return 7;
+    return 0;
+}
+
+int FakePrint(TrackITS track)
+{
+    int nFake{0};
+    int firstClus = track.getFirstClusterLayer();
+    LOG(info) << "-------------------------------------";
+    LOG(info) << "Number of clusters " << track.getNumberOfClusters() << ", First cluster " << firstClus;
+    for (int iCl{0}; iCl < track.getNClusters(); ++iCl)
+    {
+        LOG(info) << "Layer: " << iCl << ", Has Hit : " << track.hasHitOnLayer(iCl) << ", Is Fake : " << track.isFakeOnLayer(iCl);
+        if (track.hasHitOnLayer(iCl) && track.isFakeOnLayer(iCl))
+        {
+            ++nFake;
+        }
+    }
+    return nFake;
+}
+
+int NFake(TrackITS track)
+{
+    int nFake{0};
+    int firstClus = track.getFirstClusterLayer();
+    for (int iCl = firstClus; iCl < track.getNClusters() + firstClus; ++iCl)
+    {
+        if (track.hasHitOnLayer(iCl) && track.isFakeOnLayer(iCl))
+        {
+            ++nFake;
+        }
+    }
+    return nFake;
+}
+
 void topology(TString path, TString filename, int tf_max = 80)
 {
     const int tf_min = 1;
@@ -161,7 +211,9 @@ void topology(TString path, TString filename, int tf_max = 80)
     // define cluster histograms
     TH1F *n_cluster_fake = new TH1F("n_cluster_fake", "Number of fake clusters per track;N_{fake cluster};counts", 7, -0.5, 6.5);
     TH1F *fake_layer = new TH1F("fake_layer", "Layer of the fake cluster;layer;counts", 7, -0.5, 6.5);
+    TH1F *fake_error_layer = new TH1F("fake_error_layer", "Layer of the fake cluster when nFake = 0;layer;counts", 7, -0.5, 6.5);
     TH1F *nontriton_cluster = new TH1F("nontriton_cluster", "Type of non-triton fake clusters; 1:electron 2:muon 3:pion 4:kaon 5:proton 6:hypertriton ;counts", 6, 0.5, 6.5);
+    TH1F *fake_error_cluster = new TH1F("fake_error_cluster", "Type of fake cluster when nFake = 0; 1:electron 2:muon 3:pion 4:kaon 5:proton 6:hypertriton 7:triton ;counts", 7, 0.5, 7.5);
 
     int clusterMotherFake = 0;
     int allClusterMotherFake = 0;
@@ -419,7 +471,7 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                     auto firstClus = hypITSTrack.getFirstClusterEntry();
                                                     auto ncl = hypITSTrack.getNumberOfClusters();
 
-                                                    int nFake = hypITSTrack.getNFakeClusters();
+                                                    int nFake = NFake(hypITSTrack);
                                                     int nFakeFound = 0;
                                                     n_cluster_fake->Fill(nFake);
                                                     bool secondbin = false;
@@ -441,7 +493,11 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                             if (hypITSTrack.isFakeOnLayer(layer))
                                                             {
                                                                 if (nFake == 0)
-                                                                    LOG(info) << "nFake = " << nFake << " Layer = " << layer << " nClusters = " << ncl << " PDG = " << PDG;
+                                                                {
+                                                                    fake_error_cluster->Fill(particle_output(PDG));
+                                                                    fake_error_layer->Fill(layer);
+                                                                    FakePrint(hypITSTrack);
+                                                                }
                                                                 fake_layer->Fill(layer);
 
                                                                 if (abs(PDG) == tritonPDG)
@@ -462,31 +518,21 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                                 else
                                                                 {
                                                                     thirdbin = true;
-                                                                    if (abs(PDG) == electronPDG)
-                                                                        nontriton_cluster->Fill(1);
-                                                                    else if (abs(PDG) == muonPDG)
-                                                                        nontriton_cluster->Fill(2);
-                                                                    else if (abs(PDG) == pionPDG)
-                                                                        nontriton_cluster->Fill(3);
-                                                                    else if (abs(PDG) == kaonPDG)
-                                                                        nontriton_cluster->Fill(4);
-                                                                    else if (abs(PDG) == protonPDG)
-                                                                        nontriton_cluster->Fill(5);
-                                                                    else if (abs(PDG) == hypPDG)
-                                                                        nontriton_cluster->Fill(6);
+                                                                    nontriton_cluster->Fill(particle_output(PDG));
                                                                 }
                                                             }
                                                         }
-
-                                                        if (firstbin)
-                                                            hCount->Fill(1);
-                                                        else if (secondbin)
-                                                            hCount->Fill(2);
-                                                        else if(thirdbin)
-                                                            hCount->Fill(3);
-                                                            else hCount->Fill(4);
                                                     }
-                                                }
+
+                                                    if (firstbin)
+                                                        hCount->Fill(1);
+                                                    else if (secondbin)
+                                                        hCount->Fill(2);
+                                                    else if (thirdbin)
+                                                        hCount->Fill(3);
+                                                    else
+                                                        hCount->Fill(4);
+                                                } // end of fake
 
                                                 if (recR < 18)
                                                     continue;
@@ -497,9 +543,6 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                     inv_mass->Fill(hypMass);
                                                 else
                                                     inv_mass_fake->Fill(hypMass);
-
-                                                fit_ct->Fill(recCt);
-                                                fit_pt->Fill(pt);
                                             }
                                         }
                                         catch (std::runtime_error &e)
@@ -561,7 +604,6 @@ void topology(TString path, TString filename, int tf_max = 80)
     hist_gen_pt->Write();
     hist_rec_pt->Write();
     hist_fake_pt->Write();
-    hist_gen_ct->Write();
     hist_ris_3->Write();
     hist_ris_4->Write();
     hist_gen_ct->Write();
@@ -669,8 +711,6 @@ void topology(TString path, TString filename, int tf_max = 80)
     eff_pur_top->Divide(hist_gen_ct_top);
     eff_pur_top->Write();
 
-    hCount->Write();
-
     // fit directory
     fitDir->cd();
     chi_squared->Write();
@@ -699,9 +739,12 @@ void topology(TString path, TString filename, int tf_max = 80)
 
     // cluster directory
     clusterDir->cd();
+    hCount->Write();
     n_cluster_fake->Write();
     fake_layer->Write();
+    fake_error_layer->Write();
     nontriton_cluster->Write();
+    fake_error_cluster->Write();
 
     fFile.Close();
 }
