@@ -9,6 +9,7 @@
 
 #include "DetectorsVertexing/DCAFitterN.h"
 #include "DataFormatsParameters/GRPObject.h"
+#include "DetectorsBase/Propagator.h"
 
 #include "SimulationDataFormat/MCTruthContainer.h"
 #include "DataFormatsITSMFT/CompCluster.h"
@@ -132,7 +133,6 @@ int particle_output(int PDG)
     return 0;
 }
 
-
 int NFake(TrackITS track)
 {
     int nFake{0};
@@ -231,6 +231,9 @@ void topology(TString path, TString filename, int tf_max = 80)
         TString string_to_convert2 = tf_path + "/o2sim_grp.root";
         std::string path_string_grp(string_to_convert2.Data());
         const auto grp = o2::parameters::GRPObject::loadFrom(path_string_grp);
+
+        // load propagator
+        o2::base::Propagator::initFieldFromGRP(grp);
 
         // Trees
         auto treeMCTracks = (TTree *)fMCTracks->Get("o2sim");
@@ -444,7 +447,7 @@ void topology(TString path, TString filename, int tf_max = 80)
 
                                                 float tritE = sqrt(tritPabs * tritPabs + tritonMass * tritonMass);
                                                 std::array<float, 3> piP = {hypP[0] - tritP[0], hypP[1] - tritP[1], hypP[2] - tritP[2]};
-                                                float piPabs = sqrt(piP[0] * piP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
+                                                float piPabs = sqrt(piP[0] * pimGeomITSP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
                                                 float piE = sqrt(pi0Mass * pi0Mass + piPabs * piPabs);
                                                 float hypE = piE + tritE;
                                                 float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
@@ -518,10 +521,10 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                     continue;
 
                                                 if (hypITSTrack.getFirstClusterLayer() != 0)
-                                                inv_mass_hight_layer->Fill(hypMass);
-                                                if (hypITSTrack.getFirstClusterLayer() >=2)
-                                                inv_mass_very_hight_layer->Fill(hypMass);
-                                                
+                                                    inv_mass_hight_layer->Fill(hypMass);
+                                                if (hypITSTrack.getFirstClusterLayer() >= 2)
+                                                    inv_mass_very_hight_layer->Fill(hypMass);
+
                                                 if (!tritfake && !fake)
                                                 {
                                                     inv_mass->Fill(hypMass);
@@ -734,4 +737,22 @@ void topology(TString path, TString filename, int tf_max = 80)
     nontriton_cluster->Write();
 
     fFile.Close();
+}
+
+double_t getTrackClusChi2(const o2::track::TrackParCov &tritonTrack, const CompClusterExt &clus)
+{
+
+    auto corrType = o2::base::PropagatorImpl<float>::MatCorrType::USEMatCorrLUT;
+    auto propInstance = o2::base::Propagator::Instance();
+    auto gman = o2::its::GeometryTGeo::Instance();
+    float alpha = gman->getSensorRefAlpha(clus.getSensorID()), x = clus.getX();
+    int layer{gman->getLayer(clus.getSensorID())};
+
+    if (!track.rotate(alpha))
+        return false;
+
+    if (!propInstance->propagateToX(track, x, propInstance->getNominalBz(), o2::base::PropagatorImpl<float>::MAX_SIN_PHI, o2::base::PropagatorImpl<float>::MAX_STEP, corrType))
+        return false;
+
+    auto chi2 = std::abs(tritonTrack.getPredictedChi2(clus));
 }
