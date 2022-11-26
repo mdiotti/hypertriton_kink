@@ -149,7 +149,7 @@ int NFake(TrackITS track)
     return nFake;
 }
 
-double_t getTrackClusChi2(o2::track::TrackParCov tritonTrack, const ITSCluster &clus)
+double_t getTrackClusChi2(o2::track::TrackParCov tritonTrack, const ITSCluster &clus, o2::track::TrackParCov &propagatedTrack)
 {
     auto corrType = o2::base::PropagatorImpl<float>::MatCorrType::USEMatCorrLUT;
     auto propInstance = o2::base::Propagator::Instance();
@@ -163,11 +163,12 @@ double_t getTrackClusChi2(o2::track::TrackParCov tritonTrack, const ITSCluster &
     if (!propInstance->propagateToX(tritonTrack, x, propInstance->getNominalBz(), o2::base::PropagatorImpl<float>::MAX_SIN_PHI, o2::base::PropagatorImpl<float>::MAX_STEP, corrType))
         return -1;
 
+    propagatedTrack = tritonTrack;
     auto chi2 = std::abs(tritonTrack.getPredictedChi2(clus));
     return chi2;
 }
 
-void topology(TString path, TString filename, bool clusters = false, int tf_max = 80)
+void topology(TString path, TString filename, bool propagation = false, int tf_max = 80)
 {
     const int tf_min = 1;
     int tf_lenght = tf_max - tf_min + 1;
@@ -211,21 +212,26 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
     TH1F *inv_mass_fake = new TH1F("Invariant mass fake", "Invariant mass fake;" + hypLabel + ";counts", nBins, 2.9, 4);
     TH1F *fit_ct = new TH1F("Topology fit ct", "Topology fit c_{t};c_{t} (cm);counts", 50, 0, 50);
     TH1F *fit_pt = new TH1F("Topology fit pT", "Topology fit p_{T};" + ptLabel + ";counts", nBins, 0, 12);
-    TH1F *inv_mass_hight_layer = new TH1F("Invariant mass high layer", "Invariant mass first layer != 0;" + hypLabel + ";counts", nBins, 2.9, 4);
-    TH1F *inv_mass_very_hight_layer = new TH1F("Invariant mass very high layer", "Invariant mass first layer >=2;" + hypLabel + ";counts", nBins, 2.9, 4);
 
     // define cluster histograms
     TH1F *n_cluster_fake = new TH1F("n_cluster_fake", "Number of fake clusters per track;N_{fake cluster};counts", 7, -0.5, 6.5);
     TH1F *fake_layer = new TH1F("fake_layer", "Layer of the fake cluster;layer;counts", 7, -0.5, 6.5);
     TH1F *nontriton_cluster = new TH1F("nontriton_cluster", "Type of non-triton fake clusters; 1:electron 2:muon 3:pion 4:kaon 5:proton 6:hypertriton ;counts", 6, 0.5, 6.5);
 
-    // define chi2 histograms
+    // define propagation histograms
     TH1F *chi_cluster_mother = new TH1F("chi_cluster_mother", "Chi2 of the cluster mother;#chi^{2};counts", 100, 0, 10);
     TH1F *chi_cluster_daughter = new TH1F("chi_cluster_daughter", "Chi2 of the cluster daughter;#chi^{2};counts", 100, 0, 10);
     TH1F *chi_cluster_other = new TH1F("chi_cluster_other", "Chi2 of the cluster other;#chi^{2};counts", 100, 0, 10);
+    TH1F *inv_mass_propagation = new TH1F("Invariant mass propagation", "Invariant mass propagation;" + hypLabel + ";counts", nBins, 2.9, 4);
+    TH1F *chi2_propagation = new TH1F("chi2 propagation", "Chi2 propagation", nBins, 0, 1);
+    TH1F *inv_mass_best = new TH1F("Invariant mass best", "Invariant mass of best #chi^{2};" + hypLabel + ";counts", nBins, 2.9, 4);
+    TH1F *inv_mass_difference = new TH1F("Invariant mass difference", "Invariant mass difference;mass_{true} - mass_{propagated};counts", nBins, -0.005, 0.005);
+    TH1F *fit_ct_propagation = new TH1F("Topology fit ct propagation", "Topology fit c_{t} propagation;c_{t} (cm);counts", 50, 0, 50);
+    TH1F *fit_pt_propagation = new TH1F("Topology fit pT propagation", "Topology fit p_{T} propagation;" + ptLabel + ";counts", nBins, 0, 12);
+    TH1F *counts_propagation = new TH1F("Counts propagation", "Counts propagation; 1: Hyp non-prop 2: Hyp prop 3: Trit non-prop 4: Trit prop;counts", 4, 0.5, 4.5);
 
-    int clusterMotherFake = 0;
-    int allClusterMotherFake = 0;
+    int nonPropagated = 0;
+    int propagated = 0;
 
     // Geometry
     TString string_to_convert = path + "tf1/o2sim_geometry.root";
@@ -344,7 +350,7 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
 
             o2::itsmft::TopologyDictionary mdict;
             std::vector<ITSCluster> ITSClusXYZ;
-            if (clusters)
+            if (propagation)
             {
                 ITSClusXYZ.reserve(ITSclus->size());
                 gsl::span<const unsigned char> spanPatt = *ITSpatt;
@@ -432,8 +438,16 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
                                         continue;
 
                                     auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
+                                    auto newTritonTrack = tritITSTPCtrack;
+                                    bool hasPropagate = false;
+                                    float hypMass = 0;
+                                    float hypMassProp = 0;
+                                    double chi2 = 10000;
+                                    double chi2Prop = 10000;
+                                    bool hypTrue = false;
+                                    bool tritTrue = false;
 
-                                    if (clusters)
+                                    if (propagation)
                                     {
                                         auto firstCls = hypITSTrack.getFirstClusterEntry(); // ultimo cluster della madre poichè in ordine inverso
                                         auto &clusXYZ = ITSClusXYZ[(*ITSTrackClusIdx)[firstCls]];
@@ -443,16 +457,26 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
                                         clsRef[layer] = matchCompLabelToMC(mcTracksMatrix, labCls);
 
                                         if (clsRef[layer][0] <= -1 || clsRef[layer][1] <= -1)
-                                        continue;
+                                            continue;
 
                                         auto MCTrack = mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]];
                                         int PDG = abs(MCTrack.GetPdgCode());
 
-                                        auto chi2_clus = getTrackClusChi2(tritITSTPCtrack, clusXYZ);
+                                        auto chi2_clus = getTrackClusChi2(tritITSTPCtrack, clusXYZ, newTritonTrack);
+
+                                        if (chi2_clus != -1)
+                                            hasPropagate = true;
+
                                         if (PDG == hypPDG)
+                                        {
                                             chi_cluster_mother->Fill(chi2_clus);
+                                            hypTrue = true;
+                                        }
                                         else if (PDG == tritonPDG)
+                                        {
                                             chi_cluster_daughter->Fill(chi2_clus);
+                                            tritTrue = true;
+                                        }
                                         else
                                             chi_cluster_other->Fill(chi2_clus);
                                     }
@@ -493,9 +517,9 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
                                                 phiTrit = tritITSTPCtrack.getPhi();
 
                                                 if (ft2.getChi2AtPCACandidate() < 0)
-                                                    continue;
+                                                    goto propagation;
 
-                                                double chi2 = ft2.getChi2AtPCACandidate();
+                                                chi2 = ft2.getChi2AtPCACandidate();
                                                 if (!tritfake && !fake)
                                                     chi_squared->Fill(chi2);
                                                 else
@@ -511,7 +535,7 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
                                                 float piPabs = sqrt(piP[0] * piP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
                                                 float piE = sqrt(pi0Mass * pi0Mass + piPabs * piPabs);
                                                 float hypE = piE + tritE;
-                                                float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
+                                                hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
                                                 double pt = sqrt(hypP[0] * hypP[0] + hypP[1] * hypP[1]);
 
                                                 if (fake)
@@ -576,14 +600,9 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
                                                 } // end of fake
 
                                                 if (recR < 18)
-                                                    continue;
+                                                    goto propagation;
                                                 if (std::abs(etaHyp - etaTrit) > 0.03 || std::abs(phiHyp - phiTrit) > 0.03)
-                                                    continue;
-
-                                                if (hypITSTrack.getFirstClusterLayer() != 0)
-                                                    inv_mass_hight_layer->Fill(hypMass);
-                                                if (hypITSTrack.getFirstClusterLayer() >= 2)
-                                                    inv_mass_very_hight_layer->Fill(hypMass);
+                                                    goto propagation;
 
                                                 if (!tritfake && !fake)
                                                 {
@@ -597,7 +616,108 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
                                         }
                                         catch (std::runtime_error &e)
                                         {
-                                            continue;
+                                            goto propagation;
+                                        }
+
+                                    propagation:
+                                        // fitting with propagated tracks
+                                        if (hasPropagate && propagation)
+                                        {
+                                            try
+                                            {
+                                                DCAFitter2 ft2;
+                                                hypITSTrack.checkCovariance();
+                                                newTritonTrack.checkCovariance();
+                                                ft2.setMaxChi2(5);
+                                                ft2.setBz(grp->getNominalL3Field());
+                                                ft2.process(hypITSTrack, newTritonTrack);
+                                                ft2.propagateTracksToVertex();
+                                                if (ft2.isPropagateTracksToVertexDone() == true)
+                                                {
+                                                    auto hypTrackDCA = ft2.getTrack(0);
+                                                    auto tritTrackDCA = ft2.getTrack(1);
+
+                                                    std::array<float, 3> hypP = {0, 0, 0};
+                                                    std::array<float, 3> tritP = {0, 0, 0};
+                                                    float hypPabs = 0;
+                                                    float tritPabs = 0;
+                                                    float etaHyp = 0;
+                                                    float phiHyp = 0;
+                                                    float etaTrit = 0;
+                                                    float phiTrit = 0;
+
+                                                    hypTrackDCA.getPxPyPzGlo(hypP);
+                                                    hypPabs = hypTrackDCA.getP();
+                                                    etaHyp = hypITSTrack.getEta();
+                                                    phiHyp = hypITSTrack.getPhi();
+
+                                                    tritTrackDCA.getPxPyPzGlo(tritP);
+                                                    tritPabs = tritTrackDCA.getP();
+                                                    etaTrit = newTritonTrack.getEta();
+                                                    phiTrit = newTritonTrack.getPhi();
+
+                                                    if (ft2.getChi2AtPCACandidate() < 0)
+                                                        goto filling;
+
+                                                    chi2Prop = ft2.getChi2AtPCACandidate();
+                                                    if (!tritfake && !fake)
+                                                        chi2_propagation->Fill(chi2Prop);
+
+                                                    std::array<float, 3> R = ft2.getPCACandidatePos();
+                                                    double recDl = sqrt(R[0] * R[0] + R[1] * R[1] + R[2] * R[2]);
+                                                    double recCt = hypMassTh * recDl / hypPabs;
+                                                    double recR = sqrt(R[0] * R[0] + R[1] * R[1]);
+
+                                                    float tritE = sqrt(tritPabs * tritPabs + tritonMass * tritonMass);
+                                                    std::array<float, 3> piP = {hypP[0] - tritP[0], hypP[1] - tritP[1], hypP[2] - tritP[2]};
+                                                    float piPabs = sqrt(piP[0] * piP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
+                                                    float piE = sqrt(pi0Mass * pi0Mass + piPabs * piPabs);
+                                                    float hypE = piE + tritE;
+                                                    hypMassProp = sqrt(hypE * hypE - hypPabs * hypPabs);
+                                                    double pt = sqrt(hypP[0] * hypP[0] + hypP[1] * hypP[1]);
+
+                                                    if (recR < 18)
+                                                        goto filling;
+                                                    if (std::abs(etaHyp - etaTrit) > 0.03 || std::abs(phiHyp - phiTrit) > 0.03)
+                                                        goto filling;
+
+                                                    if (!tritfake && !fake)
+                                                        inv_mass_propagation->Fill(hypMassProp);
+
+                                                    fit_ct_propagation->Fill(recCt);
+                                                    fit_pt_propagation->Fill(pt);
+                                                }
+                                            }
+                                            catch (std::runtime_error &e)
+                                            {
+                                                goto filling;
+                                            }
+                                        }
+
+                                    filling:
+                                        // 1: Hyp best non-propagated 2: Hyp Best propagated 3: Trit best non-propagated 4: Trit best propagated
+                                        if (hasPropagate && propagation)
+                                        {
+                                            if (chi2 <= chi2Prop)
+                                            {
+                                                nonPropagated++;
+                                                inv_mass_best->Fill(hypMass);
+                                                if (hypTrue)
+                                                    counts_propagation->Fill(1);
+                                                else if (tritTrue)
+                                                    counts_propagation->Fill(3);
+                                            }
+                                            else
+                                            {
+                                                propagated++;
+                                                inv_mass_best->Fill(hypMassProp);
+                                                if (hypTrue)
+                                                    counts_propagation->Fill(2);
+                                                else if (tritTrue)
+                                                    counts_propagation->Fill(4);
+                                            }
+
+                                            inv_mass_difference->Fill(hypMass - hypMassProp);
                                         }
                                     }
                                 }
@@ -643,12 +763,21 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
             }
         }
     } // tf loop end
+
+    cout << "Non propagated: " << nonPropagated << endl;
+    cout << "Propagated: " << propagated << endl;
+
+    /*
+    Non propagated: 3258
+    Propagated: 10659
+    */
+
     auto fFile = TFile(filename, "recreate");
 
     auto effDir = fFile.mkdir("efficiencies");
     auto fitDir = fFile.mkdir("fit");
     auto clusterDir = fFile.mkdir("cluster");
-    auto chiDir = fFile.mkdir("chi2");
+    auto propDir = fFile.mkdir("propagation");
 
     // efficieny directory
     effDir->cd();
@@ -768,8 +897,6 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
     chi_squared_fake->Write();
     inv_mass->Write();
     inv_mass_fake->Write();
-    inv_mass_hight_layer->Write();
-    inv_mass_very_hight_layer->Write();
     fit_ct->Write();
 
     TH1F *eff_fit_r = (TH1F *)fit_ct->Clone("Top Eff fit ct");
@@ -798,10 +925,29 @@ void topology(TString path, TString filename, bool clusters = false, int tf_max 
     nontriton_cluster->Write();
 
     // chi2 directory
-    chiDir->cd();
+    propDir->cd();
     chi_cluster_mother->Write();
     chi_cluster_daughter->Write();
     chi_cluster_other->Write();
+    inv_mass_propagation->Write();
+    chi2_propagation->Write();
+    inv_mass_best->Write();
+    inv_mass_difference->Write();
+    fit_ct_propagation->Write();
+    fit_pt_propagation->Write();
+    counts_propagation->Write();
+
+    TCanvas *c1 = new TCanvas("c1", "c1", 800, 600);
+    chi_squared->DrawNormalized();
+    chi2_propagation->SetLineColor(kRed);
+    chi2_propagation->DrawNormalized("Psame");
+    c1->Write();
+
+    TCanvas *c2 = new TCanvas("c2", "c2", 800, 600);
+    inv_mass->DrawNormalized();
+    inv_mass_propagation->SetLineColor(kRed);
+    inv_mass_propagation->DrawNormalized("Psame");
+    c2->Write();
 
     fFile.Close();
 }
