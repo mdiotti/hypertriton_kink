@@ -10,6 +10,8 @@
 #include "DetectorsVertexing/DCAFitterN.h"
 #include "DataFormatsParameters/GRPObject.h"
 #include "DetectorsBase/Propagator.h"
+#include "ITStracking/IOUtils.h"
+#include "DetectorsCommonDataFormats/DetectorNameConf.h"
 
 #include "SimulationDataFormat/MCTruthContainer.h"
 #include "DataFormatsITSMFT/CompCluster.h"
@@ -147,7 +149,25 @@ int NFake(TrackITS track)
     return nFake;
 }
 
-void topology(TString path, TString filename, int tf_max = 80)
+double_t getTrackClusChi2(o2::track::TrackParCov tritonTrack, const ITSCluster &clus)
+{
+    auto corrType = o2::base::PropagatorImpl<float>::MatCorrType::USEMatCorrLUT;
+    auto propInstance = o2::base::Propagator::Instance();
+    auto gman = o2::its::GeometryTGeo::Instance();
+    float alpha = gman->getSensorRefAlpha(clus.getSensorID()), x = clus.getX();
+    int layer{gman->getLayer(clus.getSensorID())};
+
+    if (!tritonTrack.rotate(alpha))
+        return -1;
+
+    if (!propInstance->propagateToX(tritonTrack, x, propInstance->getNominalBz(), o2::base::PropagatorImpl<float>::MAX_SIN_PHI, o2::base::PropagatorImpl<float>::MAX_STEP, corrType))
+        return -1;
+
+    auto chi2 = std::abs(tritonTrack.getPredictedChi2(clus));
+    return chi2;
+}
+
+void topology(TString path, TString filename, bool clusters = false, int tf_max = 80)
 {
     const int tf_min = 1;
     int tf_lenght = tf_max - tf_min + 1;
@@ -199,6 +219,11 @@ void topology(TString path, TString filename, int tf_max = 80)
     TH1F *fake_layer = new TH1F("fake_layer", "Layer of the fake cluster;layer;counts", 7, -0.5, 6.5);
     TH1F *nontriton_cluster = new TH1F("nontriton_cluster", "Type of non-triton fake clusters; 1:electron 2:muon 3:pion 4:kaon 5:proton 6:hypertriton ;counts", 6, 0.5, 6.5);
 
+    // define chi2 histograms
+    TH1F *chi_cluster_mother = new TH1F("chi_cluster_mother", "Chi2 of the cluster mother;#chi^{2};counts", 100, 0, 10);
+    TH1F *chi_cluster_daughter = new TH1F("chi_cluster_daughter", "Chi2 of the cluster daughter;#chi^{2};counts", 100, 0, 10);
+    TH1F *chi_cluster_other = new TH1F("chi_cluster_other", "Chi2 of the cluster other;#chi^{2};counts", 100, 0, 10);
+
     int clusterMotherFake = 0;
     int allClusterMotherFake = 0;
 
@@ -206,6 +231,14 @@ void topology(TString path, TString filename, int tf_max = 80)
     TString string_to_convert = path + "tf1/o2sim_geometry.root";
     std::string path_string(string_to_convert.Data());
     o2::base::GeometryManager::loadGeometry(path_string);
+
+    // GRP
+    TString string_to_convert2 = path + "tf1/o2sim_grp.root";
+    std::string path_string_grp(string_to_convert2.Data());
+    const auto grp = o2::parameters::GRPObject::loadFrom(path_string_grp);
+
+    // Load propagator
+    o2::base::Propagator::initFieldFromGRP(grp);
 
     // Matching ITS tracks to MC tracks and V0
     std::array<int, 2> ITSref = {-1, 1};
@@ -226,14 +259,6 @@ void topology(TString path, TString filename, int tf_max = 80)
         auto fITSTPC = TFile::Open(tf_path + "/o2match_itstpc.root");
         auto fMCTracks = TFile::Open(tf_path + "/sgn_" + tf_string + "_Kine.root");
         auto fClusITS = TFile::Open(tf_path + "/o2clus_its.root");
-
-        // GRP
-        TString string_to_convert2 = tf_path + "/o2sim_grp.root";
-        std::string path_string_grp(string_to_convert2.Data());
-        const auto grp = o2::parameters::GRPObject::loadFrom(path_string_grp);
-
-        // load propagator
-        o2::base::Propagator::initFieldFromGRP(grp);
 
         // Trees
         auto treeMCTracks = (TTree *)fMCTracks->Get("o2sim");
@@ -265,6 +290,7 @@ void topology(TString path, TString filename, int tf_max = 80)
 
         treeITSclus->SetBranchAddress("ITSClusterComp", &ITSclus);
         treeITSclus->SetBranchAddress("ITSClusterMCTruth", &clusLabArr);
+        treeITSclus->SetBranchAddress("ITSClusterPatt", &ITSpatt);
         treeITS->SetBranchAddress("ITSTrackClusIdx", &ITSTrackClusIdx);
 
         // mc start
@@ -315,6 +341,17 @@ void topology(TString path, TString filename, int tf_max = 80)
         {
             if (!treeITS->GetEvent(event) || !treeITSTPC->GetEvent(event) || !treeITSclus->GetEvent(event))
                 continue;
+
+            o2::itsmft::TopologyDictionary mdict;
+            std::vector<ITSCluster> ITSClusXYZ;
+            if (clusters)
+            {
+                ITSClusXYZ.reserve(ITSclus->size());
+                gsl::span<const unsigned char> spanPatt = *ITSpatt;
+                auto pattIt = spanPatt.begin();
+                mdict.readFromFile(o2::base::DetectorNameConf::getAlpideClusterDictionaryFileName(o2::detectors::DetID::ITS, "utils/ITSdictionary.bin"));
+                o2::its::ioutils::convertCompactClusters(*ITSclus, pattIt, ITSClusXYZ, &mdict);
+            }
 
             for (unsigned int iTrack{0}; iTrack < labITSvec->size(); ++iTrack)
             {
@@ -396,6 +433,30 @@ void topology(TString path, TString filename, int tf_max = 80)
 
                                     auto tritITSTPCtrack = ITSTPCtracks->at(jTrack);
 
+                                    if (clusters)
+                                    {
+                                        auto firstCls = hypITSTrack.getFirstClusterEntry(); // ultimo cluster della madre poichè in ordine inverso
+                                        auto &clusXYZ = ITSClusXYZ[(*ITSTrackClusIdx)[firstCls]];
+                                        auto &clus = (*ITSclus)[(*ITSTrackClusIdx)[firstCls]];
+                                        auto layer = gman->getLayer(clus.getSensorID());
+                                        auto &labCls = (clusLabArr->getLabels(ITSTrackClusIdx->at(firstCls)))[0];
+                                        clsRef[layer] = matchCompLabelToMC(mcTracksMatrix, labCls);
+
+                                        if (clsRef[layer][0] <= -1 || clsRef[layer][1] <= -1)
+                                        continue;
+
+                                        auto MCTrack = mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]];
+                                        int PDG = abs(MCTrack.GetPdgCode());
+
+                                        auto chi2_clus = getTrackClusChi2(tritITSTPCtrack, clusXYZ);
+                                        if (PDG == hypPDG)
+                                            chi_cluster_mother->Fill(chi2_clus);
+                                        else if (PDG == tritonPDG)
+                                            chi_cluster_daughter->Fill(chi2_clus);
+                                        else
+                                            chi_cluster_other->Fill(chi2_clus);
+                                    }
+
                                     if (FITTEROPTION == "DCA")
                                     {
                                         try
@@ -447,7 +508,7 @@ void topology(TString path, TString filename, int tf_max = 80)
 
                                                 float tritE = sqrt(tritPabs * tritPabs + tritonMass * tritonMass);
                                                 std::array<float, 3> piP = {hypP[0] - tritP[0], hypP[1] - tritP[1], hypP[2] - tritP[2]};
-                                                float piPabs = sqrt(piP[0] * pimGeomITSP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
+                                                float piPabs = sqrt(piP[0] * piP[0] + piP[1] * piP[1] + piP[2] * piP[2]);
                                                 float piE = sqrt(pi0Mass * pi0Mass + piPabs * piPabs);
                                                 float hypE = piE + tritE;
                                                 float hypMass = sqrt(hypE * hypE - hypPabs * hypPabs);
@@ -471,7 +532,6 @@ void topology(TString path, TString filename, int tf_max = 80)
                                                         auto &clus = (*ITSclus)[(*ITSTrackClusIdx)[firstClus + icl]];
                                                         auto layer = gman->getLayer(clus.getSensorID());
                                                         clsRef[layer] = matchCompLabelToMC(mcTracksMatrix, labCls);
-
                                                         if (clsRef[layer][0] > -1 && clsRef[layer][1] > -1)
                                                         {
                                                             auto MCTrack = mcTracksMatrix[clsRef[layer][0]][clsRef[layer][1]];
@@ -588,6 +648,7 @@ void topology(TString path, TString filename, int tf_max = 80)
     auto effDir = fFile.mkdir("efficiencies");
     auto fitDir = fFile.mkdir("fit");
     auto clusterDir = fFile.mkdir("cluster");
+    auto chiDir = fFile.mkdir("chi2");
 
     // efficieny directory
     effDir->cd();
@@ -736,23 +797,11 @@ void topology(TString path, TString filename, int tf_max = 80)
     fake_layer->Write();
     nontriton_cluster->Write();
 
+    // chi2 directory
+    chiDir->cd();
+    chi_cluster_mother->Write();
+    chi_cluster_daughter->Write();
+    chi_cluster_other->Write();
+
     fFile.Close();
-}
-
-double_t getTrackClusChi2(const o2::track::TrackParCov &tritonTrack, const CompClusterExt &clus)
-{
-
-    auto corrType = o2::base::PropagatorImpl<float>::MatCorrType::USEMatCorrLUT;
-    auto propInstance = o2::base::Propagator::Instance();
-    auto gman = o2::its::GeometryTGeo::Instance();
-    float alpha = gman->getSensorRefAlpha(clus.getSensorID()), x = clus.getX();
-    int layer{gman->getLayer(clus.getSensorID())};
-
-    if (!track.rotate(alpha))
-        return false;
-
-    if (!propInstance->propagateToX(track, x, propInstance->getNominalBz(), o2::base::PropagatorImpl<float>::MAX_SIN_PHI, o2::base::PropagatorImpl<float>::MAX_STEP, corrType))
-        return false;
-
-    auto chi2 = std::abs(tritonTrack.getPredictedChi2(clus));
 }
