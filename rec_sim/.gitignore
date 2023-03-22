@@ -1,0 +1,12 @@
+*_C*
+-
+*.root
+!o2_geometry.root
+.vscode
+*.pdf
+*.png
+*.d
+*.so
+*.pcm
+*.txt
+core_dump*
