@@ -118,7 +118,7 @@ void read_tree(TString filename)
     // Found:   ITS-TPC,TPC-TOF,TPC-TRD,ITS-TPC-TRD,ITS-TPC-TOF
 
     // Files
-    auto fTrees = TFile::Open("TrackedKinkTree.root");
+    auto fTrees = TFile::Open("TrackedKinkTreeTracks.root");
 
     // Trees
     auto treeMC = (TTree *)fTrees->Get("MCTree");

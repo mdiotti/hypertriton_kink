@@ -10,3 +10,4 @@
 *.pcm
 *.txt
 core_dump*
+*_ACLic_*

@@ -39,6 +39,8 @@
 #include "GPUCommonArray.h"
 #include "DetectorsBase/Propagator.h"
 
+#include <algorithm>
+
 #endif
 
 using namespace o2;
@@ -57,7 +59,7 @@ using Vec3 = ROOT::Math::SVector<double, 3>;
 using KinkTrack = o2::dataformats::KinkTrack;
 
 const int motherPDG = 1010010030;        // hypertriton
-const int firstDaughterPDG = 1000020030; // triton
+const int firstDaughterPDG = 1000010030; // triton
 const int secondDaughterPDG = 211;       // pi0
 
 const float hypMass = 2.99131;
@@ -110,7 +112,7 @@ void tree_builder(std::string path, std::string outSuffix = "")
         std::string file = ((TSystemFile *)fileObj)->GetName();
         if (file.substr(0, 2) == "tf")
         {
-            // if (stoi(file.substr(2)) > 1)
+            //if (stoi(file.substr(2)) > 1)
             if (stoi(file.substr(2)) > 80)
                 continue;
 
@@ -128,11 +130,12 @@ void tree_builder(std::string path, std::string outSuffix = "")
         }
     }
 
+
     TFile outFile = TFile(Form("TrackedKinkTree%s.root", outSuffix.data()), "recreate");
     
     TTree *outTree = new TTree("KinkTree", "KinkTree");
-    float gMotherPt, gDaughterPt, gDecayLength, gMass, gRadius, gChi2;
-    int LosePoint; //to be removed
+    float gMotherPt, gDaughterPt, gDecayLength, gMass, gRadius, gChi2, gGeneratedMotherPt, gGeneratedDaughterPt;
+    int gNLayers;
     std::array<float, 3UL> gVertex;
     bool isTopology, isHyp;
 
@@ -145,7 +148,9 @@ void tree_builder(std::string path, std::string outSuffix = "")
     outTree->Branch("isTopology", &isTopology);
     outTree->Branch("isHyp", &isHyp);
     outTree->Branch("gChi2", &gChi2);
-    outTree->Branch("LosePoint", &LosePoint); //to be removed
+    outTree->Branch("gNLayers", &gNLayers);
+    outTree->Branch("gGeneratedMotherPt", &gGeneratedMotherPt);
+    outTree->Branch("gGeneratedDaughterPt", &gGeneratedDaughterPt);
 
     // create MC tree for efficiency calculation
     TTree *mcTree = new TTree("MCTree", "MCTree");
@@ -170,7 +175,9 @@ void tree_builder(std::string path, std::string outSuffix = "")
     {
         auto &dir = dirs[i];
         auto &kine_file = kine_files[i];
-        LOG(info) << "Processing " << dir;
+        //LOG(info) << "Processing " << dir;
+        counter++;
+        LOG(info) << "Processing TF" <<counter;
         // Files
         auto fMCTracks = TFile::Open((TString(dir + "/") + kine_file));
         auto fStrangeTracks = TFile::Open((dir + "/o2_strange_tracks.root").data());
@@ -280,8 +287,6 @@ void tree_builder(std::string path, std::string outSuffix = "")
 
                 if (abs(mcTrack.GetPdgCode()) == motherPDG)
                 {
-                    double dl = calcDecayLength(MCtracks, mcTrack, firstDaughterPDG);
-
                     int firstDauID = mcTrack.getFirstDaughterTrackId();
                     int nDau = mcTrack.getLastDaughterTrackId();
                     for (int iDau = firstDauID; iDau <= nDau; iDau++)
@@ -313,7 +318,7 @@ void tree_builder(std::string path, std::string outSuffix = "")
             {
 
                 // setting default values
-                gMotherPt = -1, gDaughterPt = -1, gDecayLength = -1, gMass = -1, gMotherPt = -1, gDaughterPt = -1, gRadius = -1, gChi2 = -1;
+                gMotherPt = -1, gDaughterPt = -1, gDecayLength = -1, gMass = -1, gMotherPt = -1, gDaughterPt = -1, gRadius = -1, gChi2 = -1, gGeneratedMotherPt = -1, gGeneratedDaughterPt = -1;
                 gVertex = {0, 0, 0};
                 isTopology = false, isHyp = false;
 
@@ -373,6 +378,9 @@ void tree_builder(std::string path, std::string outSuffix = "")
                 gRadius = sqrt(gVertex[0] * gVertex[0] + gVertex[1] * gVertex[1]);
                 gDecayLength = sqrt(gVertex[0] * gVertex[0] + gVertex[1] * gVertex[1] + gVertex[2] * gVertex[2]);
                 gChi2 = kinkTrack.mChi2Match;
+                gNLayers = kinkTrack.mNLayers;
+                gGeneratedMotherPt = motherTrackMC.GetPt();
+                gGeneratedDaughterPt = daughterTrackMC.GetPt();
 
                 outTree->Fill();
             }
