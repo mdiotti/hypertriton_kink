@@ -10,3 +10,7 @@
 *.pcm
 *.txt
 core_dump*
+*_map.in
+*_map.out
+*_ACLiC_*
+
