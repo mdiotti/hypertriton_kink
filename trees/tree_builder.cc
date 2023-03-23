@@ -112,7 +112,7 @@ void tree_builder(std::string path, std::string outSuffix = "")
         std::string file = ((TSystemFile *)fileObj)->GetName();
         if (file.substr(0, 2) == "tf")
         {
-            //if (stoi(file.substr(2)) > 1)
+            // if (stoi(file.substr(2)) > 1)
             if (stoi(file.substr(2)) > 80)
                 continue;
 
@@ -130,13 +130,16 @@ void tree_builder(std::string path, std::string outSuffix = "")
         }
     }
 
+    std::map<std::string, int> detectorMapN{{"ITS", 1}, {"ITS-TPC", 2}, {"TPC", 3}, {"TPC-TOF", 4}, {"TPC-TRD", 5}, {"ITS-TPC-TRD", 6}, {"ITS-TPC-TOF", 7}, {"TPC-TRD-TOF", 8}, {"ITS-TPC-TRD-TOF", 9}};
+    //ITS,ITS-TPC,TPC-TOF,TPC-TRD,ITS-TPC-TRD,ITS-TPC-TOF,TPC-TRD-TOF,ITS-TPC-TRD-TOF
+
 
     TFile outFile = TFile(Form("TrackedKinkTree%s.root", outSuffix.data()), "recreate");
-    
+
     TTree *outTree = new TTree("KinkTree", "KinkTree");
     float rMotherPt, rDaughterPt, rDecayLength, Mass, rRadius, Chi2Match, Chi2DCA, gMotherPt, gDaughterPt, gDecayLength, gRadius;
-    int NLayers;
-    bool isTopology, isHyp, motherFake, daughterFake;
+    int NLayers, Detector;
+    bool isTopology, isHyp, isTriton, motherFake, daughterFake;
 
     outTree->Branch("rMotherPt", &rMotherPt);
     outTree->Branch("rDaughterPt", &rDaughterPt);
@@ -145,6 +148,7 @@ void tree_builder(std::string path, std::string outSuffix = "")
     outTree->Branch("Mass", &Mass);
     outTree->Branch("isTopology", &isTopology);
     outTree->Branch("isHyp", &isHyp);
+    outTree->Branch("isTriton", &isTriton);
     outTree->Branch("Chi2Match", &Chi2Match);
     outTree->Branch("Chi2DCA", &Chi2DCA);
     outTree->Branch("NLayers", &NLayers);
@@ -154,6 +158,7 @@ void tree_builder(std::string path, std::string outSuffix = "")
     outTree->Branch("gRadius", &gRadius);
     outTree->Branch("motherFake", &motherFake);
     outTree->Branch("daughterFake", &daughterFake);
+    outTree->Branch("Detector", &Detector);
 
     // create MC tree for efficiency calculation
     TTree *mcTree = new TTree("MCTree", "MCTree");
@@ -178,9 +183,9 @@ void tree_builder(std::string path, std::string outSuffix = "")
     {
         auto &dir = dirs[i];
         auto &kine_file = kine_files[i];
-        //LOG(info) << "Processing " << dir;
+        // LOG(info) << "Processing " << dir;
         counter++;
-        LOG(info) << "Processing TF" <<counter;
+        LOG(info) << "Processing TF" << counter;
         // Files
         auto fMCTracks = TFile::Open((TString(dir + "/") + kine_file));
         auto fStrangeTracks = TFile::Open((dir + "/o2_strange_tracks.root").data());
@@ -322,7 +327,8 @@ void tree_builder(std::string path, std::string outSuffix = "")
 
                 // setting default values
                 rMotherPt = -1, rDaughterPt = -1, rDecayLength = -1, Mass = -1, rMotherPt = -1, rDaughterPt = -1, gRadius = -1, Chi2Match = -1, Chi2DCA = -1, gMotherPt = -1, gDaughterPt = -1;
-                isTopology = false, isHyp = false, motherFake = false, daughterFake = false;
+                isTopology = false, isHyp = false, isTriton = false, motherFake = false, daughterFake = false;
+                Detector = -1;
 
                 auto kinkTrack = kinkTracks->at(mcI);
                 if (kinkTrack.mITSRef == -1)
@@ -354,6 +360,9 @@ void tree_builder(std::string path, std::string outSuffix = "")
 
                 if (abs(motherTrackMC.GetPdgCode()) == motherPDG)
                     isHyp = true;
+
+                if (abs(daughterTrackMC.GetPdgCode()) == firstDaughterPDG)
+                    isTriton = true;
 
                 int firstDauID = motherTrackMC.getFirstDaughterTrackId();
                 int nDau = motherTrackMC.getLastDaughterTrackId();
@@ -390,6 +399,7 @@ void tree_builder(std::string path, std::string outSuffix = "")
                 gDecayLength = calcDecayLength(&mcTracksMatrix[evID], motherTrackMC, firstDaughterPDG);
                 motherFake = fake;
                 daughterFake = decayFake;
+                Detector = detectorMapN[kinkTrack.mTrackIdx.getSourceName()];
 
                 outTree->Fill();
             }
