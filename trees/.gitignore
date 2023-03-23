@@ -13,4 +13,5 @@ core_dump*
 *_map.in
 *_map.out
 *_ACLiC_*
-
+*dictUmbrella.h
+*dict_content.h
