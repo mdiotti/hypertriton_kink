@@ -134,23 +134,26 @@ void tree_builder(std::string path, std::string outSuffix = "")
     TFile outFile = TFile(Form("TrackedKinkTree%s.root", outSuffix.data()), "recreate");
     
     TTree *outTree = new TTree("KinkTree", "KinkTree");
-    float gMotherPt, gDaughterPt, gDecayLength, gMass, gRadius, gChi2, gGeneratedMotherPt, gGeneratedDaughterPt;
-    int gNLayers;
-    std::array<float, 3UL> gVertex;
-    bool isTopology, isHyp;
+    float rMotherPt, rDaughterPt, rDecayLength, Mass, rRadius, Chi2Match, Chi2DCA, gMotherPt, gDaughterPt, gDecayLength, gRadius;
+    int NLayers;
+    bool isTopology, isHyp, motherFake, daughterFake;
 
+    outTree->Branch("rMotherPt", &rMotherPt);
+    outTree->Branch("rDaughterPt", &rDaughterPt);
+    outTree->Branch("rDecayLength", &rDecayLength);
+    outTree->Branch("rRadius", &rRadius);
+    outTree->Branch("Mass", &Mass);
+    outTree->Branch("isTopology", &isTopology);
+    outTree->Branch("isHyp", &isHyp);
+    outTree->Branch("Chi2Match", &Chi2Match);
+    outTree->Branch("Chi2DCA", &Chi2DCA);
+    outTree->Branch("NLayers", &NLayers);
     outTree->Branch("gMotherPt", &gMotherPt);
     outTree->Branch("gDaughterPt", &gDaughterPt);
     outTree->Branch("gDecayLength", &gDecayLength);
-    outTree->Branch("gVertex", &gVertex);
     outTree->Branch("gRadius", &gRadius);
-    outTree->Branch("gMass", &gMass);
-    outTree->Branch("isTopology", &isTopology);
-    outTree->Branch("isHyp", &isHyp);
-    outTree->Branch("gChi2", &gChi2);
-    outTree->Branch("gNLayers", &gNLayers);
-    outTree->Branch("gGeneratedMotherPt", &gGeneratedMotherPt);
-    outTree->Branch("gGeneratedDaughterPt", &gGeneratedDaughterPt);
+    outTree->Branch("motherFake", &motherFake);
+    outTree->Branch("daughterFake", &daughterFake);
 
     // create MC tree for efficiency calculation
     TTree *mcTree = new TTree("MCTree", "MCTree");
@@ -318,9 +321,8 @@ void tree_builder(std::string path, std::string outSuffix = "")
             {
 
                 // setting default values
-                gMotherPt = -1, gDaughterPt = -1, gDecayLength = -1, gMass = -1, gMotherPt = -1, gDaughterPt = -1, gRadius = -1, gChi2 = -1, gGeneratedMotherPt = -1, gGeneratedDaughterPt = -1;
-                gVertex = {0, 0, 0};
-                isTopology = false, isHyp = false;
+                rMotherPt = -1, rDaughterPt = -1, rDecayLength = -1, Mass = -1, rMotherPt = -1, rDaughterPt = -1, gRadius = -1, Chi2Match = -1, Chi2DCA = -1, gMotherPt = -1, gDaughterPt = -1;
+                isTopology = false, isHyp = false, motherFake = false, daughterFake = false;
 
                 auto kinkTrack = kinkTracks->at(mcI);
                 if (kinkTrack.mITSRef == -1)
@@ -371,16 +373,23 @@ void tree_builder(std::string path, std::string outSuffix = "")
                 if (tritID == decayTrackID && evID == decayEvID)
                     isTopology = true;
 
-                gMotherPt = kinkTrack.mMother.getPt();
-                gDaughterPt = kinkTrack.mDaughter.getPt();
-                gMass = kinkTrack.mMasses[0];
-                gVertex = kinkTrack.mDecayVtx;
-                gRadius = sqrt(gVertex[0] * gVertex[0] + gVertex[1] * gVertex[1]);
-                gDecayLength = sqrt(gVertex[0] * gVertex[0] + gVertex[1] * gVertex[1] + gVertex[2] * gVertex[2]);
-                gChi2 = kinkTrack.mChi2Match;
-                gNLayers = kinkTrack.mNLayers;
-                gGeneratedMotherPt = motherTrackMC.GetPt();
-                gGeneratedDaughterPt = daughterTrackMC.GetPt();
+                std::array<float, 3> Vertex = {0, 0, 0};
+
+                rMotherPt = kinkTrack.mMother.getPt();
+                rDaughterPt = kinkTrack.mDaughter.getPt();
+                Mass = kinkTrack.mMasses[0];
+                Vertex = kinkTrack.mDecayVtx;
+                rRadius = sqrt(Vertex[0] * Vertex[0] + Vertex[1] * Vertex[1]);
+                rDecayLength = sqrt(Vertex[0] * Vertex[0] + Vertex[1] * Vertex[1] + Vertex[2] * Vertex[2]);
+                Chi2Match = kinkTrack.mChi2Match;
+                Chi2DCA = kinkTrack.mChi2Vertex;
+                NLayers = kinkTrack.mNLayers;
+                gMotherPt = motherTrackMC.GetPt();
+                gDaughterPt = daughterTrackMC.GetPt();
+                gRadius = calcRadius(&mcTracksMatrix[evID], motherTrackMC, firstDaughterPDG);
+                gDecayLength = calcDecayLength(&mcTracksMatrix[evID], motherTrackMC, firstDaughterPDG);
+                motherFake = fake;
+                daughterFake = decayFake;
 
                 outTree->Fill();
             }
