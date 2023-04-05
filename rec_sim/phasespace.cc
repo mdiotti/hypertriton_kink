@@ -23,9 +23,13 @@ using namespace std;
 using namespace o2;
 using namespace vertexing;
 
-const double hypMass = 2.99131;
-const double piMass = 0.1349766;
-const double tritonMass = 2.808921;
+double hypMass = 2.99131;
+double piMass = 0.1349766;
+double tritonMass = 2.808921;
+
+double sigmaMass = 1.192;
+double neutronMass = 0.939565;
+double piMinusMass = 0.13957018;
 
 const double fontSize = 0.045;
 
@@ -46,8 +50,15 @@ const double etaRange = 1;
 
 // string FITTEROPTION = "DCA"; // "DCA_false" or "KFParticle"
 
-void phasespace(TString filename, int nEvents = 100000, int seed = 0)
+void phasespace(TString filename, int nEvents = 100000, int seed = 0, bool sigma = false)
 {
+    if (sigma)
+    {
+        hypMass = sigmaMass;
+        piMass = neutronMass;
+        tritonMass = piMinusMass;
+    }
+
     gRandom->SetSeed(seed);
 
     if (!gROOT->GetClass("TGenPhaseSpace"))
@@ -61,7 +72,7 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
 
     TH1F *kink_angle = new TH1F("Kink angle", "Kink angle;#theta_{kink} (degrees);counts", nBins, 0, 10);
 
-    //TH1F *inv_mass_corrected = new TH1F("Invariant mass corrected", "Invariant mass corrected;" + hypLabel + ";counts", nBins, 2.9, 4);
+    // TH1F *inv_mass_corrected = new TH1F("Invariant mass corrected", "Invariant mass corrected;" + hypLabel + ";counts", nBins, 2.9, 4);
 
     TH1F *pi0_resolution = new TH1F("Pi0 p resolution", "#pi^{0} p resolution;Resolution;counts", nBins, -10, 10);
     TH1F *triton_resolution = new TH1F("Triton p resolution", "Triton p resolution;Resolution;counts", nBins, -5, 5);
@@ -103,19 +114,6 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         HypRec.SetPtEtaPhiM(HypPtSmeared, eta, pi, hypMass);
         double hypPabs = HypRec.P();
 
-       // bool corrected = false;
-/*
-        while ((hypPabs * hypPabs + hypMass * hypMass) < (tritonPabs * tritonPabs + tritonMass * tritonMass))
-        {
-            double pTrec = HypRec.Pt();
-            double deltapT = abs(gRandom->Gaus(0, hypSmearing * pTrec));
-            double pTrecSmeared = pTrec + deltapT;
-            HypRec.SetPtEtaPhiM(pTrecSmeared, HypRec.Eta(), HypRec.Phi(), hypMass);
-            hypPabs = HypRec.P();
-            corrected = true;
-        }
-*/
-
         TLorentzVector LorentzPi = TLorentzVector(HypRec.Px() - LorentzTriton->Px(), HypRec.Py() - LorentzTriton->Py(), HypRec.Pz() - LorentzTriton->Pz(), piMass);
         LorentzPi.SetPtEtaPhiM(LorentzPi.Pt(), LorentzPi.Eta(), LorentzPi.Phi(), piMass);
         double tritonE = LorentzTriton->E();
@@ -131,14 +129,11 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
         if (piE * piE - piPabs * piPabs > 0)
             inv_mass_pi->Fill(piMassFound);
 
-        double angle = HypRec.Angle(LorentzTriton->Vect())/TMath::Pi()*180;
+        double angle = HypRec.Angle(LorentzTriton->Vect()) / TMath::Pi() * 180;
 
         h_piP->Fill(piPabs);
         h_tritonP->Fill(tritonPabs);
-        //if (!corrected)
-           inv_mass->Fill(hypRecM);
-        //else
-        //   inv_mass_corrected->Fill(hypRecM);
+        inv_mass->Fill(hypRecM);
         mass_vs_p->Fill(pGen, hypRecM);
         p_vs_e->Fill(hypPabs - pGen, hypE - EGen);
         pi0_resolution->Fill(piPGen - piPabs);
@@ -179,7 +174,6 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     h_piP->Write();
     h_tritonP->Write();
     inv_mass->Write();
-    //inv_mass_corrected->Write();
     inv_mass_pi->Write();
     pi0_resolution->Write();
     triton_resolution->Write();
@@ -189,18 +183,6 @@ void phasespace(TString filename, int nEvents = 100000, int seed = 0)
     kink_angle->Write();
 
     double markerSize = 0.8;
-/*
-    TCanvas *c1 = new TCanvas("c1", "c1", 800, 600);
-    inv_mass->SetMarkerSize(markerSize);
-    inv_mass->GetXaxis()->SetTitleSize(fontSize);
-    inv_mass->GetYaxis()->SetTitleSize(fontSize);
-    inv_mass->DrawNormalized("EP");
-    inv_mass_corrected->SetMarkerSize(markerSize);
-    inv_mass_corrected->GetXaxis()->SetTitleSize(fontSize);
-    inv_mass_corrected->GetYaxis()->SetTitleSize(fontSize);
-    inv_mass_corrected->SetLineColor(kGreen);
-    inv_mass_corrected->DrawNormalized("sameEP");
-    c1->Write();
-*/
+    
     fFile.Close();
 }

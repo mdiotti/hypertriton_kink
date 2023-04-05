@@ -156,21 +156,13 @@ void read_tree(TString filename)
         gen_decay_lenght->Fill(genL);
         gen_r->Fill(genR);
 
-        // if(kinkTrack.mTrackIdx.getSourceName()=="TPC") continue; //exclude TPC only tracks (why?)
+        // if(kinkTrack.mTrackIdx.getSourceName()=="TPC") continue;
         // without TPC: 33k topology, 16k reconstructed
         // with TPC: 40k topology, 18k reconstructed
 
         bool isHyp = false;
         if (abs(motherTrackMC->GetPdgCode()) == hypPDG)
             isHyp = true;
-
-        if (isHyp && isDaughter)
-        {
-            lose_point->Fill(kinkTrack->mLosePoint);
-        }
-
-        // if (kinkTrack->mLosePoint <= 1)
-        //     continue;
 
         auto mother = kinkTrack->mMother;
         auto daughter = kinkTrack->mDaughter;
@@ -229,11 +221,6 @@ void read_tree(TString filename)
         float chi2k = kinkTrack->mChi2Match;
 
         chi_all->Fill(chi2k);
-        if (isHyp && isDaughter)
-            lose_point_final->Fill(kinkTrack->mLosePoint);
-
-        if (kinkTrack->mLosePoint != 3)
-            continue;
 
         if (isHyp && isDaughter)
         {

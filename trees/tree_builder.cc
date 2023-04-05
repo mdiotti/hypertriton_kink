@@ -99,7 +99,7 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
     return -1;
 }
 
-void tree_builder(std::string path, std::string outSuffix = "")
+void tree_builder(std::string path, std::string outSuffix = "", bool KFP = true)
 {
 
     TSystemDirectory dir("MyDir", path.data());
@@ -133,18 +133,21 @@ void tree_builder(std::string path, std::string outSuffix = "")
     std::map<std::string, int> detectorMapN{{"ITS", 1}, {"ITS-TPC", 2}, {"TPC", 3}, {"TPC-TOF", 4}, {"TPC-TRD", 5}, {"ITS-TPC-TRD", 6}, {"ITS-TPC-TOF", 7}, {"TPC-TRD-TOF", 8}, {"ITS-TPC-TRD-TOF", 9}};
     //ITS,ITS-TPC,TPC-TOF,TPC-TRD,ITS-TPC-TRD,ITS-TPC-TOF,TPC-TRD-TOF,ITS-TPC-TRD-TOF
 
-
-    TFile outFile = TFile(Form("TrackedKinkTree%s.root", outSuffix.data()), "recreate");
+    TString name;
+    if(KFP) name = "TrackedKFPKinkTree%s.root";
+    else name = "TrackedKinkTree%s.root";
+    TFile outFile = TFile(Form(name, outSuffix.data()), "recreate");
 
     TTree *outTree = new TTree("KinkTree", "KinkTree");
-    float rMotherPt, rDaughterPt, rDecayLength, Mass, rRadius, Chi2Match, Chi2DCA, gMotherPt, gDaughterPt, gDecayLength, gRadius;
+    float rMotherPt, rDaughterPt, rDecayLength, rAngle, Mass, rRadius, Chi2Match, Chi2DCA, gMotherPt, gDaughterPt, gDecayLength, gRadius;
     int NLayers, Detector;
-    bool isTopology, isHyp, isTriton, motherFake, daughterFake;
+    bool isTopology, isHyp, isTriton, motherFake, daughterFake, usingKFP;
 
     outTree->Branch("rMotherPt", &rMotherPt);
     outTree->Branch("rDaughterPt", &rDaughterPt);
     outTree->Branch("rDecayLength", &rDecayLength);
     outTree->Branch("rRadius", &rRadius);
+    outTree->Branch("rAngle", &rAngle);
     outTree->Branch("Mass", &Mass);
     outTree->Branch("isTopology", &isTopology);
     outTree->Branch("isHyp", &isHyp);
@@ -159,6 +162,7 @@ void tree_builder(std::string path, std::string outSuffix = "")
     outTree->Branch("motherFake", &motherFake);
     outTree->Branch("daughterFake", &daughterFake);
     outTree->Branch("Detector", &Detector);
+    outTree->Branch("usingKFP", &usingKFP);
 
     // create MC tree for efficiency calculation
     TTree *mcTree = new TTree("MCTree", "MCTree");
@@ -326,13 +330,18 @@ void tree_builder(std::string path, std::string outSuffix = "")
             {
 
                 // setting default values
-                rMotherPt = -1, rDaughterPt = -1, rDecayLength = -1, Mass = -1, rMotherPt = -1, rDaughterPt = -1, gRadius = -1, Chi2Match = -1, Chi2DCA = -1, gMotherPt = -1, gDaughterPt = -1;
+                rMotherPt = -1, rDaughterPt = -1, rDecayLength = -1, Mass = -1, rMotherPt = -1, rDaughterPt = -1, rAngle = -1, gRadius = -1, Chi2Match = -1, Chi2DCA = -1, gMotherPt = -1, gDaughterPt = -1;
                 isTopology = false, isHyp = false, isTriton = false, motherFake = false, daughterFake = false;
                 Detector = -1;
 
                 auto kinkTrack = kinkTracks->at(mcI);
                 if (kinkTrack.mITSRef == -1)
                     continue;
+
+                if (kinkTrack.mKFused != KFP) {
+                    LOG(info) << "KF tag mismatch!";
+                    continue;
+                }
 
                 TString source = kinkTrack.mTrackIdx.getSourceName();
 
@@ -382,6 +391,15 @@ void tree_builder(std::string path, std::string outSuffix = "")
                 if (tritID == decayTrackID && evID == decayEvID)
                     isTopology = true;
 
+                
+                std::array<float, 3> hypP = {0, 0, 0};
+                std::array<float, 3> tritP = {0, 0, 0};
+                kinkTrack.mMother.getPxPyPzGlo(hypP);
+                kinkTrack.mDaughter.getPxPyPzGlo(tritP);
+                float scalarProduct = hypP[0] * tritP[0] + hypP[1] * tritP[1] + hypP[2] * tritP[2];
+                float cosTheta = scalarProduct / (kinkTrack.mMother.getP() * kinkTrack.mDaughter.getP());
+                float angle = acos(cosTheta) / TMath::Pi() * 180;
+
                 std::array<float, 3> Vertex = {0, 0, 0};
 
                 rMotherPt = kinkTrack.mMother.getPt();
@@ -400,6 +418,8 @@ void tree_builder(std::string path, std::string outSuffix = "")
                 motherFake = fake;
                 daughterFake = decayFake;
                 Detector = detectorMapN[kinkTrack.mTrackIdx.getSourceName()];
+                usingKFP = kinkTrack.mKFused;
+                rAngle = angle;
 
                 outTree->Fill();
             }

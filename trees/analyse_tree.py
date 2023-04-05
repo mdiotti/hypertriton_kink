@@ -11,6 +11,8 @@ def fill_th2_hist(df, var1, var2, h):
     for ind in range(len(df)):
         h.Fill(df.iloc[ind][var1], df.iloc[ind][var2])
 
+usingKFP = False
+
 
 kBlueC = ROOT.TColor.GetColor('#1f78b4')
 kOrangeC  = ROOT.TColor.GetColor("#ff7f00")
@@ -37,6 +39,12 @@ mass_bkg = ROOT.TH1F("mass_bkg", "mass_bkg", 100, 2.9, 3.2)
 gen_pt = ROOT.TH1F("gen_pt", "gen_pt", 100, 0, 12)
 gen_r = ROOT.TH1F("gen_r", "gen_r", 100, 0, 50)
 
+angle = ROOT.TH1F("angle", "angle", 100, 0, 5)
+angle_bkg = ROOT.TH1F("angle_bkg", "angle_bkg", 100, 0, 5)
+
+angle_vs_pgen = ROOT.TH2F("angle_vs_pgen", "angle_vs_pgen", 100, 0, 12, 100, 0, 5)
+angle_vs_pgen_bkg = ROOT.TH2F("angle_vs_pgen_bkg", "angle_vs_pgen_bkg", 100, 0, 12, 100, 0, 5)
+
 detector = ROOT.TH1F("Daughter detector", "Daughter detector; Detector[ITS(1),ITS-TPC(2),TPC(3),TPC-TOF(4),TPC-TRD(5),ITS-TPC-TRD(6),ITS-TPC-TOF(7),TPC-TRD-TOF(8),ITS-TPC-TRD-TOF(9)]; counts", 9, 0.5, 9.5)
 detector_bkg = ROOT.TH1F("Daughter detector bkg", "Daughter detector bkg; Detector[ITS(1),ITS-TPC(2),TPC(3),TPC-TOF(4),TPC-TRD(5),ITS-TPC-TRD(6),ITS-TPC-TOF(7),TPC-TRD-TOF(8),ITS-TPC-TRD-TOF(9)]; counts", 9, 0.5, 9.5)
 
@@ -49,11 +57,20 @@ res_vs_pgen_5L = ROOT.TH2F("res_vs_pgen_5L", "res_vs_pgen_5L", 100, 0, 12, 100, 
 res_vs_pgen_6L = ROOT.TH2F("res_vs_pgen_6L", "res_vs_pgen_6L", 100, 0, 12, 100, -1, 1)
 res_vs_pgen_7L = ROOT.TH2F("res_vs_pgen_7L", "res_vs_pgen_7L", 100, 0, 12, 100, -1, 1)
 
-df_mc = uproot.open("TrackedKinkTree.root")["MCTree"].arrays(library="pd")
+if(usingKFP):
+    name = "TrackedKFPKinkTree.root"
+else:
+    name = "TrackedKinkTree.root"
+df_mc = uproot.open(name)["MCTree"].arrays(library="pd")
 
-df_rec = uproot.open("TrackedKinkTree.root")["KinkTree"].arrays(library="pd").query("NLayers > 3").query("motherFake == 0").query("daughterFake == 0").query("Detector > 3")
+df_rec = uproot.open(name)["KinkTree"].arrays(library="pd").query("NLayers > 3").query("motherFake == 0").query("daughterFake == 0").query("Detector != 3")
 df_topology = df_rec.query("isTopology == 1")
 df_bkg = df_rec.query("isTopology == 0").query("isHyp == 0").query("isTriton == 0")
+
+print(df_topology)
+
+if(usingKFP != df_rec["usingKFP"].all()):
+    print("ERROR: KFP flag is not the same in the tree")
 
 mass_4Layers = ROOT.TH1F("mass_4Layers", "mass_4Layers", 50, 2.9, 3.2)
 mass_5Layers = ROOT.TH1F("mass_5Layers", "mass_5Layers", 50, 2.9, 3.2)
@@ -116,6 +133,12 @@ fill_th1_hist(df_bkg, "rRadius", radius_bkg)
 fill_th1_hist(df_bkg, "Mass", mass_bkg)
 fill_th1_hist(df_bkg, "Detector", detector_bkg)
 
+fill_th1_hist(df_topology, "rAngle", angle)
+fill_th1_hist(df_bkg, "rAngle", angle_bkg)
+
+fill_th2_hist(df_topology, "gMotherPt", "rAngle", angle_vs_pgen)
+fill_th2_hist(df_bkg, "gMotherPt", "rAngle", angle_vs_pgen_bkg)
+
 fill_th2_hist(df_topology, "gMotherPt", "res", res_vs_pgen)
 fill_th2_hist(df_topology, "gDaughterPt", "res_dau", res_vs_pgen_dau)
 fill_th2_hist(df_topology, "gRadius", "radius_res", res_vs_radius)
@@ -135,61 +158,144 @@ std_dev_5L_array = np.array([])
 std_dev_6L_array = np.array([])
 std_dev_7L_array = np.array([])
 
+std_dev_4L_error = np.array([])
+std_dev_5L_error = np.array([])
+std_dev_6L_error = np.array([])
+std_dev_7L_error = np.array([])
+
 pt_range = np.array([])
-bins_step = 4
+bins_step = 10
 midstep = int(bins_step/2)
 
-for idx in range(0, res_vs_pgen.GetNbinsX(), bins_step):
-    pt_range = np.append(pt_range, res_vs_pgen.GetXaxis().GetBinCenter(idx + midstep))
-    mean_4L_array = np.append(mean_4L_array, abs(res_vs_pgen_4L.ProjectionY("res_4L", idx, idx + bins_step -1).GetMean()))
-    std_dev_4L_array = np.append(std_dev_4L_array, res_vs_pgen_4L.ProjectionY("res_4L", idx, idx + bins_step -1).GetStdDev())
-    mean_5L_array = np.append(mean_5L_array, abs(res_vs_pgen_5L.ProjectionY("res_5L", idx, idx + bins_step -1).GetMean()))
-    std_dev_5L_array = np.append(std_dev_5L_array, res_vs_pgen_5L.ProjectionY("res_5L", idx, idx + bins_step -1).GetStdDev())
-    mean_6L_array = np.append(mean_6L_array, abs(res_vs_pgen_6L.ProjectionY("res_6L", idx, idx + bins_step -1).GetMean()))
-    std_dev_6L_array = np.append(std_dev_6L_array, res_vs_pgen_6L.ProjectionY("res_6L", idx, idx + bins_step -1).GetStdDev())
-    mean_7L_array = np.append(mean_7L_array, abs(res_vs_pgen_7L.ProjectionY("res_7L", idx, idx + bins_step -1).GetMean()))
-    std_dev_7L_array = np.append(std_dev_7L_array, res_vs_pgen_7L.ProjectionY("res_7L", idx, idx + bins_step -1).GetStdDev())
+if (usingKFP):
+    fitfile = ROOT.TFile("histos_KFP_fit.root", "recreate")
+else:
+    fitfile = ROOT.TFile("histos_fit.root", "recreate")
 
+fitRange = 0.8
+minEntries = 0
+
+for idx in range(0, res_vs_pgen.GetNbinsX(), bins_step):
+    pt = res_vs_pgen.GetXaxis().GetBinCenter(idx + midstep)
+    pt_range = np.append(pt_range, pt)
+
+    proj4 = res_vs_pgen_4L.ProjectionY("res_4L", idx, idx + bins_step -1)
+    if(proj4.GetEntries() > minEntries):
+        canv4 = ROOT.TCanvas()
+        func4 = ROOT.TF1("func4", "gaus", -fitRange, fitRange)
+        proj4.Fit(func4)
+        std_dev_4L_error = np.append(std_dev_4L_error, func4.GetParError(2))
+        std_dev_4L_array = np.append(std_dev_4L_array, func4.GetParameter(2))
+        mean_4L_array = np.append(mean_4L_array, abs(res_vs_pgen_4L.ProjectionY("res_4L", idx, idx + bins_step -1).GetMean()))
+        func4.Draw("same")
+        canv4.Write()
+    else:
+        std_dev_4L_array = np.append(std_dev_4L_array, proj4.GetStdDev())
+        std_dev_4L_error = np.append(std_dev_4L_error, 0)
+        mean_4L_array = np.append(mean_4L_array, abs(res_vs_pgen_4L.ProjectionY("res_4L", idx, idx + bins_step -1).GetMean()))
+        
+    proj5 = res_vs_pgen_5L.ProjectionY("res_5L", idx, idx + bins_step -1)
+    if(proj5.GetEntries() > minEntries):
+        canv5 = ROOT.TCanvas()
+        func5 = ROOT.TF1("func5", "gaus", -fitRange, fitRange)
+        proj5.Fit(func5)
+        std_dev_5L_error = np.append(std_dev_5L_error, func5.GetParError(2))
+        std_dev_5L_array = np.append(std_dev_5L_array, func5.GetParameter(2))
+        mean_5L_array = np.append(mean_5L_array, abs(res_vs_pgen_5L.ProjectionY("res_5L", idx, idx + bins_step -1).GetMean()))
+        func5.Draw("same")
+        canv5.Write()
+    else:
+        std_dev_5L_array = np.append(std_dev_5L_array, proj5.GetStdDev())
+        std_dev_5L_error = np.append(std_dev_5L_error, 0)
+        mean_5L_array = np.append(mean_5L_array, abs(res_vs_pgen_5L.ProjectionY("res_5L", idx, idx + bins_step -1).GetMean()))
+    
+    proj6 = res_vs_pgen_6L.ProjectionY("res_6L", idx, idx + bins_step -1)
+    if(proj6.GetEntries() > minEntries):
+        canv6 = ROOT.TCanvas()
+        func6 = ROOT.TF1("func6", "gaus", -fitRange, fitRange)
+        proj6.Fit(func6)
+        std_dev_6L_error = np.append(std_dev_6L_error, func6.GetParError(2))
+        std_dev_6L_array = np.append(std_dev_6L_array, func6.GetParameter(2))
+        mean_6L_array = np.append(mean_6L_array, abs(res_vs_pgen_6L.ProjectionY("res_6L", idx, idx + bins_step -1).GetMean()))
+        func6.Draw("same")
+        canv6.Write()
+    else:
+        std_dev_6L_array = np.append(std_dev_6L_array, proj6.GetStdDev())
+        std_dev_6L_error = np.append(std_dev_6L_error, 0)
+        mean_6L_array = np.append(mean_6L_array, abs(res_vs_pgen_6L.ProjectionY("res_6L", idx, idx + bins_step -1).GetMean()))
+
+    proj7 = res_vs_pgen_7L.ProjectionY("res_7L", idx, idx + bins_step -1)
+    if(proj7.GetEntries() > minEntries):
+        canv7 = ROOT.TCanvas()
+        func7 = ROOT.TF1("func7", "gaus", -fitRange, fitRange)
+        proj7.Fit(func7)
+        std_dev_7L_error = np.append(std_dev_7L_error, func7.GetParError(2))
+        std_dev_7L_array = np.append(std_dev_7L_array, func7.GetParameter(2))
+        mean_7L_array = np.append(mean_7L_array, abs(res_vs_pgen_7L.ProjectionY("res_7L", idx, idx + bins_step -1).GetMean()))
+        func7.Draw("same")
+        canv7.Write()
+    else:
+        std_dev_7L_array = np.append(std_dev_7L_array, proj7.GetStdDev())
+        std_dev_7L_error = np.append(std_dev_7L_error, 0)
+        mean_7L_array = np.append(mean_7L_array, abs(res_vs_pgen_7L.ProjectionY("res_7L", idx, idx + bins_step -1).GetMean()))
+
+ptStep = (pt_range[1] - pt_range[0])/2
+ptStepArray = np.array([ptStep]*len(pt_range))
 
 histo_4L = ROOT.TH1F("4 Layers mean", "4 Layers mean", len(pt_range), pt_range[0], pt_range[-1])
 histo_5L = ROOT.TH1F("5 Layers mean", "5 Layers mean", len(pt_range), pt_range[0], pt_range[-1])
 histo_6L = ROOT.TH1F("6 Layers mean", "6 Layers mean", len(pt_range), pt_range[0], pt_range[-1])
 histo_7L = ROOT.TH1F("7 Layers mean", "7 Layers mean", len(pt_range), pt_range[0], pt_range[-1])
 
-histo_dev_4L = ROOT.TH1F("4 Layers", "4 Layers", len(pt_range), pt_range[0], pt_range[-1])
-histo_dev_5L = ROOT.TH1F("5 Layers", "5 Layers", len(pt_range), pt_range[0], pt_range[-1])
-histo_dev_6L = ROOT.TH1F("6 Layers", "6 Layers", len(pt_range), pt_range[0], pt_range[-1])
-histo_dev_7L = ROOT.TH1F("7 Layers", "7 Layers", len(pt_range), pt_range[0], pt_range[-1])
+graph4 = ROOT.TGraphErrors(len(pt_range), pt_range, mean_4L_array, ptStepArray, std_dev_4L_error)
+graph5 = ROOT.TGraphErrors(len(pt_range), pt_range, mean_5L_array, ptStepArray, std_dev_5L_error)
+graph6 = ROOT.TGraphErrors(len(pt_range), pt_range, mean_6L_array, ptStepArray, std_dev_6L_error)
+graph7 = ROOT.TGraphErrors(len(pt_range), pt_range, mean_7L_array, ptStepArray, std_dev_7L_error)
+
+graph4.SetMarkerStyle(4)
+graph4.SetMarkerColor(ROOT.kRed)
+graph4.SetLineColor(ROOT.kRed)
+graph4.SetDrawOption("EP")
+graph4.SetTitle("4 Layers")
+graph5.SetMarkerStyle(4)
+graph5.SetMarkerColor(ROOT.kBlue)
+graph5.SetLineColor(ROOT.kBlue)
+graph5.SetDrawOption("EP")
+graph5.SetTitle("5 Layers")
+graph6.SetMarkerStyle(4)
+graph6.SetMarkerColor(ROOT.kGreen)
+graph6.SetLineColor(ROOT.kGreen)
+graph6.SetDrawOption("EP")
+graph6.SetTitle("6 Layers")
+graph7.SetMarkerStyle(4)
+graph7.SetMarkerColor(ROOT.kMagenta +4)
+graph7.SetLineColor(ROOT.kMagenta +4)
+graph7.SetDrawOption("EP")
+graph7.SetTitle("7 Layers")
+
+
+multigraph = ROOT.TMultiGraph("Standard Deviation", "Standard Deviation vs p_{T}; p_{T} (GeV/c); #sigma_{#it{M}} (GeV/c)")
+multigraph.Add(graph4)
+multigraph.Add(graph5)
+multigraph.Add(graph6)
+multigraph.Add(graph7)
+
+multigraph.GetYaxis().SetRangeUser(0, 0.1)
 
 for idx in range(0, len(pt_range)):
     histo_4L.SetBinContent(idx, mean_4L_array[idx])
     histo_5L.SetBinContent(idx, mean_5L_array[idx])
     histo_6L.SetBinContent(idx, mean_6L_array[idx])
     histo_7L.SetBinContent(idx, mean_7L_array[idx])
-    histo_dev_4L.SetBinContent(idx, std_dev_4L_array[idx])
-    histo_dev_5L.SetBinContent(idx, std_dev_5L_array[idx])
-    histo_dev_6L.SetBinContent(idx, std_dev_6L_array[idx])
-    histo_dev_7L.SetBinContent(idx, std_dev_7L_array[idx])
-
-### sum w2 for all the histograms
-
-if (False):
-    mc_mother_pt.Sumw2()
-    mc_daughter_pt.Sumw2()
-    mc_dl.Sumw2()
-    mc_radius.Sumw2()
-
-    mother_pt.Sumw2()
-    daughter_pt.Sumw2()
-    dl.Sumw2()
-    radius.Sumw2()
-    mass_rec.Sumw2()
 
 
 mass.GetYaxis().SetTitle("Counts")
 mass.GetXaxis().SetTitle("#it{M}(^{3}He + #pi^{-} and c.c.)   (GeV/#it{c}^{2})")
 
-outfile = ROOT.TFile("histos.root", "recreate")
+if (usingKFP):
+    outfile = ROOT.TFile("histosKFP.root", "recreate")
+else: 
+    outfile = ROOT.TFile("histos.root", "recreate")
 
 th2Dir = outfile.mkdir("th2")
 th2Dir.cd()
@@ -270,7 +376,7 @@ resolution_4Layers.SetMarkerColor(ROOT.kRed)
 resolution_4Layers.SetLineColor(ROOT.kRed)
 resolution_4Layers.DrawNormalized("sameline")
 
-legend = ROOT.TLegend(0.8,0.7,0.9,0.9)
+legend = ROOT.TLegend(0.8,0.67,0.9,0.87)
 legend.AddEntry(resolution_4Layers,"4 Layers","l")
 legend.AddEntry(resolution_5Layers,"5 Layers","l")
 legend.AddEntry(resolution_6Layers,"6 Layers","l")
@@ -313,35 +419,12 @@ legend2.AddEntry(histo_7L,"7 Layers","p")
 legend2.Draw()
 cvv.Write()
 
-cvv1 = ROOT.TCanvas()
-cvv1.SetName("Std Dev Pt Resolution vs Generated Pt")
-histo_dev_4L.SetStats(0)
-histo_dev_4L.SetMarkerColor(ROOT.kRed)
-histo_dev_4L.SetMarkerStyle(4)
-histo_dev_4L.SetLineColor(ROOT.kRed)
-histo_dev_4L.SetTitle("Resolution Pt Std Dev vs Generated Pt")
-histo_dev_4L.GetYaxis().SetRangeUser(0,0.3)
-histo_dev_4L.Draw("P")
-histo_dev_5L.SetMarkerColor(ROOT.kBlue)
-histo_dev_5L.SetMarkerStyle(4)
-histo_dev_5L.SetLineColor(ROOT.kBlue)
-histo_dev_5L.Draw("Psame")
-histo_dev_6L.SetMarkerColor(ROOT.kGreen)
-histo_dev_6L.SetMarkerStyle(4)
-histo_dev_6L.SetLineColor(ROOT.kGreen)
-histo_dev_6L.Draw("Psame")
-histo_dev_7L.SetMarkerColor(ROOT.kMagenta +4)
-histo_dev_7L.SetMarkerStyle(4)
-histo_dev_7L.SetLineColor(ROOT.kMagenta +4)
-histo_dev_7L.Draw("Psame")
 
-legend1 = ROOT.TLegend(0.8,0.7,0.9,0.9)
-legend1.AddEntry(histo_dev_4L,"4 Layers","p")
-legend1.AddEntry(histo_dev_5L,"5 Layers","p")
-legend1.AddEntry(histo_dev_6L,"6 Layers","p")
-legend1.AddEntry(histo_dev_7L,"7 Layers","p")
-legend1.Draw()
-cvv1.Write()
+cvMG = ROOT.TCanvas("Standard Deviation")
+multigraph.Draw()
+cvMG.BuildLegend(0.8,0.67,0.9,0.87)
+cvMG.Write()
+
 
 detectorDir = outfile.mkdir("detector")
 detectorDir.cd()
@@ -424,3 +507,21 @@ eff_radius_top.GetYaxis().SetTitle("Topology efficiency")
 eff_radius_top.GetXaxis().SetTitle("#it{R}   (cm)")
 eff_radius_top.SetTitle("")
 eff_radius_top.Write()
+
+angleDir = outfile.mkdir("angles")
+angleDir.cd()
+angle.Write()
+angle_bkg.Write()
+angle_vs_pgen.Write()
+angle_vs_pgen_bkg.Write()
+
+fitDir = outfile.mkdir("fit")
+fitDir.cd()
+canv = ROOT.TCanvas()
+funcGaus = ROOT.TF1("funcGaus","gaus",2.9,3.1)
+funcGaus.SetParLimits(1,2.9,3)
+funcGaus.SetParLimits(2,0.01,0.1)
+mass.Fit("funcGaus","R")
+mass.Draw()
+funcGaus.Draw("same")
+canv.Write()
