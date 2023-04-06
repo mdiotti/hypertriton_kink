@@ -30,7 +30,6 @@
 #include "TTree.h"
 #include "TLegend.h"
 #include "CommonDataFormat/RangeReference.h"
-#include "DetectorsVertexing/DCAFitterN.h"
 #include "StrangenessTracking/StrangenessTracker.h"
 #include "ReconstructionDataFormats/PID.h"
 #include "ReconstructionDataFormats/V0.h"
@@ -97,6 +96,11 @@ double calcRadius(std::vector<MCTrack> *MCTracks, const MCTrack &motherTrack, in
         }
     }
     return -1;
+}
+
+double getPt(std::array<float, 3> momentum)
+{
+    return TMath::Sqrt(momentum[0] * momentum[0] + momentum[1] * momentum[1]);
 }
 
 void tree_builder(std::string path, std::string outSuffix = "", bool KFP = true)
@@ -392,18 +396,18 @@ void tree_builder(std::string path, std::string outSuffix = "", bool KFP = true)
                     isTopology = true;
 
                 
-                std::array<float, 3> hypP = {0, 0, 0};
-                std::array<float, 3> tritP = {0, 0, 0};
-                kinkTrack.mMother.getPxPyPzGlo(hypP);
-                kinkTrack.mDaughter.getPxPyPzGlo(tritP);
+                std::array<float, 3> hypP = kinkTrack.mMotherP;
+                std::array<float, 3> tritP = kinkTrack.mDaughterP;
+                float motherPabs = sqrt(hypP[0] * hypP[0] + hypP[1] * hypP[1] + hypP[2] * hypP[2]);
+                float daughterPabs = sqrt(tritP[0] * tritP[0] + tritP[1] * tritP[1] + tritP[2] * tritP[2]);
                 float scalarProduct = hypP[0] * tritP[0] + hypP[1] * tritP[1] + hypP[2] * tritP[2];
-                float cosTheta = scalarProduct / (kinkTrack.mMother.getP() * kinkTrack.mDaughter.getP());
+                float cosTheta = scalarProduct / (motherPabs * daughterPabs);
                 float angle = acos(cosTheta) / TMath::Pi() * 180;
 
                 std::array<float, 3> Vertex = {0, 0, 0};
 
-                rMotherPt = kinkTrack.mMother.getPt();
-                rDaughterPt = kinkTrack.mDaughter.getPt();
+                rMotherPt = getPt(hypP);
+                rDaughterPt = getPt(tritP);
                 Mass = kinkTrack.mMasses[0];
                 Vertex = kinkTrack.mDecayVtx;
                 rRadius = sqrt(Vertex[0] * Vertex[0] + Vertex[1] * Vertex[1]);
